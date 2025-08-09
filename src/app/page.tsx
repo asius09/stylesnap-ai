@@ -2,102 +2,70 @@ import Image from "next/image";
 
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="font-sans min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-950 via-indigo-800 to-indigo-600 p-0">
+      <div className="bg-white/90 dark:bg-black/70 rounded-2xl shadow-2xl flex flex-col md:flex-row items-stretch max-w-4xl w-full mx-4 overflow-hidden">
+        {/* Left: Free Image */}
+        <div className="relative flex-1 min-w-[260px] flex items-center justify-center bg-gradient-to-br from-indigo-200 via-indigo-300 to-indigo-400 dark:from-indigo-900 dark:via-indigo-800 dark:to-indigo-700">
+          <span className="absolute top-4 left-4 bg-gradient-to-r from-orange-400 to-pink-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg z-10">
+            FREE IMAGE
+          </span>
+          <Image
+            src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80"
+            alt="A beautiful mountain landscape"
+            width={400}
+            height={300}
+            className="rounded-lg shadow-lg object-cover m-8"
+            priority
+          />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        {/* Right: Content */}
+        <div className="flex-1 flex flex-col justify-center p-8 md:p-12 gap-6">
+          <div className="mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+              Try StyleSnap AI
+            </h1>
+            <p className="text-gray-700 dark:text-gray-300 text-base sm:text-lg">
+              Instantly identify and style fashion from any image. Upload a photo and let AI do the rest!
+            </p>
+          </div>
+          {/* Dropdown Area */}
+          <div className="mb-4">
+            <label htmlFor="style-dropdown" className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1">
+              Choose a style:
+            </label>
+            <select
+              id="style-dropdown"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              defaultValue="casual"
+            >
+              <option value="casual">Casual</option>
+              <option value="streetwear">Streetwear</option>
+              <option value="formal">Formal</option>
+              <option value="vintage">Vintage</option>
+              <option value="sporty">Sporty</option>
+            </select>
+          </div>
+          {/* StyleSnap AI Logo and Badge */}
+          <div className="flex items-center justify-between mt-auto">
+            <div className="flex items-center gap-2">
+              <span className="inline-block bg-indigo-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow">
+                BETA
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">Powered by</span>
+              <Image
+                src="/stylesnap-ai-logo.svg"
+                alt="StyleSnap AI Logo"
+                width={48}
+                height={48}
+                className="h-10 w-10 object-contain"
+                priority
+              />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
