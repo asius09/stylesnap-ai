@@ -7,17 +7,24 @@ import { ChevronDown, ChevronRight, MoveRight, X } from "lucide-react";
 import { stylesData } from "@/data";
 import { PreviewCard } from "@/components/PreviewCard";
 import { Button } from "@/components/Button";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { ImageData } from "@/types/style.types";
 
 export default function UploadPage() {
-  const [selectedStyle, setSelectedStyle] = useState<ImageData | null>(null);
-  const [file, setFile] = useState<ImageData | null>(null);
+  const [selectedStyle, setSelectedStyle] = useLocalStorage<ImageData | null>(
+    "selectedStyle",
+    null,
+  );
+  const [file, setFile] = useLocalStorage<ImageData | null>(
+    "uploadedFile",
+    null,
+  );
   const [error, setError] = useState<string | null>(null);
   const steps = [
-    { id: "upload-tag", label: "Upload", status: false }, //TODO : ADD TURE FALSE STAUS
+    { id: "upload-tag", label: "Upload", status: file },
     { id: "select-style-tag", label: "Select Style", status: selectedStyle },
-    { id: "generate-tag", label: "Generate", status: false },
-    { id: "download-tag", label: "Download", status: false },
+    { id: "generate-tag", label: "Generate", status: false }, //TODO : ADD TURE FALSE STAUS
+    { id: "download-tag", label: "Download", status: false }, //TODO : ADD TURE FALSE STAUS
   ];
 
   return (
