@@ -78,10 +78,10 @@ export function MyDropzone() {
           </button>
         </div>
         <div className="text-center">
-          <p className="text-sm font-semibold break-all text-white sm:text-base md:text-lg">
+          <p className="selection:bg-primary/50 text-sm font-semibold break-all text-white selection:text-white sm:text-base">
             {file.name}
           </p>
-          <p className="mb-2 text-xs text-white/55 sm:text-sm md:text-base">
+          <p className="selection:bg-primary/50 mb-2 text-xs text-white/55 selection:text-white">
             {(file.size / 1024).toFixed(1)} KB
           </p>
         </div>
