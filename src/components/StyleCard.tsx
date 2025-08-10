@@ -1,14 +1,18 @@
 "use client";
 import React, { useState } from "react";
-import { StyleData } from "@/types/style.types";
+import { ImageData } from "@/types/style.types";
 
 interface StyleCardProps {
-  style: StyleData;
-  onClick?: (style: StyleData) => void;
+  style: ImageData;
+  onClick: (style: ImageData) => void;
   index?: number;
 }
 
-export const StyleCard: React.FC<StyleCardProps> = ({ style, onClick, index }) => {
+export const StyleCard: React.FC<StyleCardProps> = ({
+  style,
+  onClick,
+  index,
+}) => {
   // State to handle image loading error
   const [imgError, setImgError] = useState(false);
   // State to track if the card is being clicked (active)
@@ -56,7 +60,7 @@ export const StyleCard: React.FC<StyleCardProps> = ({ style, onClick, index }) =
             onError={() => setImgError(true)}
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gray-800 text-white text-xs">
+          <div className="flex h-full w-full items-center justify-center bg-gray-800 text-xs text-white">
             Image not available
           </div>
         )}

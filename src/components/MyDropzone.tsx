@@ -1,14 +1,18 @@
 "use client";
 import React, { useCallback, useState, useEffect } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { useDropzone } from "react-dropzone";
 import { Share, X } from "lucide-react";
+import { ImageData } from "@/types/style.types";
 
-type PreviewFile = File & { preview?: string };
+interface DropzoneProps {
+  setFile: (file: ImageData) => void;
+  setError: (error: string | null) => void;
+  file: ImageData | null;
+  error: string | null;
+}
 
-export function MyDropzone() {
-  const [file, setFile] = useState<PreviewFile | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
+export function MyDropzone({ setFile, setError, file, error }: DropzoneProps) {
   const onDrop = useCallback((acceptedFiles: File[], fileRejections: any) => {
     setError(null);
     if (fileRejections && fileRejections.length > 0) {
@@ -18,20 +22,30 @@ export function MyDropzone() {
       return;
     }
     if (acceptedFiles && acceptedFiles.length > 0) {
-      const fileWithPreview = Object.assign(acceptedFiles[0], {
-        preview: URL.createObjectURL(acceptedFiles[0]),
-      });
-      setFile(fileWithPreview);
-      // You can handle the file here, e.g., upload or preview
-      console.log("File dropped:", acceptedFiles[0]);
+      const file = acceptedFiles[0];
+      const preview = URL.createObjectURL(file);
+
+      // Use ImageData type to set file
+      const imageData: ImageData = {
+        id: crypto.randomUUID
+          ? crypto.randomUUID()
+          : Math.random().toString(36).substring(2, 15),
+        name: file.name,
+        image: preview,
+        prompt: "",
+        size: file.size ? `${Math.round(file.size / 1024)} KB` : undefined,
+      };
+
+      setFile(imageData); // If setFile expects File, you may need to adjust the prop type
+      console.log("File dropped:", imageData);
     }
   }, []);
 
   // Clean up preview when component unmounts or file changes
   useEffect(() => {
     return () => {
-      if (file && file.preview) {
-        URL.revokeObjectURL(file.preview);
+      if (file && file.image) {
+        URL.revokeObjectURL(file.image);
       }
     };
   }, [file]);
@@ -48,52 +62,11 @@ export function MyDropzone() {
     // maxSize: 5 * 1024 * 1024, // 5MB
   });
 
-  // If a file is uploaded, show only the preview and file info, no dropzone or upload option
-  if (file) {
-    // 4:5 aspect ratio, e.g., width: 240px, height: 300px
-    return (
-      <div className="flex h-full w-full flex-col items-center justify-center">
-        <div
-          className="bg-background relative mb-4 flex items-center justify-center overflow-hidden rounded-lg border border-gray-300"
-          style={{ width: "240px", height: "300px" }}
-        >
-          {file.preview && (
-            <img
-              src={file.preview}
-              alt={file.name}
-              className="h-full w-full object-cover"
-              style={{ aspectRatio: "4/5" }}
-            />
-          )}
-          <button
-            type="button"
-            aria-label="Remove image"
-            onClick={() => setFile(null)}
-            className="absolute top-2 right-2 z-30 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-white/30 bg-black/60 shadow-lg backdrop-blur-md transition-colors duration-150 hover:bg-red-600 hover:text-white focus:bg-red-600 focus:text-white focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none active:text-white"
-            tabIndex={0}
-            title="Remove image"
-          >
-            <span className="sr-only">Remove image</span>
-            <X className="h-4 w-4 text-white" aria-hidden="true" />
-          </button>
-        </div>
-        <div className="text-center">
-          <p className="selection:bg-primary/50 text-sm font-semibold break-all text-white selection:text-white sm:text-base">
-            {file.name}
-          </p>
-          <p className="selection:bg-primary/50 mb-2 text-xs text-white/55 selection:text-white">
-            {(file.size / 1024).toFixed(1)} KB
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   // Show dropzone if no file is uploaded
   return (
     <div
       {...getRootProps()}
-      className="bg-card hover:border-primary focus:border-primary cursor-pointer rounded-lg border-2 border-dashed border-gray-400 p-8 text-center text-white transition-colors duration-200"
+      className="bg-card hover:border-primary focus:border-primary shrink-0 cursor-pointer rounded-lg border-2 border-dashed border-gray-400 p-8 text-center text-white transition-colors duration-200"
     >
       <input {...getInputProps()} />
       <div className="flex flex-col items-center justify-center">
