@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { ImageData } from "@/types/style.types";
+import Image from "next/image";
 
 interface StyleCardProps {
   style: ImageData;
@@ -52,12 +53,15 @@ export const StyleCard: React.FC<StyleCardProps> = ({
     >
       <div className="absolute inset-0 z-0">
         {!imgError ? (
-          <img
+          <Image
             src={style.image}
             alt={style.name}
             className="h-full w-full object-cover object-center"
-            loading="eager"
+            fill
+            sizes="160px"
+            priority
             onError={() => setImgError(true)}
+            unoptimized
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gray-800 text-xs text-white">

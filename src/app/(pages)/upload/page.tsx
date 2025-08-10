@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import React, { useState } from "react";
 import { MyDropzone } from "@/components/MyDropzone";
 import { StyleCard } from "@/components/StyleCard";
-import { ChevronDown, ChevronRight, MoveRight, X } from "lucide-react";
+import { ChevronDown, ChevronRight, MoveRight } from "lucide-react";
 import { stylesData } from "@/data";
 import { PreviewCard } from "@/components/PreviewCard";
 import { Button } from "@/components/Button";

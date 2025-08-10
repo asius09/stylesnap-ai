@@ -2,11 +2,11 @@ import Image from "next/image";
 
 export default function Home() {
   return (
-    <div className="font-sans min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-950 via-indigo-800 to-indigo-600 p-0">
-      <div className="bg-white/90 dark:bg-black/70 rounded-2xl shadow-2xl flex flex-col md:flex-row items-stretch max-w-4xl w-full mx-4 overflow-hidden">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-950 via-indigo-800 to-indigo-600 p-0 font-sans">
+      <div className="mx-4 flex w-full max-w-4xl flex-col items-stretch overflow-hidden rounded-2xl bg-white/90 shadow-2xl md:flex-row dark:bg-black/70">
         {/* Left: Free Image */}
-        <div className="relative flex-1 min-w-[260px] flex items-center justify-center bg-gradient-to-br from-indigo-200 via-indigo-300 to-indigo-400 dark:from-indigo-900 dark:via-indigo-800 dark:to-indigo-700">
-          <span className="absolute top-4 left-4 bg-gradient-to-r from-orange-400 to-pink-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg z-10">
+        <div className="relative flex min-w-[260px] flex-1 items-center justify-center bg-gradient-to-br from-indigo-200 via-indigo-300 to-indigo-400 dark:from-indigo-900 dark:via-indigo-800 dark:to-indigo-700">
+          <span className="absolute top-4 left-4 z-10 rounded-full bg-gradient-to-r from-orange-400 to-pink-500 px-3 py-1 text-xs font-bold text-white shadow-lg">
             FREE IMAGE
           </span>
           <Image
@@ -14,28 +14,32 @@ export default function Home() {
             alt="A beautiful mountain landscape"
             width={400}
             height={300}
-            className="rounded-lg shadow-lg object-cover m-8"
+            className="m-8 rounded-lg object-cover shadow-lg"
             priority
           />
         </div>
         {/* Right: Content */}
-        <div className="flex-1 flex flex-col justify-center p-8 md:p-12 gap-6">
+        <div className="flex flex-1 flex-col justify-center gap-6 p-8 md:p-12">
           <div className="mb-2">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+            <h1 className="mb-2 text-2xl font-bold text-gray-900 sm:text-3xl dark:text-gray-100">
               Try StyleSnap AI
             </h1>
-            <p className="text-gray-700 dark:text-gray-300 text-base sm:text-lg">
-              Instantly identify and style fashion from any image. Upload a photo and let AI do the rest!
+            <p className="text-base text-gray-700 sm:text-lg dark:text-gray-300">
+              Instantly identify and style fashion from any image. Upload a
+              photo and let AI do the rest!
             </p>
           </div>
           {/* Dropdown Area */}
           <div className="mb-4">
-            <label htmlFor="style-dropdown" className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1">
+            <label
+              htmlFor="style-dropdown"
+              className="mb-1 block text-sm font-medium text-gray-800 dark:text-gray-200"
+            >
               Choose a style:
             </label>
             <select
               id="style-dropdown"
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:ring-2 focus:ring-indigo-400 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
               defaultValue="casual"
             >
               <option value="casual">Casual</option>
@@ -46,14 +50,16 @@ export default function Home() {
             </select>
           </div>
           {/* StyleSnap AI Logo and Badge */}
-          <div className="flex items-center justify-between mt-auto">
+          <div className="mt-auto flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="inline-block bg-indigo-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow">
+              <span className="inline-block rounded-full bg-indigo-600 px-3 py-1 text-xs font-semibold text-white shadow">
                 BETA
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">Powered by</span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Powered by
+              </span>
               <Image
                 src="/stylesnap-ai-logo.svg"
                 alt="StyleSnap AI Logo"
