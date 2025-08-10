@@ -1,22 +1,28 @@
 # StyleSnap AI
 
-StyleSnap AI is a web application that lets you upload your own images and transform them into stunning artistic styles using artificial intelligence.
+> **Tomorrow's Checklist (12/8/2025)**
+>
+> - [ ] Work on UI loading states for a smoother experience.
+> - [ ] Improve the download UI for styled images.
+> - [ ] Integrate AI-powered image generation.
+> - [ ] Test with browser inspect/tools to ensure free image download and preview works as expected.
+> - [ ] Ensure image preview is clear and accessible before download.
 
 ---
 
 ## 🚀 Features
 
-- **Image Upload:** Supports PNG, JPEG, and other common formats.
-- **Live Preview:** Instantly see a preview of your uploaded image.
-- **Trending Styles:** Browse and select from a curated list of popular styles.
-- **AI-Powered Generation:** Apply your chosen style to your image with a single click.
-- **Easy Download:** Download your newly styled image directly.
+- **Image Upload:** Upload PNG, JPEG, and other image formats.
+- **Live Preview:** Instantly preview your uploaded image.
+- **Trending Styles:** Browse and pick from popular style presets.
+- **AI Generation:** Apply AI to generate new styled images.
+- **Download:** Download your styled image for free.
 
 ---
 
 ## 🛠️ Getting Started
 
-Follow these steps to set up the project locally:
+To run the project locally:
 
 1. **Install Dependencies**
 
@@ -36,6 +42,6 @@ Follow these steps to set up the project locally:
 
 3. **Open in Browser**
 
-   Visit [http://localhost:3000](http://localhost:3000) to view the app.
+   Go to [http://localhost:3000](http://localhost:3000) to use the app.
 
 ---
