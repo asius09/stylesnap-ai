@@ -1,7 +1,7 @@
 "use client";
 
 // React and state management
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 
 // UI Components
@@ -22,9 +22,38 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { stylesData } from "@/data";
 import { ImageData, GenerateStatus, Step } from "@/types/style.types";
 
+// Utility to check if a URL is external and not allowed by next/image
+function isUnconfiguredExternalUrl(url: string) {
+  try {
+    const parsed = new URL(
+      url,
+      typeof window !== "undefined"
+        ? window.location.origin
+        : "http://localhost",
+    );
+    // Add more hostnames here if you configure them in next.config.js
+    const allowedHosts = [
+      "localhost",
+      "127.0.0.1",
+      "yourdomain.com",
+      // Add more allowed hostnames here
+    ];
+    // If it's not a relative URL and not in allowed hosts, it's unconfigured
+    return (
+      parsed.protocol.startsWith("http") &&
+      !allowedHosts.includes(parsed.hostname) &&
+      !parsed.pathname.startsWith("/_next/image")
+    );
+  } catch {
+    // If URL constructor fails, treat as not external
+    return false;
+  }
+}
+
 // --- Main Upload Page ---
 export default function UploadPage() {
   // --- State ---
+  // We'll set the file and selectedStyle to the required pseudo objects on mount
   const [selectedStyle, setSelectedStyle] = useLocalStorage<ImageData | null>(
     "selectedStyle",
     null,
@@ -47,30 +76,98 @@ export default function UploadPage() {
     { id: "download-tag", label: "Download", status: false },
   ]);
 
+  // --- On mount, set file and style to pseudo objects ---
+  useEffect(() => {
+    // Only set if not already set
+    if (!file) {
+      setFile({
+        id: "pseudo-uploaded-file",
+        title: "Uploaded Image",
+        imageUrl: "/couple.jpeg",
+        fileSize: "0",
+      });
+    }
+    if (!selectedStyle) {
+      // Find the Ghibli style from stylesData, fallback if not found
+      const ghibliStyle =
+        stylesData.find(
+          (style) =>
+            style.title && style.title.toLowerCase().includes("ghibli"),
+        ) ||
+        // fallback: just use the first style
+        stylesData[0];
+
+      setSelectedStyle({
+        ...ghibliStyle,
+        // Ensure required fields
+        id: ghibliStyle.id,
+        title: ghibliStyle.title,
+        imageUrl: ghibliStyle.imageUrl,
+        stylePrompt: ghibliStyle.stylePrompt,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // --- Handlers ---
+
   const updateTagStatus = (tagName: string, status: boolean) => {
     setSteps((prev) =>
       prev.map((step) => (step.id === tagName ? { ...step, status } : step)),
     );
   };
 
-  const handleGenerate = () => {
+  // Based on @route.ts, the API expects:
+  //   - prompt: string (style title)
+  //   - fileName: string (the filename, relative to /public)
+  // Send both prompt and fileName in the body.
+
+  const handleGenerate = async () => {
     setGeneratedImage(null);
     setLoading(true);
     setGenerateError(null);
+
+    if (!file || !selectedStyle) {
+      setGenerateError("Please upload an image and select a style.");
+      setLoading(false);
+      return;
+    }
+
     try {
       updateTagStatus("generate-tag", true);
-      setGeneratedImage({
-        id: "1980s-pop-art",
-        title: "1980s Pop Art",
-        imageUrl: "/1980s-pop-art.png",
-        convertedStyleLabel: selectedStyle?.title,
+
+      // Prepare form data as expected by the API route
+      const formData = new FormData();
+      // Send prompt
+      formData.append("prompt", selectedStyle.stylePrompt || "");
+      formData.append("fileName", file.imageUrl);
+
+      const response = await fetch("/api/image-generator", {
+        method: "POST",
+        body: formData,
       });
-      setGenerateStatus("success");
+
+      const data = await response.json();
+
+      if (data.status === "successful" && data.imageUrl) {
+        setGeneratedImage({
+          id: `${selectedStyle.title?.toLowerCase().replace(/\s+/g, "-")}-generated`,
+          title: selectedStyle.title,
+          imageUrl: data.imageUrl,
+          convertedStyleLabel: selectedStyle.title,
+        });
+        setGenerateStatus("success");
+      } else {
+        setGenerateError(
+          data.error || "Failed to generate Image, Please Try Again!",
+        );
+        setGenerateStatus("failed");
+      }
     } catch (error: unknown) {
       setGenerateError("Failed to generate Image, Please Try Again!");
+      setGenerateStatus("failed");
     } finally {
-      setTimeout(() => setLoading(false), 600);
+      setLoading(false);
     }
   };
 
@@ -78,6 +175,18 @@ export default function UploadPage() {
     updateTagStatus("download-tag", true);
     // TODO: implement download logic
   };
+
+  // --- Helper to get a safe imageUrl for next/image ---
+  function getSafeImageUrl(imageUrl: string | undefined | null) {
+    if (!imageUrl) return "";
+    if (isUnconfiguredExternalUrl(imageUrl)) {
+      // Instead of passing the external URL directly to next/image, return a placeholder or fallback
+      // Or, you could use a proxy endpoint that fetches the image and serves it from your own domain
+      // For now, return a placeholder image
+      return "/placeholder-image.png";
+    }
+    return imageUrl;
+  }
 
   // --- Render ---
   return (
@@ -112,7 +221,7 @@ export default function UploadPage() {
               >
                 <PreviewCard
                   id={generatedImage.id}
-                  imageUrl={generatedImage.imageUrl ?? ""}
+                  imageUrl={getSafeImageUrl(generatedImage.imageUrl)}
                   title={generatedImage.title ?? ""}
                   convertedStyleLabel={generatedImage.convertedStyleLabel}
                   isStyleCard={false}
@@ -148,7 +257,7 @@ export default function UploadPage() {
           ) : (
             // Only show file upload if file not uploaded
             <>
-              {!file && (
+              {file === null && (
                 <motion.div
                   key="dropzone-inner"
                   initial={{ opacity: 0, scale: 0.95 }}
@@ -173,7 +282,7 @@ export default function UploadPage() {
                 >
                   <PreviewCard
                     id={file.imageUrl}
-                    imageUrl={file.imageUrl}
+                    imageUrl={getSafeImageUrl(file.imageUrl)}
                     title={file.title}
                     isStyleCard={false}
                     onRemove={() => setFile(null)}
@@ -205,7 +314,7 @@ export default function UploadPage() {
 
                       <PreviewCard
                         id={selectedStyle.id}
-                        imageUrl={selectedStyle.imageUrl}
+                        imageUrl={getSafeImageUrl(selectedStyle.imageUrl)}
                         title={selectedStyle.title}
                         isStyleCard={true}
                         stylePrompt={selectedStyle.stylePrompt}
