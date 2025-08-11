@@ -25,24 +25,34 @@ import { ImageData, GenerateStatus, Step } from "@/types/style.types";
 // --- Main Upload Page ---
 export default function UploadPage() {
   // --- State ---
+  // Set default values for testing API. Remove these defaults for production.
   const [selectedStyle, setSelectedStyle] = useLocalStorage<ImageData | null>(
     "selectedStyle",
-    null,
-  );
+    {
+      id: "anime-style",
+      title: "Anime Style",
+      imageUrl: "/anime-art.png",
+      stylePrompt:
+        "Transform this photo into a high-quality anime-style illustration, preserving the subject's pose and details.",
+    },
+  ); // TODO: set to null for production
+  const [file, setFile] = useLocalStorage<ImageData | null>("uploadedFile", {
+    id: "http://tmpfiles.org/dl/9993991/couple.jpeg",
+    title: "couple",
+    imageUrl: "http://tmpfiles.org/dl/9993991/couple.jpeg",
+    fileSize: "512 KB",
+  }); // TODO: set to null for production
+
   const [generatedImage, setGeneratedImage] = useState<ImageData | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [generateStatus, setGenerateStatus] = useState<GenerateStatus>("idle");
-  const [file, setFile] = useLocalStorage<ImageData | null>(
-    "uploadedFile",
-    null,
-  );
   const [error, setError] = useState<string | null>(null);
 
   // --- Steps for progress bar ---
   const [steps, setSteps] = useState<Step[]>([
-    { id: "upload-tag", label: "Upload", status: file },
-    { id: "select-style-tag", label: "Select Style", status: selectedStyle },
+    { id: "upload-tag", label: "Upload", status: !!file },
+    { id: "select-style-tag", label: "Select Style", status: !!selectedStyle },
     { id: "generate-tag", label: "Generate", status: false },
     { id: "download-tag", label: "Download", status: false },
   ]);
@@ -54,23 +64,74 @@ export default function UploadPage() {
     );
   };
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     setGeneratedImage(null);
     setLoading(true);
     setGenerateError(null);
+    setGenerateStatus("idle");
+
+    // Check for required data before making API call
+    if (!selectedStyle || !file || !file.imageUrl) {
+      setGenerateError("Please upload an image and select a style.");
+      setGenerateStatus("failed");
+      setLoading(false);
+      return;
+    }
+
     try {
+      // Call API to generate image
+      console.log("handleGenerateImage called");
       updateTagStatus("generate-tag", true);
-      setGeneratedImage({
-        id: "1980s-pop-art",
-        title: "1980s Pop Art",
-        imageUrl: "/1980s-pop-art.png",
-        convertedStyleLabel: selectedStyle?.title,
+
+      const res = await fetch("/api/image-generator", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt: selectedStyle.stylePrompt,
+          image_url: file.imageUrl,
+        }),
       });
-      setGenerateStatus("success");
-    } catch (error: unknown) {
+      console.log("Response received:", res);
+
+      // Check for HTTP errors
+      if (!res.ok) {
+        const errorText = await res.text();
+        setGenerateError(`API Error: ${errorText}`);
+        setGenerateStatus("failed");
+        setLoading(false);
+        return;
+      }
+
+      const data = await res.json();
+      console.log("Response JSON:", data);
+
+      if ((data.status === 200 || data.status === "success") && data.imageUrl) {
+        setGeneratedImage({
+          id: `${selectedStyle.title ?? "unknown"}-${data.imageUrl}`,
+          title: selectedStyle.title ?? "Unknown",
+          imageUrl: data.imageUrl,
+          convertedStyleLabel: selectedStyle.title ?? "Unknown",
+          fileSize: data.fileSize, // optional, if returned
+        });
+        setGenerateStatus("success");
+        console.log("Image URL set:", data.imageUrl);
+      } else {
+        setGenerateError(data.error || "Failed to generate image.");
+        setGenerateStatus("failed");
+        console.error(
+          "Error from API:",
+          data.error || "Failed to generate image.",
+        );
+      }
+    } catch (error: any) {
       setGenerateError("Failed to generate Image, Please Try Again!");
+      setGenerateStatus("failed");
+      console.error("Fetch error:", error);
     } finally {
       setTimeout(() => setLoading(false), 600);
+      console.log("Loading set to false");
     }
   };
 
@@ -148,7 +209,7 @@ export default function UploadPage() {
           ) : (
             // Only show file upload if file not uploaded
             <>
-              {!file && (
+              {file === null && (
                 <motion.div
                   key="dropzone-inner"
                   initial={{ opacity: 0, scale: 0.95 }}
