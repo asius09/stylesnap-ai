@@ -42,7 +42,7 @@ export const StyleCard: React.FC<StyleCardProps> = ({
       className={className}
       tabIndex={0}
       role="button"
-      aria-label={`Select style: ${style.name}`}
+      aria-label={`Select style: ${style.title}`}
       data-style-id={style.id}
       data-style-index={typeof index === "number" ? index : undefined}
       onClick={() => onClick && onClick(style)}
@@ -54,8 +54,8 @@ export const StyleCard: React.FC<StyleCardProps> = ({
       <div className="absolute inset-0 z-0">
         {!imgError ? (
           <Image
-            src={style.image}
-            alt={style.name}
+            src={style.imageUrl}
+            alt={style.title}
             className="h-full w-full object-cover object-center"
             fill
             sizes="160px"
@@ -72,7 +72,7 @@ export const StyleCard: React.FC<StyleCardProps> = ({
       </div>
       <div className="relative z-10 w-full px-2 pt-1.5 pb-2">
         <h3 className="selection:bg-primary/50 mb-0.5 truncate text-base leading-tight font-bold text-white drop-shadow selection:text-white">
-          {style.name}
+          {style.title}
         </h3>
         <span className="selection:bg-primary/50 bg-primary/20 text-primary/90 inline-block rounded px-2 py-0.5 text-[11px] font-medium shadow-sm selection:text-white">
           Trending

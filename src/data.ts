@@ -2,26 +2,30 @@ import { ImageData } from "./types/style.types";
 export const stylesData: ImageData[] = [
   {
     id: "1980s-pop-art",
-    name: "1980s Pop Art",
-    image: "/1980s-pop-art.png",
-    prompt: "",
+    title: "1980s Pop Art",
+    imageUrl: "/1980s-pop-art.png",
+    stylePrompt:
+      "Bold colors, Ben-Day dots, comic book style, pop culture references.",
   },
   {
     id: "anime-art",
-    name: "Anime Art",
-    image: "/anime-art.png",
-    prompt: "",
+    title: "Anime Art",
+    imageUrl: "/anime-art.png",
+    stylePrompt:
+      "Vibrant colors, large expressive eyes, dynamic poses, clean lines.",
   },
   {
     id: "disney-art",
-    name: "Disney Art",
-    image: "/disney-art.png",
-    prompt: "",
+    title: "Disney Art",
+    imageUrl: "/disney-art.png",
+    stylePrompt:
+      "Soft shading, whimsical characters, magical atmosphere, classic animation style.",
   },
   {
     id: "ghibli-art",
-    name: "Ghibli Art",
-    image: "/ghibli-art.png",
-    prompt: "",
+    title: "Ghibli Art",
+    imageUrl: "/ghibli-art.png",
+    stylePrompt:
+      "Lush backgrounds, gentle color palette, fantastical elements, emotional storytelling.",
   },
 ];

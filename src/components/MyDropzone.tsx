@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { Share } from "lucide-react";
 import { ImageData } from "@/types/style.types";
@@ -12,48 +12,11 @@ interface DropzoneProps {
 }
 
 export function MyDropzone({ setFile, setError, file, error }: DropzoneProps) {
-  const onDrop = useCallback(
-    (
-      acceptedFiles: File[],
-      fileRejections: Array<{
-        file: File;
-        errors: Array<{ code: string; message: string }>;
-      }>,
-    ) => {
-      setError(null);
-      if (fileRejections && fileRejections.length > 0) {
-        setError(
-          "Only PNG, JPEG, and image files are allowed. Please check the file type.",
-        );
-        return;
-      }
-      if (acceptedFiles && acceptedFiles.length > 0) {
-        const file = acceptedFiles[0];
-        const preview = URL.createObjectURL(file);
-
-        // Use ImageData type to set file
-        const imageData: ImageData = {
-          id: crypto.randomUUID
-            ? crypto.randomUUID()
-            : Math.random().toString(36).substring(2, 15),
-          name: file.name,
-          image: preview,
-          prompt: "",
-          size: file.size ? `${Math.round(file.size / 1024)} KB` : undefined,
-        };
-
-        setFile(imageData); // If setFile expects File, you may need to adjust the prop type
-        console.log("File dropped:", imageData);
-      }
-    },
-    [],
-  );
-
   // Clean up preview when component unmounts or file changes
   useEffect(() => {
     return () => {
-      if (file && file.image) {
-        URL.revokeObjectURL(file.image);
+      if (file && file.imageUrl) {
+        URL.revokeObjectURL(file.imageUrl);
       }
     };
   }, [file]);
@@ -73,13 +36,15 @@ export function MyDropzone({ setFile, setError, file, error }: DropzoneProps) {
 
         // Use ImageData type to set file
         const imageData: ImageData = {
-          id: crypto.randomUUID
-            ? crypto.randomUUID()
-            : Math.random().toString(36).substring(2, 15),
-          name: file.name,
-          image: preview,
-          prompt: "",
-          size: file.size ? `${Math.round(file.size / 1024)} KB` : undefined,
+          id:
+            typeof crypto.randomUUID === "function"
+              ? crypto.randomUUID()
+              : Math.random().toString(36).substring(2, 15),
+          title: file.name,
+          imageUrl: preview,
+          fileSize: file.size
+            ? `${Math.round(file.size / 1024)} KB`
+            : undefined,
         };
 
         setFile(imageData);
@@ -100,7 +65,7 @@ export function MyDropzone({ setFile, setError, file, error }: DropzoneProps) {
   return (
     <div
       {...getRootProps()}
-      className="bg-card hover:border-primary focus:border-primary shrink-0 cursor-pointer rounded-lg border-2 border-dashed border-gray-400 p-8 text-center text-white transition-colors duration-200"
+      className="bg-card hover:border-primary focus:border-primary w-full shrink-0 cursor-pointer rounded-lg border-2 border-dashed border-gray-400 p-8 text-center text-white transition-colors duration-200"
     >
       <input {...getInputProps()} />
       <div className="flex flex-col items-center justify-center">

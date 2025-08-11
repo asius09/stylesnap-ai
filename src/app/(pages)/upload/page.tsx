@@ -10,18 +10,33 @@ import { Button } from "@/components/Button";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { ImageData } from "@/types/style.types";
 import { Loader } from "@/components/Loader";
+import { SocialIcon } from "@/components/SocialIcon";
+
 type Step = {
   id: string;
   label: string;
   status: boolean | ImageData | null;
 };
+type GenerateStatus = "success" | "failed" | "idle";
+
+//implementation of download ui - handleGenerate -> if true(200) images comes show it to the site and have download and share option
 
 export default function UploadPage() {
   const [selectedStyle, setSelectedStyle] = useLocalStorage<ImageData | null>(
     "selectedStyle",
     null,
   );
+
+  const [generatedImage, setGenerateImage] = useState<ImageData | null>({
+    id: "1980s-pop-art",
+    name: "1980s Pop Art",
+    image: "/1980s-pop-art.png",
+    prompt: "",
+  }); //TODO : set to null
   const [loading, setLoading] = useState<boolean>(false);
+  const [generateError, setGenerateError] = useState<string | null>(null);
+  const [generateStatus, setGenerateStatus] =
+    useState<GenerateStatus>("success"); //TODO: Set to idle
   const [file, setFile] = useLocalStorage<ImageData | null>(
     "uploadedFile",
     null,
@@ -37,14 +52,31 @@ export default function UploadPage() {
 
   const handleGenerate = () => {
     //TODO: Implement Generate Function
+    setGenerateImage(null);
     console.log("Create Function");
     setLoading(true);
-    setTimeout(() => setLoading(false), 600);
-    // Mark the "generate-tag" step as completed
-    const updatedSteps = steps.map((step) =>
-      step.id === "generate-tag" ? { ...step, status: true } : step,
-    );
-    setSteps(updatedSteps);
+    setGenerateError(null);
+    try {
+      // Mark the "generate-tag" step as completed
+      const updatedSteps = steps.map((step) =>
+        step.id === "generate-tag" ? { ...step, status: true } : step,
+      );
+      setSteps(updatedSteps);
+      setGenerateImage({
+        id: "1980s-pop-art",
+        name: "1980s Pop Art",
+        image: "/1980s-pop-art.png",
+        prompt: "",
+      });
+      setGenerateStatus("success");
+    } catch (error: unknown) {
+      if (error && typeof error === "object") {
+        console.log("Failed to generate Image : ", error);
+      }
+      setGenerateError("Failed to generate Image, Please Try Again!");
+    } finally {
+      setTimeout(() => setLoading(false), 600);
+    }
   };
 
   return (
@@ -92,13 +124,63 @@ export default function UploadPage() {
             </div>
           ))}
         </nav>
-        {/* Dropzone */}
 
+        {/* Dropzone */}
         <section
-          className={`relative flex w-full items-center ${loading ? "justify-center" : selectedStyle ? "justify-between" : "justify-center"} h-auto min-h-[24rem] md:h-96`}
+          className={`relative flex w-full items-center ${
+            loading || !selectedStyle || generateStatus === "success"
+              ? "justify-center"
+              : "justify-between"
+          } h-auto min-h-[24rem] md:h-96`}
         >
           {loading ? (
             <Loader />
+          ) : generateStatus === "success" ? (
+            <div className="flex h-full w-full flex-col items-center justify-center gap-x-20 md:flex-row">
+              <PreviewCard
+                image={generatedImage?.image ?? ""}
+                key={generatedImage?.id ?? ""}
+                name={generatedImage?.name ?? ""}
+                style={false}
+                prompt={generatedImage?.prompt ?? ""}
+                onRemove={() => {}}
+                isRemoveBtnDisabled={false}
+                size={generatedImage?.size}
+              />
+              <div
+                id="image-download-actions"
+                className="mt-4 flex h-full flex-col items-center justify-center gap-4 md:mt-0"
+              >
+                <Button variant={"gradient"} className="w-full max-w-xs">
+                  Download
+                </Button>
+                <Button
+                  variant={"outline"}
+                  className="w-full max-w-xs text-white"
+                >
+                  Generate Another for ₹9
+                </Button>
+
+                <div
+                  id="social-share-links"
+                  className="mt-3 flex flex-col gap-2"
+                >
+                  <p
+                    id="cta-text"
+                    className="text-base font-semibold text-white"
+                  >
+                    Share On :-
+                  </p>
+                  <div className="flex w-full items-center justify-center gap-4">
+                    <SocialIcon name="instagram" />
+                    <SocialIcon name="discord" />
+                    <SocialIcon name="reddit" />
+                    <SocialIcon name="x" />
+                    <SocialIcon name="whatsapp" />
+                  </div>
+                </div>
+              </div>
+            </div>
           ) : (
             <>
               {/* Responsive: vertical flow for mobile, horizontal for md+ */}

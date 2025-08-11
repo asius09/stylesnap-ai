@@ -1,7 +1,8 @@
 export interface ImageData {
   id: string;
-  name: string;
-  image: string;
-  prompt: string;
-  size?: string;
+  title: string;
+  imageUrl: string;
+  convertedStyleLabel?: string;
+  stylePrompt?: string;
+  fileSize?: string;
 }
