@@ -3,6 +3,7 @@ import React from "react";
 import { X, RefreshCw } from "lucide-react";
 import Image from "next/image";
 import { ImageData } from "@/types/style.types";
+import { motion } from "motion/react";
 
 interface PreviewCardProps extends ImageData {
   isStyleCard: boolean;
@@ -21,7 +22,7 @@ export const PreviewCard: React.FC<PreviewCardProps> = ({
   convertedStyleLabel,
   disableRemoveButton = false,
   showRemoveButton = true,
-  showSwitchButton = true,
+  showSwitchButton = false,
   onRemove,
   onSwitchStyle,
 }) => {
@@ -29,9 +30,18 @@ export const PreviewCard: React.FC<PreviewCardProps> = ({
   const isDownloadImage = !!convertedStyleLabel;
 
   return (
-    <div className="flex flex-col items-center justify-center">
+    <motion.div
+      suppressHydrationWarning
+      key="file-preview"
+      initial={{ opacity: 0, y: 30, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 30, scale: 0.95 }}
+      transition={{ duration: 0.4 }}
+      className="flex flex-col items-center justify-center"
+    >
       <div
-        className={`bg-background relative mb-4 flex h-[300px] w-[240px] items-center justify-center overflow-hidden rounded-lg border ${
+        suppressHydrationWarning
+        className={`relative mb-4 flex h-[300px] w-[240px] items-center justify-center overflow-hidden rounded-lg border ${
           isStyleCard ? "border-primary" : "border-gray-300"
         }`}
       >
@@ -47,10 +57,8 @@ export const PreviewCard: React.FC<PreviewCardProps> = ({
             fill
             sizes="240px"
             priority
-            unoptimized
           />
         )}
-        {/* No prompt or converted style label on card */}
         {/* Remove Button */}
         {!isDownloadImage && showRemoveButton && (
           <button
@@ -89,6 +97,6 @@ export const PreviewCard: React.FC<PreviewCardProps> = ({
           {fileSize ? fileSize : "Selected Style"}
         </p>
       </div>
-    </div>
+    </motion.div>
   );
 };

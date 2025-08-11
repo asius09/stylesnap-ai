@@ -9,14 +9,14 @@ export default function Home() {
           <span className="absolute top-4 left-4 z-10 rounded-full bg-gradient-to-r from-orange-400 to-pink-500 px-3 py-1 text-xs font-bold text-white shadow-lg">
             FREE IMAGE
           </span>
-          <Image
+          {/* <Image
             src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80"
             alt="A beautiful mountain landscape"
             width={400}
             height={300}
             className="m-8 rounded-lg object-cover shadow-lg"
             priority
-          />
+          /> */}
         </div>
         {/* Right: Content */}
         <div className="flex flex-1 flex-col justify-center gap-6 p-8 md:p-12">
