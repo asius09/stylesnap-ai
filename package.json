@@ -11,6 +11,7 @@
     "prettier:fix": "prettier --write ."
   },
   "dependencies": {
+    "axios": "^1.11.0",
     "dotenv": "^17.2.1",
     "lineicons-react": "^2.0.0",
     "lucide-react": "^0.539.0",
