@@ -1,12 +1,20 @@
 # StyleSnap AI
 
-> **Tomorrow's Checklist (12/8/2025)**
->
-> - [ ] Work on UI loading states for a smoother experience.
-> - [ ] Improve the download UI for styled images.
-> - [ ] Integrate AI-powered image generation.
-> - [ ] Test with browser inspect/tools to ensure free image download and preview works as expected.
-> - [ ] Ensure image preview is clear and accessible before download.
+## 🐞 Known Bugs
+
+- **Upload image local persist issue:**  
+  When a user uploads an image, it is stored in local storage. However, due to browser security restrictions, the file's object URL is not persistent across page reloads. This means that after reloading the page, the uploaded image is lost and cannot be previewed or used again.  
+  _Potential solution: Consider using IndexedDB or prompting the user to re-upload after reload._
+
+---
+
+## ✅ Progress & Checklist (as of 12/8/2025)
+
+- [x] Work on UI loading states for a smoother experience. _(Done)_
+- [ ] Improve the download UI for styled images.
+- [ ] Integrate AI-powered image generation.
+- [ ] Test with browser inspect/tools to ensure free image download and preview works as expected.
+- [ ] Ensure image preview is clear and accessible before download.
 
 ---
 
