@@ -1,5 +1,5 @@
-import { StyleData } from "./types/style.types";
-export const stylesData: StyleData[] = [
+import { ImageData } from "./types/style.types";
+export const stylesData: ImageData[] = [
   {
     id: "1980s-pop-art",
     name: "1980s Pop Art",
