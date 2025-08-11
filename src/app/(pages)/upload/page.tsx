@@ -25,24 +25,37 @@ import { ImageData, GenerateStatus, Step } from "@/types/style.types";
 // --- Main Upload Page ---
 export default function UploadPage() {
   // --- State ---
+
+  // Pre-set uploaded file as /couple.jpeg, name: couple, fileSize: 324KB
+  const [file, setFile] = useLocalStorage<ImageData | null>("uploadedFile", {
+    id: "couple",
+    title: "couple",
+    imageUrl: "/couple.jpeg",
+    fileSize: "324KB",
+  });
+
+  // Pre-set selected style as ghibli style, with correct prompt and image path
   const [selectedStyle, setSelectedStyle] = useLocalStorage<ImageData | null>(
     "selectedStyle",
-    null,
+    {
+      id: "ghibli-style",
+      title: "ghibli style",
+      imageUrl: "/ghibli-art.png", // public/ghibli-art.png
+      stylePrompt:
+        "Generate an image that converts this photo into a Studio Ghibli-style illustration. Keep every element, person, and detail exactly the same as the original image—do not add, remove, or change anything. Only change the visual style to match the look and feel of Ghibli animation: soft colors, painterly textures, and gentle lighting. The result should be a faithful Ghibli-style version of the original photo, with no extra objects or modifications.",
+    },
   );
+
   const [generatedImage, setGeneratedImage] = useState<ImageData | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [generateStatus, setGenerateStatus] = useState<GenerateStatus>("idle");
-  const [file, setFile] = useLocalStorage<ImageData | null>(
-    "uploadedFile",
-    null,
-  );
   const [error, setError] = useState<string | null>(null);
 
   // --- Steps for progress bar ---
   const [steps, setSteps] = useState<Step[]>([
-    { id: "upload-tag", label: "Upload", status: file },
-    { id: "select-style-tag", label: "Select Style", status: selectedStyle },
+    { id: "upload-tag", label: "Upload", status: !!file },
+    { id: "select-style-tag", label: "Select Style", status: !!selectedStyle },
     { id: "generate-tag", label: "Generate", status: false },
     { id: "download-tag", label: "Download", status: false },
   ]);
@@ -54,21 +67,46 @@ export default function UploadPage() {
     );
   };
 
-  const handleGenerate = () => {
+  // Call API to generate image
+  const handleGenerate = async () => {
     setGeneratedImage(null);
     setLoading(true);
     setGenerateError(null);
+
     try {
       updateTagStatus("generate-tag", true);
-      setGeneratedImage({
-        id: "1980s-pop-art",
-        title: "1980s Pop Art",
-        imageUrl: "/1980s-pop-art.png",
-        convertedStyleLabel: selectedStyle?.title,
+
+      // Call the API with the preset file and style
+      const response = await fetch("/api/image-generator", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: selectedStyle?.stylePrompt || "ghibli style",
+          image_url: "/couple.jpeg", // The API expects a path in public
+        }),
       });
-      setGenerateStatus("success");
-    } catch (error: unknown) {
+
+      const data = await response.json();
+
+      // The API returns imageUrl like "/gemini-native-image.png"
+      if (data.status === "successful" && data.imageUrl) {
+        setGeneratedImage({
+          id: "ghibli-couple",
+          title: "ghibli style",
+          imageUrl: data.imageUrl, // e.g. "/gemini-native-image.png"
+          convertedStyleLabel: selectedStyle?.title,
+          fileSize: "N/A",
+        });
+        setGenerateStatus("success");
+      } else {
+        setGenerateError(
+          data.error || "Failed to generate Image, Please Try Again!",
+        );
+        setGenerateStatus("failed");
+      }
+    } catch (error: any) {
       setGenerateError("Failed to generate Image, Please Try Again!");
+      setGenerateStatus("failed");
     } finally {
       setTimeout(() => setLoading(false), 600);
     }
@@ -76,7 +114,15 @@ export default function UploadPage() {
 
   const handleDownloadGeneratedImage = () => {
     updateTagStatus("download-tag", true);
-    // TODO: implement download logic
+    if (generatedImage?.imageUrl) {
+      // Download the file from the public folder
+      const link = document.createElement("a");
+      link.href = generatedImage.imageUrl;
+      link.download = generatedImage.title || "generated-image.png";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   // --- Render ---
@@ -139,6 +185,13 @@ export default function UploadPage() {
                 <Button
                   variant={"outline"}
                   className="w-full max-w-xs text-white"
+                  onClick={() => {
+                    // Reset for another generation
+                    setGeneratedImage(null);
+                    setGenerateStatus("idle");
+                    updateTagStatus("generate-tag", false);
+                    updateTagStatus("download-tag", false);
+                  }}
                 >
                   Generate Another for ₹9
                 </Button>

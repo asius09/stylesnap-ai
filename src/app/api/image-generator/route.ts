@@ -1,63 +1,156 @@
 import { NextRequest, NextResponse } from "next/server";
-import Together from "together-ai";
-
-const together = new Together({ apiKey: process.env.TOGETHER_API_KEY });
+import { GoogleGenAI, Modality } from "@google/genai";
+import * as fs from "node:fs";
+import * as path from "node:path";
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const body = await request.json();
-    const prompt = typeof body.prompt === "string" ? body.prompt : "";
-    const image_url = typeof body.image_url === "string" ? body.image_url : "";
+    console.log("Received POST request to /api/image-generator");
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-    if (!prompt || !image_url) {
+    const body = await request.json();
+    console.log("Request body:", body);
+
+    const prompt = body.prompt;
+    let imagePath = body.image_url;
+
+    if (!prompt || !imagePath) {
+      console.error("Missing prompt or imagePath in request body");
       return NextResponse.json({
         status: "failed",
-        error: "Missing prompt or image_url in request body",
+        error: "Missing prompt or imagePath in request body",
         statusCode: 400,
       });
     }
 
-    const response = await together.images.create({
-      model: "black-forest-labs/FLUX.1-depth",
-      width: 1024,
-      height: 1024,
-      steps: 28,
-      prompt,
-      // @ts-ignore
-      image_url,
-      output_format: "png",
-      response_format: "url",
-      guidance_scale: 8,
-      n: 1,
+    // If imagePath is a public path (starts with "/"), resolve to absolute path in Next.js public folder
+    if (imagePath.startsWith("/")) {
+      // __dirname is .../src/app/api/image-generator
+      // public folder is at project root
+      // Go up to project root and join with "public" and imagePath
+      const projectRoot = path.resolve(process.cwd());
+      imagePath = path.join(projectRoot, "public", imagePath);
+    }
+
+    // Check if file exists and is readable
+    let imageData: Buffer;
+    try {
+      await fs.promises.access(imagePath, fs.constants.R_OK);
+      imageData = await fs.promises.readFile(imagePath);
+    } catch (err) {
+      console.error("Error reading image file:", err);
+      return NextResponse.json({
+        status: "failed",
+        error: `Could not read image file at provided path: ${imagePath}`,
+        statusCode: 400,
+      });
+    }
+
+    // Guess mime type from extension (default to png)
+    let mimeType = "image/png";
+    const ext = path.extname(imagePath).toLowerCase();
+    if (ext === ".jpg" || ext === ".jpeg") mimeType = "image/jpeg";
+    else if (ext === ".webp") mimeType = "image/webp";
+    else if (ext === ".gif") mimeType = "image/gif";
+
+    const base64Image = imageData.toString("base64");
+    console.log("Loaded image and converted to base64");
+
+    // Prepare the content parts
+    const contents = [
+      { text: prompt },
+      {
+        inlineData: {
+          mimeType,
+          data: base64Image,
+        },
+      },
+    ];
+
+    // Set responseModalities to include "Image" so the model can generate an image
+    
+    const response = await ai.models.generateContent({
+      model: "gemini-2.0-flash-preview-image-generation",
+      contents: contents,
+      config: {
+        responseModalities: [Modality.TEXT, Modality.IMAGE],
+      },
     });
 
-    let output: string | undefined;
-    if (Array.isArray(response.data) && response.data.length > 0) {
-      const dataItem = response.data[0];
-      if ("url" in dataItem && typeof dataItem.url === "string") {
-        output = dataItem.url;
-      } else if (
-        "b64_json" in dataItem &&
-        typeof dataItem.b64_json === "string"
-      ) {
-        output = `data:image/png;base64,${dataItem.b64_json}`;
+    // Defensive checks for undefined
+    if (
+      !response ||
+      !response.candidates ||
+      !response.candidates[0] ||
+      !response.candidates[0].content ||
+      !response.candidates[0].content.parts
+    ) {
+      console.error("Invalid response structure from Gemini API:", response);
+      return NextResponse.json({
+        status: "failed",
+        error: "Invalid response from Gemini API",
+        statusCode: 500,
+      });
+    }
+
+    // Save the generated image to the public folder with a unique name
+    let imageSaved = false;
+    let savedImageFilename = "";
+    for (const part of response.candidates[0].content.parts) {
+      if (part.text) {
+        console.log("Gemini response text:", part.text);
+      } else if (part.inlineData) {
+        const genImageData = part.inlineData.data;
+        if (typeof genImageData === "string") {
+          try {
+            const buffer = Buffer.from(genImageData, "base64");
+            // Save with a timestamp to avoid overwriting
+            const timestamp = Date.now();
+            const outExt =
+              part.inlineData.mimeType === "image/jpeg"
+                ? ".jpg"
+                : part.inlineData.mimeType === "image/webp"
+                  ? ".webp"
+                  : ".png";
+            savedImageFilename = `gemini-native-image-${timestamp}${outExt}`;
+            const outPath = path.join(
+              process.cwd(),
+              "public",
+              savedImageFilename,
+            );
+            await fs.promises.writeFile(outPath, buffer);
+            imageSaved = true;
+            console.log(`Image saved as ${savedImageFilename}`);
+          } catch (err) {
+            console.error("Error saving image file:", err);
+            return NextResponse.json({
+              status: "failed",
+              error: "Failed to save generated image",
+              statusCode: 500,
+            });
+          }
+        } else {
+          console.error("inlineData.data is not a string:", genImageData);
+        }
       }
     }
 
-    if (!output) {
+    if (!imageSaved) {
+      console.error("No image was generated by Gemini API.");
       return NextResponse.json({
         status: "failed",
-        error: "No image output from Together API",
+        error: "No image was generated by Gemini API.",
         statusCode: 500,
       });
     }
 
     return NextResponse.json({
       status: "successful",
-      imageUrl: output,
+      imageUrl: `/${savedImageFilename}`,
       statusCode: 200,
     });
   } catch (error: unknown) {
+    console.error("Error in /api/image-generator POST:", error);
     return NextResponse.json({
       status: "failed",
       error:
