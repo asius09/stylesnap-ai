@@ -59,42 +59,50 @@ To run the project locally:
 
 ---
 
-## File Structure
+## 📁 Project Structure
 
+```
 stylesmap-ai/
 ├── public/
-│ ├── 1980b-pop-art.png
-│ ├── demo-art.png
-│ ├── demo-yat.png
-│ └── ghibis-art.png
+│   ├── 1980b-pop-art.png
+│   ├── demo-art.png
+│   ├── demo-yat.png
+│   └── ghibis-art.png
 ├── src/
-│ ├── app/
-│ │ ├── (pages)/
-│ │ │ └── upload/
-│ │ │ ├── page.tax
-│ │ ├── global.css
-│ │ ├── layout.tax
-│ │ └── page.tax
-│ ├── components/
-│ │ ├── AppHeader.tax
-│ │ ├── ArrowIndicator.tax
-│ │ ├── Button.tax
-│ │ ├── Loader.tax
-│ │ ├── MyDropzone.tax
-│ │ ├── PreviewCard.tax
-│ │ ├── ProgressBar.tax
-│ │ ├── SocialIcon.tax
-│ │ ├── SocialShare.tax
-│ │ └── StyleCard.tax
-│ ├── hosts/
-│ └── types/
-│ ├── style.types.tb
-│ └── data.tb
+│   ├── app/
+│   │   ├── (pages)/
+│   │   │   └── upload/
+│   │   │       ├── page.tax
+│   │   ├── global.css
+│   │   ├── layout.tax
+│   │   └── page.tax
+│   ├── components/
+│   │   ├── AppHeader.tax
+│   │   ├── ArrowIndicator.tax
+│   │   ├── Button.tax
+│   │   ├── Loader.tax
+│   │   ├── MyDropzone.tax
+│   │   ├── PreviewCard.tax
+│   │   ├── ProgressBar.tax
+│   │   ├── SocialIcon.tax
+│   │   ├── SocialShare.tax
+│   │   └── StyleCard.tax
+│   ├── hooks/
+|   |    └── useLocalStorage.tsx
+│   └── types/
+│       ├── style.types.ts
+│       └── data.ts
 ├── .gitignore
-└── NOTEPAGES/
-└── OUTLINE
+└── README.md
+```
 
----
+### Key Directories:
+
+- **public/**: Static assets and images
+- **src/app/**: Main application pages and layouts
+- **src/components/**: Reusable UI components
+- **src/types/**: Type definitions and data structures
+- **README.md/**: Documentation and planning files
 
 ## Key Components
 
