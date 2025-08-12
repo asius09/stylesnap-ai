@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { ToastContainer, ToastProvider } from "@/components/Toast";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -13,7 +14,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`overscroll-none antialiased`}>{children}</body>
+      <body className={`overscroll-none antialiased`}>
+        <ToastProvider>
+          <ToastContainer />
+          {children}
+        </ToastProvider>
+      </body>
     </html>
   );
 }
