@@ -1,7 +1,9 @@
 "use client";
 
+import { useToast } from "@/components/Toast";
+
 // React and state management
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 
 // UI Components
@@ -24,28 +26,42 @@ import { ImageData, GenerateStatus, Step } from "@/types/style.types";
 
 // --- Main Upload Page ---
 export default function UploadPage() {
+  const { addToast } = useToast();
+
   // --- State ---
+  const [file, setFile] = useLocalStorage<ImageData | null>(
+    "uploadedFile",
+    null,
+  );
   const [selectedStyle, setSelectedStyle] = useLocalStorage<ImageData | null>(
     "selectedStyle",
     null,
   );
   const [generatedImage, setGeneratedImage] = useState<ImageData | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [generateError, setGenerateError] = useState<string | null>(null);
-  const [generateStatus, setGenerateStatus] = useState<GenerateStatus>("idle");
-  const [file, setFile] = useLocalStorage<ImageData | null>(
-    "uploadedFile",
-    null,
-  );
+  const [generateStatus, setGenerateStatus] =
+    useState<GenerateStatus>("success");
+
   const [error, setError] = useState<string | null>(null);
 
   // --- Steps for progress bar ---
   const [steps, setSteps] = useState<Step[]>([
-    { id: "upload-tag", label: "Upload", status: file },
-    { id: "select-style-tag", label: "Select Style", status: selectedStyle },
+    { id: "upload-tag", label: "Upload", status: false },
+    { id: "select-style-tag", label: "Select Style", status: false },
     { id: "generate-tag", label: "Generate", status: false },
     { id: "download-tag", label: "Download", status: false },
   ]);
+
+  // Keep steps in sync with file and selectedStyle
+  useEffect(() => {
+    setSteps((prev) => [
+      { ...prev[0], status: !!file },
+      { ...prev[1], status: !!selectedStyle },
+      prev[2],
+      prev[3],
+    ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [file, selectedStyle]);
 
   // --- Handlers ---
   const updateTagStatus = (tagName: string, status: boolean) => {
@@ -54,29 +70,133 @@ export default function UploadPage() {
     );
   };
 
-  const handleGenerate = () => {
-    setGeneratedImage(null);
+  const handleGenerate = async () => {
     setLoading(true);
-    setGenerateError(null);
+    setGeneratedImage(null);
+
     try {
       updateTagStatus("generate-tag", true);
-      setGeneratedImage({
-        id: "1980s-pop-art",
-        title: "1980s Pop Art",
-        imageUrl: "/1980s-pop-art.png",
-        convertedStyleLabel: selectedStyle?.title,
-      });
-      setGenerateStatus("success");
+
+      // Check for required data
+      if (!file?.imageUrl || !selectedStyle?.stylePrompt) {
+        setLoading(false);
+        return;
+      }
+
+      // Call the API route
+      const apiURL = "/api/image-generator";
+      const apiConfig = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          image_url: file.imageUrl,
+          prompt: selectedStyle.stylePrompt,
+        }),
+      };
+      const response = await fetch(apiURL, apiConfig);
+      const data = await response.json();
+      console.log("[API RESPONSE]:", data);
+
+      // Show the output image in the preview after generation is successful
+      if (
+        data &&
+        data.statusCode === 200 &&
+        data.status === "successful" &&
+        data.imageUrl
+      ) {
+        // The image is always at /output.jpg in public, as per API
+        setGeneratedImage({
+          id: `generated-image-${selectedStyle.title}`,
+          title: selectedStyle.title,
+          imageUrl: data.imageUrl.startsWith("/")
+            ? data.imageUrl
+            : `/${data.imageUrl}`,
+          convertedStyleLabel: selectedStyle?.title,
+          fileSize: undefined,
+        });
+        setGenerateStatus("success");
+        addToast({
+          message: `Your ${selectedStyle.title} image has been generated successfully!`,
+          type: "success",
+        });
+      } else {
+        setGenerateStatus("failed");
+        addToast({
+          message: "Failed to generate image. Please try again!",
+          type: "error",
+        });
+      }
     } catch (error: unknown) {
-      setGenerateError("Failed to generate Image, Please Try Again!");
+      setGenerateStatus("failed");
+      addToast({
+        message: "Failed to generate image. Please try again!",
+        type: "error",
+      });
     } finally {
       setTimeout(() => setLoading(false), 600);
     }
   };
 
   const handleDownloadGeneratedImage = () => {
-    updateTagStatus("download-tag", true);
-    // TODO: implement download logic
+    // Download logic for /output.jpg
+    if (generatedImage?.imageUrl) {
+      const link = document.createElement("a");
+      link.href = generatedImage.imageUrl;
+      link.download = "output.jpg";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      updateTagStatus("download-tag", true);
+    }
+  };
+
+  // --- Remove uploaded file handler ---
+  const handleRemoveFile = async () => {
+    if (file?.imageUrl) {
+      try {
+        // Extract file name from imageUrl (e.g., "/input.jpg" -> "input.jpg")
+        const fileName = file.imageUrl.startsWith("/")
+          ? file.imageUrl.slice(1)
+          : file.imageUrl;
+        const response = await fetch("/api/upload", {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ fileName }),
+        });
+        if (response.ok) {
+          addToast({
+            message: "File removed successfully.",
+            type: "success",
+          });
+          setFile(null);
+          return;
+        }
+        throw new Error("Failed to delete file from server.");
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          console.error("Failed to delete file from server:", err.message);
+        } else {
+          console.error("Failed to delete file from server.");
+        }
+      }
+    }
+    setFile(null);
+  };
+
+  const handleStyleSelection = (style: ImageData) => {
+    if (!file) {
+      console.info("Please Upload File first");
+      addToast({
+        type: "info",
+        message: "Please Upload image first",
+      });
+      return;
+    }
+    setSelectedStyle(style);
   };
 
   // --- Render ---
@@ -95,7 +215,8 @@ export default function UploadPage() {
         >
           {loading ? (
             <Loader />
-          ) : generateStatus === "success" && generatedImage ? (
+          ) : generateStatus === "success" && generatedImage?.imageUrl ? (
+            // Show the generated image in the preview after successful generation
             <motion.div
               className="flex h-full w-full flex-col items-center justify-center gap-x-20 overflow-hidden md:flex-row"
               initial={{ opacity: 0, y: 30 }}
@@ -116,7 +237,10 @@ export default function UploadPage() {
                   title={generatedImage.title ?? ""}
                   convertedStyleLabel={generatedImage.convertedStyleLabel}
                   isStyleCard={false}
-                  onRemove={() => {}}
+                  onRemove={() => {
+                    setGeneratedImage(null);
+                    setGenerateStatus("idle");
+                  }}
                   disableRemoveButton={false}
                   fileSize={generatedImage.fileSize}
                 />
@@ -139,6 +263,10 @@ export default function UploadPage() {
                 <Button
                   variant={"outline"}
                   className="w-full max-w-xs text-white"
+                  onClick={() => {
+                    setGeneratedImage(null);
+                    setGenerateStatus("idle");
+                  }}
                 >
                   Generate Another for ₹9
                 </Button>
@@ -176,7 +304,7 @@ export default function UploadPage() {
                     imageUrl={file.imageUrl}
                     title={file.title}
                     isStyleCard={false}
-                    onRemove={() => setFile(null)}
+                    onRemove={handleRemoveFile}
                     disableRemoveButton={!!selectedStyle}
                     fileSize={file.fileSize}
                   />
@@ -256,7 +384,7 @@ export default function UploadPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3, delay: idx * 0.05 }}
               >
-                <StyleCard style={style} onClick={setSelectedStyle} />
+                <StyleCard style={style} onClick={handleStyleSelection} />
               </motion.div>
             ))}
           </motion.div>
