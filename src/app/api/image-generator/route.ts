@@ -1,18 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenAI, Modality } from "@google/genai";
-import * as fs from "node:fs";
-import * as path from "node:path";
+import fs from "node:fs";
+import path from "node:path";
+import RunwayML, { TaskFailedError } from "@runwayml/sdk";
+import * as mime from "mime-types";
+
+// Helper to get image as data URI
+function getImageAsDataUri(imagePath: string): string {
+  console.log(`[getImageAsDataUri] Reading image from: ${imagePath}`);
+  const imageBuffer = fs.readFileSync(imagePath);
+  const base64String = imageBuffer.toString("base64");
+  const contentType = mime.lookup(imagePath) || "application/octet-stream";
+  console.log(`[getImageAsDataUri] Detected content type: ${contentType}`);
+  return `data:${contentType};base64,${base64String}`;
+}
+
+const client = new RunwayML({ apiKey: process.env.RUNWAY_API_KEY });
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     console.log("Received POST request to /api/image-generator");
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
     const body = await request.json();
     console.log("Request body:", body);
 
     const prompt = body.prompt;
     let imagePath = body.image_url;
+    let styleImagePath = body.style_image_url; // Optionally allow a style image
 
     if (!prompt || !imagePath) {
       console.error("Missing prompt or imagePath in request body");
@@ -25,18 +38,22 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // If imagePath is a public path (starts with "/"), resolve to absolute path in Next.js public folder
     if (imagePath.startsWith("/")) {
-      // __dirname is .../src/app/api/image-generator
-      // public folder is at project root
-      // Go up to project root and join with "public" and imagePath
       const projectRoot = path.resolve(process.cwd());
       imagePath = path.join(projectRoot, "public", imagePath);
+      console.log(`[POST] Resolved imagePath to: ${imagePath}`);
+    }
+
+    // If styleImagePath is provided and is a public path, resolve it
+    if (styleImagePath && styleImagePath.startsWith("/")) {
+      const projectRoot = path.resolve(process.cwd());
+      styleImagePath = path.join(projectRoot, "public", styleImagePath);
+      console.log(`[POST] Resolved styleImagePath to: ${styleImagePath}`);
     }
 
     // Check if file exists and is readable
-    let imageData: Buffer;
     try {
       await fs.promises.access(imagePath, fs.constants.R_OK);
-      imageData = await fs.promises.readFile(imagePath);
+      console.log(`[POST] imagePath is accessible: ${imagePath}`);
     } catch (err) {
       console.error("Error reading image file:", err);
       return NextResponse.json({
@@ -46,109 +63,119 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       });
     }
 
-    // Guess mime type from extension (default to png)
-    let mimeType = "image/png";
-    const ext = path.extname(imagePath).toLowerCase();
-    if (ext === ".jpg" || ext === ".jpeg") mimeType = "image/jpeg";
-    else if (ext === ".webp") mimeType = "image/webp";
-    else if (ext === ".gif") mimeType = "image/gif";
-
-    const base64Image = imageData.toString("base64");
-    console.log("Loaded image and converted to base64");
-
-    // Prepare the content parts
-    const contents = [
-      { text: prompt },
-      {
-        inlineData: {
-          mimeType,
-          data: base64Image,
-        },
-      },
-    ];
-
-    // Set responseModalities to include "Image" so the model can generate an image
-    
-    const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash-preview-image-generation",
-      contents: contents,
-      config: {
-        responseModalities: [Modality.TEXT, Modality.IMAGE],
-      },
-    });
-
-    // Defensive checks for undefined
-    if (
-      !response ||
-      !response.candidates ||
-      !response.candidates[0] ||
-      !response.candidates[0].content ||
-      !response.candidates[0].content.parts
-    ) {
-      console.error("Invalid response structure from Gemini API:", response);
-      return NextResponse.json({
-        status: "failed",
-        error: "Invalid response from Gemini API",
-        statusCode: 500,
-      });
-    }
-
-    // Save the generated image to the public folder with a unique name
-    let imageSaved = false;
-    let savedImageFilename = "";
-    for (const part of response.candidates[0].content.parts) {
-      if (part.text) {
-        console.log("Gemini response text:", part.text);
-      } else if (part.inlineData) {
-        const genImageData = part.inlineData.data;
-        if (typeof genImageData === "string") {
-          try {
-            const buffer = Buffer.from(genImageData, "base64");
-            // Save with a timestamp to avoid overwriting
-            const timestamp = Date.now();
-            const outExt =
-              part.inlineData.mimeType === "image/jpeg"
-                ? ".jpg"
-                : part.inlineData.mimeType === "image/webp"
-                  ? ".webp"
-                  : ".png";
-            savedImageFilename = `gemini-native-image-${timestamp}${outExt}`;
-            const outPath = path.join(
-              process.cwd(),
-              "public",
-              savedImageFilename,
-            );
-            await fs.promises.writeFile(outPath, buffer);
-            imageSaved = true;
-            console.log(`Image saved as ${savedImageFilename}`);
-          } catch (err) {
-            console.error("Error saving image file:", err);
-            return NextResponse.json({
-              status: "failed",
-              error: "Failed to save generated image",
-              statusCode: 500,
-            });
-          }
-        } else {
-          console.error("inlineData.data is not a string:", genImageData);
-        }
+    // If style image is provided, check it exists
+    if (styleImagePath) {
+      try {
+        await fs.promises.access(styleImagePath, fs.constants.R_OK);
+        console.log(`[POST] styleImagePath is accessible: ${styleImagePath}`);
+      } catch (err) {
+        console.error("Error reading style image file:", err);
+        return NextResponse.json({
+          status: "failed",
+          error: `Could not read style image file at provided path: ${styleImagePath}`,
+          statusCode: 400,
+        });
       }
     }
 
-    if (!imageSaved) {
-      console.error("No image was generated by Gemini API.");
-      return NextResponse.json({
-        status: "failed",
-        error: "No image was generated by Gemini API.",
-        statusCode: 500,
+    // Prepare referenceImages array
+    const referenceImages: { uri: string; tag?: string }[] = [
+      {
+        uri: getImageAsDataUri(imagePath),
+        tag: "subject",
+      },
+    ];
+    console.log("[POST] referenceImages after subject:", referenceImages);
+    if (styleImagePath) {
+      referenceImages.push({
+        uri: getImageAsDataUri(styleImagePath),
+        tag: "style",
       });
+      // console.log("[POST] referenceImages after style:", referenceImages);
     }
 
-    return NextResponse.json({
-      status: "successful",
-      imageUrl: `/${savedImageFilename}`,
-      statusCode: 200,
-    });
+    // Use the prompt and tags in promptText
+    // If style image is provided, use "@subject in the style of @style"
+    // Otherwise, just use "@subject" and the prompt
+    let promptText = "";
+    if (styleImagePath) {
+      promptText = `@subject in the style of @style. ${prompt}`;
+    } else {
+      promptText = `@subject. ${prompt}`;
+    }
+    console.log(`[POST] promptText: ${promptText}`);
+
+    let task;
+    try {
+      console.log("[POST] Calling RunwayML textToImage.create...");
+      task = await client.textToImage
+        .create({
+          model: "gen4_image_turbo",
+          promptText,
+          ratio: "1920:1080",
+          referenceImages,
+        })
+        .waitForTaskOutput();
+
+      console.log("Task complete:", task);
+
+      // Save the generated image to the public folder with a unique name
+      if (task && Array.isArray(task.output) && task.output.length > 0) {
+        const imageUrl = task.output[0];
+        console.log(`[POST] Generated image URL from RunwayML: ${imageUrl}`);
+        // Download the image and save it to public folder
+        const res = await fetch(imageUrl);
+        if (!res.ok) {
+          console.error("[POST] Failed to fetch generated image from RunwayML");
+          throw new Error("Failed to fetch generated image from RunwayML");
+        }
+        const arrayBuffer = await res.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        const timestamp = Date.now();
+        // Try to get extension from content-type header
+        let ext = ".png";
+        const contentType = res.headers.get("content-type");
+        if (contentType) {
+          if (contentType.includes("jpeg")) ext = ".jpg";
+          else if (contentType.includes("webp")) ext = ".webp";
+          else if (contentType.includes("gif")) ext = ".gif";
+        }
+        const savedImageFilename = `runwayml-image-${timestamp}${ext}`;
+        const outPath = path.join(process.cwd(), "public", savedImageFilename);
+        await fs.promises.writeFile(outPath, buffer);
+        console.log(`Image saved as ${savedImageFilename} at ${outPath}`);
+
+        return NextResponse.json({
+          status: "successful",
+          imageUrl: `/${savedImageFilename}`,
+          statusCode: 200,
+        });
+      } else {
+        console.error("No output image from RunwayML task.");
+        return NextResponse.json({
+          status: "failed",
+          error: "No image was generated by RunwayML.",
+          statusCode: 500,
+        });
+      }
+    } catch (error) {
+      if (error instanceof TaskFailedError) {
+        console.error("The image failed to generate.");
+        console.error(error.taskDetails);
+        return NextResponse.json({
+          status: "failed",
+          error: "The image failed to generate.",
+          statusCode: 500,
+        });
+      } else {
+        console.error("[POST] Error in RunwayML image generation:", error);
+        return NextResponse.json({
+          status: "failed",
+          error: error instanceof Error ? error.message : "Unknown error",
+          statusCode: 500,
+        });
+      }
+    }
   } catch (error: unknown) {
     console.error("Error in /api/image-generator POST:", error);
     return NextResponse.json({
