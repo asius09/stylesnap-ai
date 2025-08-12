@@ -9,6 +9,12 @@
 
 ---
 
+## 🚧 Current Problems
+
+- **Don't have free API or free image generational models to use for the image generations. Currently tested Gemini, Stability AI, and Runway API; exploring others as well.**
+
+---
+
 ## ✅ Progress & Checklist (as of 12/8/2025)
 
 - [x] Work on UI loading states for a smoother experience. _(Done)_
