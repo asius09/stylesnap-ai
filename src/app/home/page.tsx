@@ -70,6 +70,7 @@ export default function UploadPage() {
     );
   };
 
+  // DEMO: Simulate generation by showing /output.jpg (couple, gibli style) after a timeout
   const handleGenerate = async () => {
     setLoading(true);
     setGeneratedImage(null);
@@ -83,59 +84,37 @@ export default function UploadPage() {
         return;
       }
 
-      // Call the API route
-      const apiURL = "/api/image-generator";
-      const apiConfig = {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          image_url: file.imageUrl,
-          prompt: selectedStyle.stylePrompt,
-        }),
-      };
-      const response = await fetch(apiURL, apiConfig);
-      const data = await response.json();
-      console.log("[API RESPONSE]:", data);
+      // Simulate API call with setTimeout for demo
+      setTimeout(() => {
+        // Find the gibli style from stylesData
+        const gibliStyle =
+          stylesData.find(
+            (style) =>
+              style.title.toLowerCase().includes("gibli") ||
+              style.title.toLowerCase().includes("ghibli")
+          ) || selectedStyle;
 
-      // Show the output image in the preview after generation is successful
-      if (
-        data &&
-        data.statusCode === 200 &&
-        data.status === "successful" &&
-        data.imageUrl
-      ) {
-        // The image is always at /output.jpg in public, as per API
         setGeneratedImage({
-          id: `generated-image-${selectedStyle.title}`,
-          title: selectedStyle.title,
-          imageUrl: data.imageUrl.startsWith("/")
-            ? data.imageUrl
-            : `/${data.imageUrl}`,
-          convertedStyleLabel: selectedStyle?.title,
+          id: `generated-image-${gibliStyle.title}`,
+          title: gibliStyle.title,
+          imageUrl: "/output.jpg", // demo image in public directory
+          convertedStyleLabel: gibliStyle.title,
           fileSize: undefined,
         });
         setGenerateStatus("success");
         addToast({
-          message: `Your ${selectedStyle.title} image has been generated successfully!`,
+          message: `Your ${gibliStyle.title} image has been generated successfully!`,
           type: "success",
         });
-      } else {
-        setGenerateStatus("failed");
-        addToast({
-          message: "Failed to generate image. Please try again!",
-          type: "error",
-        });
-      }
+        setLoading(false);
+      }, 1200);
     } catch (error: unknown) {
       setGenerateStatus("failed");
       addToast({
         message: "Failed to generate image. Please try again!",
         type: "error",
       });
-    } finally {
-      setTimeout(() => setLoading(false), 600);
+      setLoading(false);
     }
   };
 
