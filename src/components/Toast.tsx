@@ -174,18 +174,22 @@ const ToastItem = ({ id, type, message, onRemove }: ToastItemProps) => {
 
   return (
     <div
-      className={`flex w-full flex-col items-start space-y-1 rounded-lg ${style.bg} p-4 ${style.text} pointer-events-auto shadow-2xl`}
+      className={`flex w-full flex-col items-start rounded-lg ${style.bg} p-2 md:p-4 ${style.text} pointer-events-auto shadow-2xl`}
     >
       <div className="flex w-full items-center justify-between">
-        <p className="text-sm leading-6 font-bold">{style.title} Message:</p>
+        <p className="text-xs leading-5 font-bold md:text-sm md:leading-6">
+          {style.title} Message:
+        </p>
         <button
-          className="ml-2 cursor-pointer text-lg font-bold opacity-70 hover:opacity-100"
+          className="ml-1 cursor-pointer text-sm font-bold opacity-70 hover:opacity-100 md:ml-2 md:text-base"
           onClick={() => onRemove(id)}
         >
-          <X className="h-5 w-5" />
+          <X className="h-4 w-4 md:h-5 md:w-5" />
         </button>
       </div>
-      <span className="text-sm leading-relaxed font-medium">{message}</span>
+      <span className="text-[10px] leading-relaxed font-medium md:text-xs">
+        {message}
+      </span>
     </div>
   );
 };
