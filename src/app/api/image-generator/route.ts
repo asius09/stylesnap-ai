@@ -1,15 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import Together from "together-ai";
-
-const together = new Together({ apiKey: process.env.TOGETHER_API_KEY });
+import Replicate from "replicate";
+import { writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { readFile } from "node:fs/promises";
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body = await request.json();
-    const prompt = typeof body.prompt === "string" ? body.prompt : "";
-    const image_url = typeof body.image_url === "string" ? body.image_url : "";
+    const prompt = body.prompt;
+    const data = (await readFile(body.image_url)).toString("base64");
+    const image_url = `data:application/octet-stream;base64,${data}`;
+    console.log("[API] Received POST /api/image-generator");
+    console.log("[API] Request body:", body);
 
     if (!prompt || !image_url) {
+      console.error("[API] Missing prompt or image_url in request body");
       return NextResponse.json({
         status: "failed",
         error: "Missing prompt or image_url in request body",
@@ -17,34 +22,41 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       });
     }
 
-    const response = await together.images.create({
-      model: "black-forest-labs/FLUX.1-depth",
-      width: 1024,
-      height: 1024,
-      steps: 28,
-      prompt,
-      // @ts-ignore
-      image_url,
-      output_format: "png",
-      response_format: "url",
-      guidance_scale: 8,
-      n: 1,
+    console.log(
+      "[API] Initializing Replicate with API token:",
+      process.env.REPLICATE_API_TOKEN ? "****" : "undefined",
+    );
+    const replicate = new Replicate({
+      auth: process.env.REPLICATE_API_TOKEN,
+    });
+    console.log("[API] Replicate instance created:", !!replicate);
+
+    const input = {
+      prompt: prompt,
+      input_image: image_url,
+      aspect_ratio: "match_input_image",
+      output_format: "jpg",
+      safety_tolerance: 2,
+      prompt_upsampling: false,
+    };
+
+    console.log("[API] Replicate input:", input);
+
+    const output = await replicate.run("black-forest-labs/flux-kontext-pro", {
+      input,
     });
 
-    let output: string | undefined;
-    if (Array.isArray(response.data) && response.data.length > 0) {
-      const dataItem = response.data[0];
-      if ("url" in dataItem && typeof dataItem.url === "string") {
-        output = dataItem.url;
-      } else if (
-        "b64_json" in dataItem &&
-        typeof dataItem.b64_json === "string"
-      ) {
-        output = `data:image/png;base64,${dataItem.b64_json}`;
-      }
-    }
+    // To access the file URL:
+    console.log(output.url());
+    //=> "https://replicate.delivery/.../output.jpg"
+
+    const publicPath = join(process.cwd(), "public", "output.jpg");
+    await writeFile(publicPath, output);
+
+    console.log("[API] Replicate output:", output);
 
     if (!output) {
+      console.error("[API] No image output from Together API");
       return NextResponse.json({
         status: "failed",
         error: "No image output from Together API",
@@ -54,10 +66,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json({
       status: "successful",
-      imageUrl: output,
+      imageUrl: "/output.jpg",
       statusCode: 200,
     });
   } catch (error: unknown) {
+    console.error("[API] Error in /api/image-generator:", error);
     return NextResponse.json({
       status: "failed",
       error:
