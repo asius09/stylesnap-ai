@@ -2,16 +2,16 @@
 
 ## 🐞 Known Bugs
 
-- **Upload image local persist issue:**  
-  When a user uploads an image, it is stored in local storage. However, due to browser security restrictions, the file's object URL is not persistent across page reloads. This means that after reloading the page, the uploaded image is lost and cannot be previewed or used again.  
-  _Potential solution: Consider using IndexedDB or prompting the user to re-upload after reload._
-  - **Prompt suggestion:** If an uploaded image is missing after reload (detected via local storage), show a prompt to the user asking them to re-upload the image. This can be handled in the local storage logic of the app.
+- **Output image display issue:**  
+  Sometimes, the generated output image does not display correctly on the result screen after generation.  
+  _Potential solution: Debug the image generation and result rendering logic to ensure the output image is always shown when available._
 
 ---
 
 ## 🚧 Current Problems
 
-- **Don't have free API or free image generational models to use for the image generations. Currently tested Gemini, Stability AI, and Runway API; exploring others as well.**
+- **Replicate API has a better version, but each output costs $0.025:**  
+  Replicate offers a high-quality image generation API, but it is not free—each new output costs $0.025. This cost limitation makes it challenging to provide unlimited free generations. Free alternatives like Gemini, Stability AI, and Runway API have been tested, but none currently offer a suitable free tier.
 
 ---
 
@@ -19,11 +19,13 @@
 
 - [x] Work on UI loading states for a smoother experience. _(Done)_
 - [x] Improve the download UI for styled images. _(Done)_
-- [ ] Integrate AI-powered image generation.
+- [x] Integrate AI-powered image generation.
 - [ ] Limit to one free image generation per IP or user (add restriction logic).
 - [ ] Ensure no one can download images for free from inspect tools; test with browser inspect/tools to ensure free image download and preview works as expected.
 - [ ] Ensure image preview is clear and accessible before download.
 - [ ] Show a prompt to re-upload if the uploaded image is missing after reload (local storage handler).
+- [ ] Fix localStorage override bug for uploads and styles.
+- [ ] Fix output image not showing on result.
 
 ---
 
