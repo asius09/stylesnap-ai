@@ -120,14 +120,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const publicPath = join(process.cwd(), "public", "output.jpg");
+    // Generate a unique filename using timestamp and random string
+    const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+    const fileName = `output-${uniqueSuffix}.jpg`;
+    const publicPath = join(process.cwd(), "public", fileName);
     await writeFile(publicPath, buffer);
 
     console.log("[API] Replicate output image saved to:", publicPath);
 
     return NextResponse.json({
       status: "successful",
-      imageUrl: "/output.jpg",
+      imageUrl: `/${fileName}`,
       statusCode: 200,
     });
   } catch (error: unknown) {
