@@ -1,8 +1,9 @@
 "use client";
-import React, { useEffect } from "react";
+import React from "react";
 import { useDropzone } from "react-dropzone";
 import { Share } from "lucide-react";
 import { ImageData } from "@/types/style.types";
+import { useToast } from "@/components/Toast";
 
 interface DropzoneProps {
   setFile: (file: ImageData) => void;
@@ -12,43 +13,71 @@ interface DropzoneProps {
 }
 
 export function MyDropzone({ setFile, setError, file, error }: DropzoneProps) {
-  // Clean up preview when component unmounts or file changes
-  useEffect(() => {
-    return () => {
-      if (file && file.imageUrl) {
-        URL.revokeObjectURL(file.imageUrl);
-      }
-    };
-  }, [file]);
+  const { addToast } = useToast();
 
   const { getRootProps, getInputProps } = useDropzone({
-    onDrop: (acceptedFiles, fileRejections) => {
+    onDrop: async (acceptedFiles, fileRejections) => {
       setError(null);
       if (fileRejections && fileRejections.length > 0) {
         setError(
           "Only PNG, JPEG, and image files are allowed. Please check the file type.",
         );
+        addToast({
+          type: "error",
+          message:
+            "Only PNG, JPEG, and image files are allowed. Please check the file type.",
+        });
         return;
       }
       if (acceptedFiles && acceptedFiles.length > 0) {
         const file = acceptedFiles[0];
-        const preview = URL.createObjectURL(file);
 
-        // Use ImageData type to set file
-        const imageData: ImageData = {
-          id:
-            typeof crypto.randomUUID === "function"
-              ? crypto.randomUUID()
-              : Math.random().toString(36).substring(2, 15),
-          title: file.name,
-          imageUrl: preview,
-          fileSize: file.size
-            ? `${Math.round(file.size / 1024)} KB`
-            : undefined,
-        };
+        // Prepare form data for upload
+        const formData = new FormData();
+        formData.append("file", file);
+        // Provide fileName too
+        formData.append("fileName", file.name);
 
-        setFile(imageData);
-        console.log("File dropped:", imageData);
+        try {
+          // Upload to /api/upload (see @route.ts)
+          const response = await fetch("/api/upload", {
+            method: "POST",
+            body: formData,
+          });
+          const data = await response.json();
+
+          if (data.status === "successful" && data.imageUrl) {
+            const imageData: ImageData = {
+              id:
+                typeof crypto.randomUUID === "function"
+                  ? crypto.randomUUID()
+                  : Math.random().toString(36).substring(2, 15),
+              title: file.name,
+              imageUrl: data.imageUrl, // This is the public location
+              fileSize: file.size
+                ? `${Math.round(file.size / 1024)} KB`
+                : undefined,
+            };
+            setFile(imageData);
+            addToast({
+              type: "success",
+              message: "File uploaded and stored in public directory.",
+            });
+            console.log("File uploaded and stored in public:", imageData);
+          } else {
+            setError("Failed to upload file. Please try again.");
+            addToast({
+              type: "error",
+              message: "Failed to upload file. Please try again.",
+            });
+          }
+        } catch (err) {
+          setError("Failed to upload file. Please try again.");
+          addToast({
+            type: "error",
+            message: "Failed to upload file. Please try again.",
+          });
+        }
       }
     },
     multiple: false,
