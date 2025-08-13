@@ -2,6 +2,47 @@
 
 import { useToast } from "@/components/Toast";
 
+const keyPoints = [
+  {
+    id: "no-signup-required",
+    heading: "No signup required",
+    subHeading: "just upload & generate",
+  },
+  {
+    id: "100s-presets-style",
+    heading: "100s presets style",
+    subHeading: "One click style convert",
+  },
+  {
+    id: "high-quality-jpg",
+    heading: "High Quality JPG",
+    subHeading: "High quality every time",
+  },
+];
+
+const stepsContent = [
+  {
+    id: "upload-step",
+    heading: "Upload Image",
+    detail: "Upload any image from your device.",
+  },
+  {
+    id: "select-style-step",
+    heading: "Pick Style",
+    detail: "Select a style to apply.",
+  },
+  {
+    id: "generate-step",
+    heading: "Generate",
+    detail: "Create your new image.",
+  },
+  {
+    id: "download-step",
+    heading: "Download & Share",
+    detail: "Save or share instantly.",
+  },
+];
+
 // React and state management
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
@@ -23,6 +64,11 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 // Data and Types
 import { stylesData } from "@/data";
 import { ImageData, GenerateStatus, Step } from "@/types/style.types";
+import { HeroSection } from "@/components/HeroSection";
+import { ArrowRight, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
+import clsx from "clsx";
+import { Footer } from "@/components/Footer";
 
 // --- Main Upload Page ---
 export default function UploadPage() {
@@ -182,193 +228,279 @@ export default function UploadPage() {
   return (
     <div
       id="upload-page"
-      className="from-background via-primary/20 to-background text-text-light relative flex min-h-screen w-full items-center justify-center bg-gradient-to-br md:overflow-x-hidden"
+      className="from-background via-primary/20 to-background relative flex min-h-screen w-full flex-col items-center justify-center bg-gradient-to-br"
     >
+      {/* Global glossy overlay */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 z-0"
+        style={{
+          background:
+            "linear-gradient(120deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 40%, rgba(255,255,255,0.01) 100%)",
+          WebkitMaskImage:
+            "linear-gradient(120deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.15) 60%, rgba(255,255,255,0) 100%)",
+          maskImage:
+            "linear-gradient(120deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.15) 60%, rgba(255,255,255,0) 100%)",
+          zIndex: 1,
+          pointerEvents: "none",
+        }}
+      />
+
       <AppHeader />
-
-      <main className="mt-20 flex w-full max-w-4xl flex-col items-center justify-center px-4">
-        <ProgressBar steps={steps} />
-        {/* Dropzone & Previews */}
-        <section
-          className={`relative flex h-auto min-h-[24rem] w-full items-center justify-center md:h-96`}
-        >
-          {loading ? (
-            <Loader />
-          ) : generateStatus === "success" && generatedImage?.imageUrl ? (
-            // Show the generated image in the preview after successful generation
-            <motion.div
-              className="flex h-full w-full flex-col items-center justify-center gap-x-20 overflow-hidden md:flex-row"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 30 }}
-              transition={{ duration: 0.5 }}
-            >
-              <motion.div
-                key="generated-preview"
-                initial={{ opacity: 0, scale: 0.95, y: 30 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 30 }}
-                transition={{ duration: 0.5 }}
-              >
-                <PreviewCard
-                  id={generatedImage.id}
-                  imageUrl={generatedImage.imageUrl ?? ""}
-                  title={generatedImage.title ?? ""}
-                  convertedStyleLabel={generatedImage.convertedStyleLabel}
-                  isStyleCard={false}
-                  onRemove={() => {
-                    setGeneratedImage(null);
-                    setGenerateStatus("idle");
-                  }}
-                  disableRemoveButton={false}
-                  fileSize={generatedImage.fileSize}
-                />
-              </motion.div>
-              <motion.div
-                id="image-download-actions"
-                className="mt-4 flex h-full flex-col items-center justify-center gap-4 md:mt-0"
-                initial={{ opacity: 0, x: 40 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 40 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-              >
-                <Button
-                  variant={"gradient"}
-                  className="w-full max-w-xs"
-                  onClick={handleDownloadGeneratedImage}
-                >
-                  Download
-                </Button>
-                <Button
-                  variant={"outline"}
-                  className="w-full max-w-xs text-white"
-                  onClick={() => {
-                    setGeneratedImage(null);
-                    setGenerateStatus("idle");
-                  }}
-                >
-                  Generate Another for ₹9
-                </Button>
-                <SocialShare />
-              </motion.div>
-            </motion.div>
-          ) : (
-            // Only show file upload if file not uploaded
-            <>
-              {!file && (
-                <motion.div
-                  key="dropzone-inner"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.4 }}
-                  className="flex h-full w-full max-w-sm items-center justify-center"
-                >
-                  <MyDropzone
-                    file={file}
-                    setFile={setFile}
-                    setError={setError}
-                    error={error}
-                  />
-                </motion.div>
-              )}
-
-              {/* If file is uploaded, show file preview */}
-              {file && (
-                <div
-                  className={`flex w-full flex-col items-center justify-center md:flex-row`}
-                >
-                  <PreviewCard
-                    id={file.imageUrl}
-                    imageUrl={file.imageUrl}
-                    title={file.title}
-                    isStyleCard={false}
-                    onRemove={handleRemoveFile}
-                    disableRemoveButton={!!selectedStyle}
-                    fileSize={file.fileSize}
-                  />
-
-                  {/* If style is selected, show arrow, style preview, and generate button centered between file and style */}
-                  {selectedStyle && (
-                    <>
-                      <div className="justify-centre flex h-full w-full flex-col items-center">
-                        <ArrowIndicator show={!!selectedStyle} />
-                        <motion.div
-                          className="mt-8 hidden w-full items-center justify-center md:flex"
-                          initial={{ opacity: 0, y: 30 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 30 }}
-                          transition={{ duration: 0.5, delay: 0.5 }}
-                        >
-                          <Button
-                            variant={"gradient"}
-                            className="w-full max-w-xs md:max-w-1/2"
-                            onClick={handleGenerate}
-                          >
-                            Generate
-                          </Button>
-                        </motion.div>
-                      </div>
-
-                      <PreviewCard
-                        id={selectedStyle.id}
-                        imageUrl={selectedStyle.imageUrl}
-                        title={selectedStyle.title}
-                        isStyleCard={true}
-                        stylePrompt={selectedStyle.stylePrompt}
-                        onRemove={() => setSelectedStyle(null)}
-                        disableRemoveButton={false}
-                      />
-                      <motion.div
-                        className="mt-4 flex w-full items-center justify-center px-2 md:hidden"
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 30 }}
-                        transition={{ duration: 0.5, delay: 0.5 }}
-                      >
-                        <Button
-                          variant={"gradient"}
-                          className="w-full max-w-xs md:max-w-1/2"
-                          onClick={handleGenerate}
-                        >
-                          Generate
-                        </Button>
-                      </motion.div>
-                    </>
-                  )}
-                </div>
-              )}
-            </>
-          )}
-        </section>
-
-        {/* Trending Styles */}
-        <section
-          id="card-slider"
-          className={`flex w-full flex-col items-start justify-start px-2 pt-2 pb-3 sm:px-4 md:-mt-6 md:px-8 ${selectedStyle ? "mt-20" : "mt-3"}`}
-        >
-          <h2 className="selection:bg-primary/50 mb-2 w-full text-center text-xl font-bold text-white drop-shadow selection:text-white md:text-xl lg:text-2xl">
-            Trending Styles
-          </h2>
-          <motion.div
-            className="scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent flex w-full items-center justify-start gap-3 overflow-x-auto px-1 py-1 sm:gap-4 md:gap-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            {stylesData.map((style, idx) => (
-              <motion.div
-                key={style.id}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: idx * 0.05 }}
-              >
-                <StyleCard style={style} onClick={handleStyleSelection} />
-              </motion.div>
-            ))}
-          </motion.div>
-        </section>
+      <main className="relative z-10 mt-24 flex h-full w-full max-w-4xl flex-col items-start justify-center gap-20 px-6">
+        <HeroSection />
       </main>
+
+      <section
+        id="key-points"
+        className="mt-8 flex w-full max-w-7xl flex-col items-center justify-center gap-4 px-4 text-white sm:px-6 lg:flex-row"
+      >
+        {keyPoints.map((point) => (
+          <div
+            className="bg-background/60 hover:shadow-primary/20 relative w-full overflow-hidden rounded-lg p-6 hover:shadow-md"
+            key={point.id}
+            id={point.id}
+            style={{ position: "relative" }}
+          >
+            {/* Glossy effect overlay for key points */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 z-0"
+              style={{
+                background:
+                  "linear-gradient(120deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 40%, rgba(255,255,255,0.02) 100%)",
+                WebkitMaskImage:
+                  "linear-gradient(120deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.2) 60%, rgba(255,255,255,0) 100%)",
+                maskImage:
+                  "linear-gradient(120deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.2) 60%, rgba(255,255,255,0) 100%)",
+                borderRadius: "0.75rem",
+                zIndex: 1,
+              }}
+            />
+            <div className="relative z-10">
+              <p className="text-whtie flex w-full shrink-0 flex-row items-center justify-start gap-2 text-lg font-semibold text-nowrap">
+                <Check className="text-lg text-green-500" />
+                <span>{point.heading}</span>
+              </p>
+              <span className="mt-2 ml-8 text-base font-medium text-nowrap text-white/60">
+                {point.subHeading}
+              </span>
+            </div>
+          </div>
+        ))}
+      </section>
+
+      {/* Steps  */}
+      <section className="mt-24 flex w-full max-w-7xl flex-col items-center justify-center">
+        <h2 className="pb-8 text-center text-2xl font-semibold text-white md:text-3xl md:text-nowrap lg:text-4xl">
+          Convert Your Image in 4 Simple Steps
+        </h2>
+        <div className="mt-12 grid w-full grid-cols-1 items-center justify-center gap-8 px-4 sm:grid-cols-2 sm:px-6">
+          {stepsContent.map((step, idx) => (
+            <div
+              id={step.id}
+              key={step.id}
+              className="bg-background/60 hover:shadow-primary/30 relative w-full rounded-xl px-16 py-6 hover:shadow-md"
+              style={{
+                position: "relative",
+                zIndex: 0,
+              }}
+            >
+              {/* Glossy effect overlay for steps */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 z-0"
+                style={{
+                  background:
+                    "linear-gradient(120deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 40%, rgba(255,255,255,0.02) 100%)",
+                  WebkitMaskImage:
+                    "linear-gradient(120deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.2) 60%, rgba(255,255,255,0) 100%)",
+                  maskImage:
+                    "linear-gradient(120deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.2) 60%, rgba(255,255,255,0) 100%)",
+                  borderRadius: "0.75rem",
+                }}
+              />
+              <div
+                className="shadow-[0_2px_16px_0_theme(colors.primary/60)] from-primary/80 via-primary/60 to-background/80 border-primary/40 absolute -top-4 left-0 z-10 flex h-12 w-12 items-center justify-center rounded-2xl border-2 bg-gradient-to-br"
+                style={{
+                  boxShadow:
+                    "0 2px 16px 0 rgba(120, 90, 255, 0.35), 0 0 0 2px rgba(255,255,255,0.12) inset",
+                  position: "absolute",
+                  top: "-1.5rem",
+                  left: "-0.5rem",
+                }}
+              >
+                <svg
+                  className="absolute z-[1] h-12 w-12"
+                  width="48"
+                  height="48"
+                  viewBox="0 0 48 48"
+                  fill="none"
+                >
+                  <defs>
+                    <radialGradient
+                      id={`glossy-bg-${idx}`}
+                      cx="50%"
+                      cy="40%"
+                      r="70%"
+                    >
+                      <stop offset="0%" stopColor="#fff" stopOpacity="0.55" />
+                      <stop
+                        offset="60%"
+                        stopColor="currentColor"
+                        stopOpacity="0.18"
+                      />
+                      <stop
+                        offset="100%"
+                        stopColor="currentColor"
+                        stopOpacity="0.08"
+                      />
+                    </radialGradient>
+                    <linearGradient
+                      id={`shine-${idx}`}
+                      x1="0"
+                      y1="0"
+                      x2="48"
+                      y2="24"
+                      gradientUnits="userSpaceOnUse"
+                    >
+                      <stop offset="0%" stopColor="#fff" stopOpacity="0.7" />
+                      <stop offset="80%" stopColor="#fff" stopOpacity="0.05" />
+                    </linearGradient>
+                  </defs>
+                  <rect
+                    x="0.2"
+                    y="0.2"
+                    width="47.6"
+                    height="47.6"
+                    rx="12"
+                    fill={`url(#glossy-bg-${idx})`}
+                  />
+                  {/* Glossy shine overlay */}
+                  <rect
+                    x="0.2"
+                    y="0.2"
+                    width="47.6"
+                    height="18"
+                    rx="12"
+                    fill={`url(#shine-${idx})`}
+                  />
+                </svg>
+                <span
+                  className="relative z-10 text-2xl font-bold text-white drop-shadow-[0_2px_8px_rgba(120,90,255,0.25)]"
+                  style={{
+                    textShadow:
+                      "0 2px 8px rgba(120,90,255,0.25), 0 1px 0 #fff8",
+                    filter: "brightness(1.15)",
+                  }}
+                >
+                  {idx + 1}
+                </span>
+              </div>
+              <p className="relative z-10 text-left text-lg font-semibold text-white">
+                {step.heading}
+              </p>
+              <span className="relative z-10 text-left text-base font-medium text-white/60">
+                {step.detail}
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <div className="mx-auto my-16 flex w-full items-center justify-center">
+        <Button
+          variant="glossy"
+          size="md"
+          className="flex flex-row items-center justify-center font-bold"
+          // TODO: Add Click Action
+        >
+          Start Creating Now
+          <ArrowRight className="ml-2 h-5 w-5" />
+        </Button>
+      </div>
+
+      <section
+        id="feature-section"
+        className="mx-auto my-10 flex w-full max-w-7xl flex-col items-center justify-center px-4 sm:px-6"
+      >
+        <h2 className="mb-2 text-center text-2xl font-bold text-white drop-shadow-lg md:text-3xl">
+          See the Magic: Instantly Transform Your Photos
+        </h2>
+        <p className="mb-8 max-w-2xl text-center text-base text-white/60 md:text-lg">
+          Instantly restyle your photos - no signup, just one click.
+        </p>
+        {/* Pinterest-like grid, 4/5 aspect ratio, 4 images only */}
+        <div className="min-h-[300px] w-full columns-2 gap-4 space-y-4 lg:columns-4">
+          <div className="bg-background/60 mb-4 break-inside-avoid rounded-xl p-2 shadow-lg">
+            <div
+              className="relative w-full overflow-hidden rounded-lg"
+              style={{ aspectRatio: "4/5" }}
+            >
+              <img
+                src="/1980s-pop-art.png"
+                alt="Pop Art Style Example"
+                className="h-full w-full object-cover"
+                style={{ aspectRatio: "4/5" }}
+              />
+            </div>
+            <span className="mt-2 block text-center text-sm font-semibold text-white">
+              Pop Art
+            </span>
+          </div>
+          <div className="bg-background/60 mb-4 break-inside-avoid rounded-xl p-2 shadow-lg">
+            <div
+              className="relative w-full overflow-hidden rounded-lg"
+              style={{ aspectRatio: "4/5" }}
+            >
+              <img
+                src="/ghibli-art.png"
+                alt="Ghibli Style Example"
+                className="h-full w-full object-cover"
+                style={{ aspectRatio: "4/5", background: "#e0f7fa" }}
+              />
+            </div>
+            <span className="mt-2 block text-center text-sm font-semibold text-white">
+              Ghibli Art
+            </span>
+          </div>
+          <div className="bg-background/60 mb-4 break-inside-avoid rounded-xl p-2 shadow-lg">
+            <div
+              className="relative w-full overflow-hidden rounded-lg"
+              style={{ aspectRatio: "4/5" }}
+            >
+              <img
+                src="/disney-art.png"
+                alt="Upscaled Portrait Example"
+                className="h-full w-full object-cover"
+                style={{ aspectRatio: "4/5", background: "#f5f5f5" }}
+              />
+            </div>
+            <span className="mt-2 block text-center text-sm font-semibold text-white">
+              Upscaled Portrait
+            </span>
+          </div>
+          <div className="bg-background/60 mb-4 break-inside-avoid rounded-xl p-2 shadow-lg">
+            <div
+              className="relative w-full overflow-hidden rounded-lg"
+              style={{ aspectRatio: "4/5" }}
+            >
+              <img
+                src="/anime-art.png"
+                alt="Upscaled Anime Example"
+                className="h-full w-full object-cover"
+                style={{ aspectRatio: "4/5", background: "#f0eaff" }}
+              />
+            </div>
+            <span className="mt-2 block text-center text-sm font-semibold text-white">
+              Upscaled Anime
+            </span>
+          </div>
+          {/* TODO: Show "My Images" here when user is logged in */}
+          {/* TODO: Handle too big images gracefully */}
+        </div>
+      </section>
+      <Footer />
     </div>
   );
 }
