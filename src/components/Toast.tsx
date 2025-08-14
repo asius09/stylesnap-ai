@@ -11,6 +11,9 @@
  * This way, all toasts are managed in a single array and rendered in one place.
  *
  * Example implementation below:
+ *
+ * // To always show the latest toast on top, add new toasts to the start of the array
+ * // and render the array as-is (no reverse). See addToast and ToastContainer below.
  */
 
 import React, {
@@ -66,6 +69,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
   const [toasts, setToasts] = useState<ToastData[]>([]);
 
   // Add toast with unique id, prevent duplicate toasts with same type and message
+  // To show the latest toast on top, add new toast to the start of the array
   const addToast = useCallback((toast: Omit<ToastData, "id">) => {
     setToasts((prev) => {
       // Check if a toast with the same type and message already exists
@@ -75,9 +79,10 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
       if (isDuplicate) {
         return prev;
       }
+      // Add new toast to the beginning so it appears on top
       return [
-        ...prev,
         { ...toast, id: Date.now() + Math.floor(Math.random() * 10000) },
+        ...prev,
       ];
     });
   }, []);
@@ -105,9 +110,11 @@ export const useToast = () => {
 // ToastContainer renders all toasts
 export const ToastContainer = () => {
   const { toasts, removeToast } = useToast();
-
+  // The latest toast is at index 0, so it will be rendered on top
+  // No need to reverse the array
+  // console.log("[TOAST] toasts", toasts);
   return (
-    <div className="pointer-events-none fixed top-16 left-1/2 z-50 flex w-full max-w-xs -translate-x-1/2 flex-col items-center">
+    <div className="pointer-events-none fixed top-20 left-1/2 z-50 flex w-full max-w-xs -translate-x-1/2 flex-col items-center">
       <div
         className={`relative flex w-full flex-col items-center min-h-[${toasts.length * 32}px]`}
       >
@@ -124,14 +131,14 @@ export const ToastContainer = () => {
               }}
               animate={{
                 opacity: 1,
-                y: idx === 0 ? 0 : idx * 10,
+                y: idx * 10,
                 scale: 1 - idx * 0.04,
                 boxShadow: `0 ${8 + idx * 4}px ${24 + idx * 8}px 0 rgba(0,0,0,${0.15 + idx * 0.05})`,
               }}
               exit={{
                 opacity: 0,
                 y: 0,
-                scale: 0.95,
+                scale: 1 - idx * 0.09,
                 boxShadow: "0 2px 8px 0 rgba(0,0,0,0.10)",
               }}
               transition={{
@@ -201,4 +208,7 @@ const ToastItem = ({ id, type, message, onRemove }: ToastItemProps) => {
  *    const { addToast } = useToast();
  *    addToast({ type: "success", message: "Hello!" });
  * 3. Only one ToastContainer will render all toasts, no overlap.
+ *
+ * // To show the latest toast on top, add new toasts to the start of the array in addToast,
+ * // and render the array as-is (no reverse) in ToastContainer.
  */

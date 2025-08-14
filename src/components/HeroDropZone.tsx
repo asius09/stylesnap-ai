@@ -1,10 +1,13 @@
-import React from "react";
+"use client";
+import React, { useState, useRef } from "react";
 import { useDropzone } from "react-dropzone";
 import { UploadCloud } from "lucide-react";
+import { useToast } from "@/components/Toast";
 import { Button } from "./Button";
+import { ImageData } from "@/types/style.types";
 
 interface HeroDropZoneProps {
-  onFileSelected?: (file: File) => void;
+  onFileSelected?: (file: ImageData) => void;
   disabled?: boolean;
 }
 
@@ -12,73 +15,128 @@ export const HeroDropZone: React.FC<Partial<HeroDropZoneProps>> = ({
   onFileSelected = () => {},
   disabled = false,
 }) => {
-  const {
-    getRootProps,
-    getInputProps,
-    isDragActive,
-    open,
-    inputRef,
-    isFocused,
-    isDragReject,
-  } = useDropzone({
-    onDrop: (acceptedFiles) => {
+  const { addToast } = useToast();
+  const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Helper to handle file upload and conversion to ImageData
+  const handleFileUpload = async (file: File) => {
+    setError(null);
+    // Validate file type
+    if (
+      !["image/png", "image/jpeg", "image/jpg"].includes(file.type) &&
+      !file.type.startsWith("image/")
+    ) {
+      setError(
+        "Only PNG, JPEG, and image files are allowed. Please check the file type.",
+      );
+      addToast({
+        type: "error",
+        message:
+          "Only PNG, JPEG, and image files are allowed. Please check the file type.",
+      });
+      return;
+    }
+    // Validate file size
+    if (file.size > 10 * 1024 * 1024) {
+      setError("File size exceeds 10MB limit.");
+      addToast({
+        type: "error",
+        message: "File size exceeds 10MB limit.",
+      });
+      return;
+    }
+
+    // Upload to /api/upload and handle response here
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("fileName", file.name);
+
+    try {
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await response.json();
+      if (data.status === "successful" && data.imageUrl) {
+        const imageData: ImageData = {
+          id:
+            typeof crypto.randomUUID === "function"
+              ? crypto.randomUUID()
+              : Math.random().toString(36).substring(2, 15),
+          title: file.name,
+          imageUrl: data.imageUrl,
+          fileSize: file.size
+            ? `${Math.round(file.size / 1024)} KB`
+            : undefined,
+        };
+        onFileSelected(imageData);
+        setError(null);
+        addToast({
+          type: "success",
+          message: "File uploaded successfully.",
+        });
+      }
+    } catch (err) {
+      setError("Failed to upload image.");
+      addToast({
+        type: "error",
+        message: "Failed to upload image.",
+      });
+    }
+  };
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop: async (acceptedFiles, fileRejections) => {
       if (disabled) return;
-      if (acceptedFiles && acceptedFiles[0]) {
-        onFileSelected(acceptedFiles[0]);
+      setError(null);
+      if (fileRejections && fileRejections.length > 0) {
+        setError(
+          "Only PNG, JPEG, and image files are allowed. Please check the file type.",
+        );
+        addToast({
+          type: "error",
+          message:
+            "Only PNG, JPEG, and image files are allowed. Please check the file type.",
+        });
+        return;
+      }
+      if (acceptedFiles && acceptedFiles.length > 0) {
+        const file = acceptedFiles[0];
+        await handleFileUpload(file);
       }
     },
-    accept: {
-      "image/jpeg": [],
-      "image/png": [],
-    },
     multiple: false,
-    noClick: true, // We'll handle click with the button
-    noKeyboard: true,
-    disabled,
+    accept: {
+      "image/png": [],
+      "image/jpeg": [],
+      "image/jpg": [],
+      "image/*": [],
+    },
     maxSize: 10 * 1024 * 1024, // 10MB
+    disabled,
+    noClick: true, // Prevent click on dropzone from opening file dialog
   });
-
-  // Compose container classes for hover/focus/drag states
-  const baseClasses =
-    "border-primary/60 bg-background/60 focus-within:border-primary mx-auto flex w-full cursor-pointer flex-col items-center justify-center rounded-xl border-1 transition outline-none shadow-[0_0_24px_0_theme(colors.primary/80)] relative my-0 min-h-[24rem] w-full max-w-2xl px-4 py-8";
-  const hoverClasses =
-    "hover:border-primary hover:shadow-[0_0_40px_0_theme(colors.primary/60)]";
-  const dragActiveClasses =
-    "border-primary shadow-[0_0_48px_0_theme(colors.primary/80)]";
-  const disabledClasses = "pointer-events-none opacity-60";
-
-  const containerClassName = [
-    baseClasses,
-    hoverClasses,
-    isDragActive || isFocused ? dragActiveClasses : "",
-    disabled ? disabledClasses : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
 
   return (
     <div
       {...getRootProps({
-        className: containerClassName,
-        tabIndex: 0,
+        className:
+          "flex w-full cursor-pointer flex-col items-center justify-center rounded-xl transition outline-none" +
+          (isDragActive
+            ? " border-primary shadow-[0_0_48px_0_theme(colors.primary/80)]"
+            : "") +
+          (disabled ? " pointer-events-none opacity-60" : ""),
+        tabIndex: disabled ? -1 : 0,
         "aria-disabled": disabled,
         role: "button",
+        style: disabled ? { pointerEvents: "none", opacity: 0.6 } : undefined,
+        onClick: (e: React.MouseEvent) => {
+          // Prevent propagation to dropzone, only allow button to open dialog
+          e.stopPropagation();
+        },
       })}
     >
-      {/* Glossy overlay effect */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-0 rounded-xl"
-        style={{
-          background:
-            "linear-gradient(120deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 40%, rgba(255,255,255,0.02) 100%)",
-          WebkitMaskImage:
-            "linear-gradient(120deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.2) 60%, rgba(255,255,255,0) 100%)",
-          maskImage:
-            "linear-gradient(120deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.2) 60%, rgba(255,255,255,0) 100%)",
-          borderRadius: "0.75rem",
-        }}
-      />
       <div className="relative z-10 flex w-full flex-col items-center">
         <UploadCloud className="text-primary mb-3 h-10 w-10" />
         <p className="text-center text-base font-semibold text-white md:mb-1 md:text-lg">
@@ -87,13 +145,19 @@ export const HeroDropZone: React.FC<Partial<HeroDropZoneProps>> = ({
             : "Click or drag image to upload"}
         </p>
         <p className="text-center text-xs text-white/60 md:text-sm">
-          JPG or PNG, up to 10MB
+          PNG, JPEG, or image, up to 10MB
         </p>
         <Button
           type="button"
           variant="filled"
           className="mt-4 cursor-pointer"
-          onClick={open}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (inputRef.current) {
+              inputRef.current.value = ""; // reset so same file can be selected again
+              inputRef.current.click();
+            }
+          }}
           disabled={disabled}
           tabIndex={0}
         >
@@ -103,8 +167,20 @@ export const HeroDropZone: React.FC<Partial<HeroDropZoneProps>> = ({
           {...getInputProps({
             tabIndex: -1,
             className: "hidden",
+            ref: inputRef,
+            onClick: (e: React.MouseEvent) => {
+              // Prevent bubbling to parent dropzone
+              e.stopPropagation();
+            },
+            onChange: async (e: React.ChangeEvent<HTMLInputElement>) => {
+              const file = e.target.files && e.target.files[0];
+              if (file) {
+                await handleFileUpload(file);
+              }
+            },
           })}
         />
+        {error && <p className="mt-2 text-red-500">{error}</p>}
       </div>
     </div>
   );

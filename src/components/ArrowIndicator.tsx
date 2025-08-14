@@ -15,17 +15,26 @@ export function ArrowIndicator({ show }: { show: boolean }) {
     >
       {/* Mobile: Downward arrow with opacity animation */}
       <div className="mb-2 block md:hidden">
-        <motion.div
-          initial={{ opacity: 0.3 }}
-          animate={{ opacity: [0.3, 1, 0.7, 0.3] }}
-          transition={{
-            duration: 1.2,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        >
-          <ChevronDown className="text-primary h-6 w-6" />
-        </motion.div>
+        {[...Array(3)].map((_, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0.3, y: 0, scale: 1 }}
+            animate={{
+              opacity: [0.3, 1, 0.7, 0.3],
+              y: [0, -6, 0, 0],
+              scale: [1, 1.15, 1, 1],
+            }}
+            transition={{
+              duration: 1,
+              repeat: Infinity,
+              delay: i * 0.15,
+              times: [0, 0.3, 0.6, 1],
+              ease: "easeInOut",
+            }}
+          >
+            <ChevronDown className="text-primary h-6 w-6" />
+          </motion.div>
+        ))}
       </div>
       {/* Desktop: Chevrons */}
       <div className="hidden items-center justify-center gap-2 px-6 md:flex">

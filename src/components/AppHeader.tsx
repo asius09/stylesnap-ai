@@ -5,7 +5,7 @@ export function AppHeader({ freeUsed = false }: { freeUsed: boolean }) {
   return (
     <nav
       id="app-header"
-      className="border-primary/10 bg-primary/10 fixed top-0 left-0 z-[1000] flex h-16 w-full items-center justify-between border-b px-2 py-1 shadow-[0_4px_32px_0_rgba(120,90,255,0.22),0_1.5px_8px_0_rgba(120,90,255,0.10)_inset] backdrop-blur-xl md:h-16 md:px-24"
+      className="border-primary/10 bg-primary/10 fixed top-0 left-0 z-[1000] flex h-16 w-full items-center justify-between border-b px-2 py-1 shadow-[0_4px_32px_0_rgba(120,90,255,0.22),0_1.5px_8px_0_rgba(120,90,255,0.10)_inset] backdrop-blur-xl md:h-16 md:px-6"
       role="navigation"
       aria-label="Application Header"
       style={{ overflow: "hidden" }}

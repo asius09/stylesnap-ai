@@ -1,4 +1,46 @@
 import { ImageData } from "./types/style.types";
+
+export const keyPoints = [
+  {
+    id: "no-signup-required",
+    heading: "No signup required",
+    subHeading: "just upload & generate",
+  },
+  {
+    id: "100s-presets-style",
+    heading: "100s presets style",
+    subHeading: "One click style convert",
+  },
+  {
+    id: "high-quality-jpg",
+    heading: "High Quality JPG",
+    subHeading: "High quality every time",
+  },
+];
+
+export const stepsContent = [
+  {
+    id: "upload-step",
+    heading: "Upload Image",
+    detail: "Upload any image from your device.",
+  },
+  {
+    id: "select-style-step",
+    heading: "Pick Style",
+    detail: "Select a style to apply.",
+  },
+  {
+    id: "generate-step",
+    heading: "Generate",
+    detail: "Create your new image.",
+  },
+  {
+    id: "download-step",
+    heading: "Download & Share",
+    detail: "Save or share instantly.",
+  },
+];
+
 export const stylesData: ImageData[] = [
   {
     id: "1980s-pop-art",

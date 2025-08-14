@@ -14,7 +14,8 @@ export const useStyleSelection = ({
   setSelectedStyle: (style: ImageData | null) => void;
   addToast?: AddToast;
 }) => {
-  const handleSelect = (style: ImageData) => {
+  // Handles both selecting and replacing a style
+  const handleSelect = (style: ImageData, options?: { replace?: boolean }) => {
     if (!file) {
       if (addToast) {
         addToast({
@@ -25,6 +26,14 @@ export const useStyleSelection = ({
       return;
     }
     setSelectedStyle(style);
+    if (addToast) {
+      addToast({
+        type: options?.replace ? "info" : "success",
+        message: options?.replace
+          ? `Style replaced with "${style.title}".`
+          : `Style "${style.title}" selected.`,
+      });
+    }
   };
 
   return handleSelect;
