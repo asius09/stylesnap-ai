@@ -12,7 +12,6 @@ import { USER_TRIALS_TABLE_NAME } from "@/constant";
  */
 export async function POST(req: NextRequest) {
   try {
-    console.log("[TRIAL-POST] Called");
     const supabase = await createClient();
     const ip =
       req.headers.get("x-forwarded-for") || req.headers.entries || "unknown";
@@ -23,9 +22,6 @@ export async function POST(req: NextRequest) {
 
     // If no trialId present, just respond with error
     if (!trialId || typeof trialId !== "string") {
-      console.warn("[TRIAL-POST] Missing or invalid trialId in request body", {
-        trialId,
-      });
       return NextResponse.json({
         error: "Missing or invalid trialId in request body",
         statusCode: 400,
@@ -41,7 +37,6 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (existingTrial) {
-      console.log("[TRIAL-POST] Trial already exists for trialId:", trialId);
       // Always set the cookie if trialId exists
       const response = NextResponse.json({
         trialId,
@@ -56,20 +51,10 @@ export async function POST(req: NextRequest) {
       return response;
     } else if (selectError && selectError.code !== "PGRST116") {
       // PGRST116: No rows found (so it's ok), otherwise error
-      console.error(
-        "[TRIAL-POST] Error checking for existing trial:",
-        selectError,
-      );
       throw new Error(selectError.message);
     }
 
     // If not present, insert new trial
-    console.log("[TRIAL-POST] Inserting new trial row", {
-      trialId,
-      ip: ip.toString(),
-      userAgent,
-    });
-
     const { error } = await supabase.from(USER_TRIALS_TABLE_NAME).insert({
       id: trialId,
       ip: ip.toString(),
@@ -80,7 +65,6 @@ export async function POST(req: NextRequest) {
     });
 
     if (error) {
-      console.error("[TRIAL-POST] Error inserting trial row:", error);
       throw new Error(error.message);
     }
 
@@ -94,9 +78,6 @@ export async function POST(req: NextRequest) {
       "Set-Cookie",
       `trialId=${trialId}; Path=/; HttpOnly; Max-Age=31536000`,
     );
-    console.log("[TRIAL-POST] Trial created and Set-Cookie header set", {
-      trialId,
-    });
     return response;
   } catch (err: unknown) {
     let message = "Internal Server Error";
@@ -129,13 +110,9 @@ export async function POST(req: NextRequest) {
  */
 export async function GET(req: NextRequest) {
   try {
-    // GET-specific logging
-    console.log("[TRIAL-GET] Called");
     const supabase = await createClient();
     const { searchParams } = new URL(req.url);
     const trialId = searchParams.get("trialId");
-
-    console.log("[TRIAL-GET] trialId from query:", trialId);
 
     // If no trialId present, just respond with error
     if (
@@ -144,9 +121,6 @@ export async function GET(req: NextRequest) {
       (typeof trialId === "string" && trialId.trim() === "") ||
       (Array.isArray(trialId) && trialId.length === 0)
     ) {
-      console.warn("[TRIAL-GET] Invalid or missing trialId in query params", {
-        trialId,
-      });
       return NextResponse.json({
         userTrial: null,
         statusCode: 400,
@@ -163,12 +137,10 @@ export async function GET(req: NextRequest) {
 
     if (error && error.code !== "PGRST116") {
       // PGRST116: No rows found
-      console.error("[TRIAL-GET] Supabase error:", error);
       throw new Error(error.message);
     }
 
     if (data) {
-      console.log("[TRIAL-GET] Found userTrial:", data);
       // Set cookie if trialId found
       const response = NextResponse.json({
         userTrial: data as UserTrial,
@@ -182,7 +154,6 @@ export async function GET(req: NextRequest) {
       return response;
     } else {
       // Not found
-      console.warn("[TRIAL-GET] Trial not found for id:", trialId);
       return NextResponse.json({
         userTrial: null,
         statusCode: 404,
@@ -217,7 +188,6 @@ export async function GET(req: NextRequest) {
  */
 export async function DELETE(req: NextRequest) {
   try {
-    console.log("[TRIAL-DELETE] Called");
     const supabase = await createClient();
     const body = await req.json();
     const trialId = body.trialId;
@@ -228,12 +198,6 @@ export async function DELETE(req: NextRequest) {
       (typeof trialId === "string" && trialId.trim() === "") ||
       (Array.isArray(trialId) && trialId.length === 0)
     ) {
-      console.warn(
-        "[TRIAL-DELETE] Invalid or missing trialId in query params",
-        {
-          trialId,
-        },
-      );
       return NextResponse.json({
         statusCode: 400,
         status: "failed" as const,
@@ -248,11 +212,9 @@ export async function DELETE(req: NextRequest) {
       .eq("id", trialId);
 
     if (error) {
-      console.error("[TRIAL-DELETE] Error deleting trial row:", error);
       throw new Error(error.message);
     }
 
-    console.log("[TRIAL-DELETE] Trial deleted for id:", trialId);
     return NextResponse.json({
       trialId,
       statusCode: 200,

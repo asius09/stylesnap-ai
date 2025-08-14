@@ -16,9 +16,6 @@ export async function ensureTrialId() {
   const trialIdLocal = localStorage.getItem(TRIAL_ID_LOCAL_STORAGE_KEY);
   const trialIdIndexedDB = await getIndexedDB(TRIAL_ID_LOCAL_STORAGE_KEY);
 
-  console.log("[ensureTrialId] trialId from localStorage:", trialIdLocal);
-  console.log("[ensureTrialId] trialId from IndexedDB:", trialIdIndexedDB);
-
   let trialIdToUse: string | null = null;
   let trialIdToDelete: string | null = null;
 
@@ -33,6 +30,7 @@ export async function ensureTrialId() {
       trialIdToDelete = trialIdIndexedDB;
       await setIndexedDB(TRIAL_ID_LOCAL_STORAGE_KEY, trialIdLocal);
       localStorage.setItem(TRIAL_ID_LOCAL_STORAGE_KEY, trialIdLocal);
+      // Only keep warning for mismatch
       console.warn(
         "[ensureTrialId] trialId mismatch between localStorage and IndexedDB. Syncing both to localStorage value:",
         trialIdLocal,
@@ -43,30 +41,18 @@ export async function ensureTrialId() {
   else if (trialIdLocal && !trialIdIndexedDB) {
     trialIdToUse = trialIdLocal;
     await setIndexedDB(TRIAL_ID_LOCAL_STORAGE_KEY, trialIdLocal);
-    console.log(
-      "[ensureTrialId] trialId only in localStorage. Synced to IndexedDB:",
-      trialIdLocal,
-    );
   }
   // Only IndexedDB exists
   else if (!trialIdLocal && trialIdIndexedDB) {
     trialIdToUse = trialIdIndexedDB;
     localStorage.setItem(TRIAL_ID_LOCAL_STORAGE_KEY, trialIdIndexedDB);
     await setIndexedDB(TRIAL_ID_LOCAL_STORAGE_KEY, trialIdIndexedDB); // ensure it's set (could be stringified)
-    console.log(
-      "[ensureTrialId] trialId only in IndexedDB. Synced to localStorage:",
-      trialIdIndexedDB,
-    );
   }
   // Neither exists
   else {
     trialIdToUse = crypto.randomUUID();
     localStorage.setItem(TRIAL_ID_LOCAL_STORAGE_KEY, trialIdToUse);
     await setIndexedDB(TRIAL_ID_LOCAL_STORAGE_KEY, trialIdToUse);
-    console.log(
-      "[ensureTrialId] No trialId found. Generated new trialId:",
-      trialIdToUse,
-    );
   }
 
   // Always ensure both are in sync at the end
@@ -87,10 +73,7 @@ export async function ensureTrialId() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ trialId: trialIdToDelete }),
         });
-        console.log(
-          "[ensureTrialId] Deleted old trialId from server:",
-          trialIdToDelete,
-        );
+        // No need to log success here
       } catch (e) {
         console.warn(
           "[ensureTrialId] Failed to delete old trialId from server:",

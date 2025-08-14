@@ -9,3 +9,10 @@ export interface UserTrial {
   last_seen: string; // ISO timestamp
   created_at: string; // ISO timestamp
 }
+
+export interface DailyQuota {
+  id: number; // BIGSERIAL -> number
+  date: string; // DATE -> YYYY-MM-DD format string
+  free_count: number; // INT
+  daily_limit: number; // INT
+}
