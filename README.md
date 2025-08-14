@@ -19,13 +19,17 @@
 
 - [x] Work on UI loading states for a smoother experience. _(Done)_
 - [x] Improve the download UI for styled images. _(Done)_
-- [x] Integrate AI-powered image generation.
-- [ ] Limit to one free image generation per IP or user (add restriction logic).
-- [ ] Ensure no one can download images for free from inspect tools; test with browser inspect/tools to ensure free image download and preview works as expected.
-- [ ] Ensure image preview is clear and accessible before download.
-- [ ] Show a prompt to re-upload if the uploaded image is missing after reload (local storage handler).
-- [ ] Fix localStorage override bug for uploads and styles.
-- [ ] Fix output image not showing on result.
+- [x] Integrate AI-powered image generation. _(Done)_
+- [x] Limit to one free image generation per IP or user (add restriction logic). _(Done)_
+- [x] Ensure image preview is clear and accessible before download. _(Done)_
+- [x] Show a prompt to re-upload if the uploaded image is missing after reload (local storage handler). _(Done)_
+- [ ] Style the whole page for a polished look.
+- [ ] Handle SEO (add meta tags, improve discoverability).
+- [ ] Add more styles (at least 10), including anime and couple sections.
+- [ ] Implement payment gateway.
+- [ ] Testing.
+- [ ] Replicate API testing.
+- [ ] 🎉 Celebrate first 100 generated images!
 
 ---
 
