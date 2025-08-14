@@ -59,7 +59,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Parse the incoming form data (expects multipart/form-data)
     const formData = await request.formData();
     const file = formData.get("file");
-    let fileNameFromForm = formData.get("fileName");
+    const fileNameFromForm = formData.get("fileName");
 
     if (!file || typeof file === "string") {
       return NextResponse.json(

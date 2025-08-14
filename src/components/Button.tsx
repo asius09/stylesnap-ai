@@ -27,10 +27,11 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 const baseClasses =
   "inline-flex items-center justify-center font-semibold rounded-full transition-colors duration-150 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed selection:bg-primary/50 selection:text-white cursor-pointer relative overflow-hidden";
 
+// Responsive size classes
 const sizeClasses: Record<ButtonSize, string> = {
-  sm: "px-4 py-2 text-sm",
-  md: "px-5 py-2.5 text-base",
-  lg: "px-7 py-3.5 text-lg",
+  sm: "px-3 py-1.5 text-xs md:px-4 md:py-2 md:text-sm",
+  md: "px-4 py-2 text-sm md:px-5 md:py-2.5 md:text-base",
+  lg: "px-5 py-2.5 text-base md:px-7 md:py-3.5 md:text-lg",
 };
 
 function getVariantClasses(variant: ButtonVariant): string {

@@ -10,13 +10,21 @@ interface DropzoneProps {
   setError: (error: string | null) => void;
   file: ImageData | null;
   error: string | null;
+  disabled?: boolean; // Add disabled prop, default false
 }
 
-export function MyDropzone({ setFile, setError, file, error }: DropzoneProps) {
+export function MyDropzone({
+  setFile,
+  setError,
+  error,
+  disabled = false,
+}: DropzoneProps) {
   const { addToast } = useToast();
 
-  const { getRootProps, getInputProps } = useDropzone({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: async (acceptedFiles, fileRejections) => {
+      if (disabled) return;
       setError(null);
       if (fileRejections && fileRejections.length > 0) {
         setError(
@@ -71,11 +79,13 @@ export function MyDropzone({ setFile, setError, file, error }: DropzoneProps) {
               message: "Failed to upload file. Please try again.",
             });
           }
-        } catch (err) {
-          setError("Failed to upload file. Please try again.");
+        } catch (err: unknown) {
+          setError(
+            `Failed to upload file. Please try again.${err instanceof Error ? " " + err.message : ""}`,
+          );
           addToast({
             type: "error",
-            message: "Failed to upload file. Please try again.",
+            message: `Failed to upload file. Please try again.${err instanceof Error ? " " + err.message : ""}`,
           });
         }
       }
@@ -88,15 +98,24 @@ export function MyDropzone({ setFile, setError, file, error }: DropzoneProps) {
       "image/*": [],
     },
     // maxSize: 5 * 1024 * 1024, // 5MB
+    disabled, // Pass disabled to useDropzone
   });
 
   // Show dropzone if no file is uploaded
   return (
     <div
-      {...getRootProps()}
-      className="bg-card hover:border-primary focus:border-primary w-full shrink-0 cursor-pointer rounded-lg border-2 border-dashed border-gray-400 p-8 text-center text-white transition-colors duration-200"
+      {...getRootProps({
+        className:
+          "bg-card hover:border-primary focus:border-primary w-full shrink-0 cursor-pointer rounded-lg border-2 border-dashed border-gray-400 p-8 text-center text-white transition-colors duration-200" +
+          (disabled
+            ? " opacity-50 pointer-events-none cursor-not-allowed"
+            : ""),
+        tabIndex: disabled ? -1 : 0,
+        "aria-disabled": disabled,
+        style: disabled ? { pointerEvents: "none", opacity: 0.5 } : undefined,
+      })}
     >
-      <input {...getInputProps()} />
+      <input {...getInputProps({ disabled })} />
       <div className="flex flex-col items-center justify-center">
         <Share className="text-primary mb-4 h-10 w-10" />
         <p className="selection:bg-primary/50 mb-1 font-medium text-white/55 selection:text-white">

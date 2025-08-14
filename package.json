@@ -8,9 +8,13 @@
     "start": "next start",
     "lint": "next lint",
     "prettier": "prettier --check .",
-    "prettier:fix": "prettier --write ."
+    "prettier:fix": "prettier --write .",
+    "update:readme": "node scripts/update-readme-structure.js"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.6.1",
+    "@supabase/supabase-js": "^2.55.0",
+    "@types/uuid": "^10.0.0",
     "clsx": "^2.1.1",
     "dotenv": "^17.2.1",
     "lineicons-react": "^2.0.0",
@@ -22,7 +26,8 @@
     "react-dropzone": "^14.3.8",
     "replicate": "^1.0.1",
     "tailwind-merge": "^3.3.1",
-    "together-ai": "^0.21.1"
+    "together-ai": "^0.21.1",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

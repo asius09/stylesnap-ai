@@ -1,6 +1,30 @@
 "use client";
 
+import React, { useState } from "react";
+import { motion } from "motion/react";
 import { useToast } from "@/components/Toast";
+import { MyDropzone } from "@/components/MyDropzone";
+import { StyleCard } from "@/components/StyleCard";
+import { PreviewCard } from "@/components/PreviewCard";
+import { Button } from "@/components/Button";
+import { Loader } from "@/components/Loader";
+import { SocialShare } from "@/components/SocialShare";
+import { AppHeader } from "@/components/AppHeader";
+import { ProgressBar } from "@/components/ProgressBar";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { stylesData } from "@/data";
+import { ImageData } from "@/types/style.types";
+import { MessageDialog, MessageDialogProps } from "@/components/MessageDialog";
+import { useProgressSteps } from "@/hooks/useProgressSteps";
+import { useImageGeneration } from "@/hooks/useImageGeneration";
+import { useFileRemove } from "@/hooks/useFileRemove";
+import { useStyleSelection } from "@/hooks/useStyleSelection";
+import { useTrialId } from "@/hooks/useTrialId";
+import { useScrollLock } from "@/hooks/useScrollLock";
+import { useDownloadImage } from "@/utils/downloadUtils";
+import { HeroSection } from "@/components/HeroSection";
+import { ArrowRight, Check } from "lucide-react";
+import { Footer } from "@/components/Footer";
 
 const keyPoints = [
   {
@@ -43,38 +67,14 @@ const stepsContent = [
   },
 ];
 
-// React and state management
-import React, { useState, useEffect } from "react";
-import { motion } from "motion/react";
-
-// UI Components
-import { MyDropzone } from "@/components/MyDropzone";
-import { StyleCard } from "@/components/StyleCard";
-import { PreviewCard } from "@/components/PreviewCard";
-import { Button } from "@/components/Button";
-import { Loader } from "@/components/Loader";
-import { SocialShare } from "@/components/SocialShare";
-import { AppHeader } from "@/components/AppHeader";
-import { ProgressBar } from "@/components/ProgressBar";
-import { ArrowIndicator } from "@/components/ArrowIndicator";
-
-// Hooks
-import { useLocalStorage } from "@/hooks/useLocalStorage";
-
-// Data and Types
-import { stylesData } from "@/data";
-import { ImageData, GenerateStatus, Step } from "@/types/style.types";
-import { HeroSection } from "@/components/HeroSection";
-import { ArrowRight, Check } from "lucide-react";
-import { cn } from "@/lib/utils";
-import clsx from "clsx";
-import { Footer } from "@/components/Footer";
-
-// --- Main Upload Page ---
 export default function UploadPage() {
   const { addToast } = useToast();
 
-  // --- State ---
+  // Dialog and state
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [messageDialog, setMessageDialog] = useState<
+    Partial<MessageDialogProps>
+  >({});
   const [file, setFile] = useLocalStorage<ImageData | null>(
     "uploadedFile",
     null,
@@ -83,148 +83,44 @@ export default function UploadPage() {
     "selectedStyle",
     null,
   );
-  const [generatedImage, setGeneratedImage] = useState<ImageData | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [generateStatus, setGenerateStatus] =
-    useState<GenerateStatus>("success");
-
   const [error, setError] = useState<string | null>(null);
 
-  // --- Steps for progress bar ---
-  const [steps, setSteps] = useState<Step[]>([
-    { id: "upload-tag", label: "Upload", status: false },
-    { id: "select-style-tag", label: "Select Style", status: false },
-    { id: "generate-tag", label: "Generate", status: false },
-    { id: "download-tag", label: "Download", status: false },
-  ]);
+  const { trialId, freeUsed } = useTrialId();
 
-  // Keep steps in sync with file and selectedStyle
-  useEffect(() => {
-    setSteps((prev) => [
-      { ...prev[0], status: !!file },
-      { ...prev[1], status: !!selectedStyle },
-      prev[2],
-      prev[3],
-    ]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [file, selectedStyle]);
+  const { handleGenerate, generateStatus, generatedImage, loading } =
+    useImageGeneration({
+      file,
+      selectedStyle,
+      trialId: typeof trialId === "string" ? trialId : null,
+      freeUsed: typeof freeUsed === "boolean" ? freeUsed : false,
+      setMessageDialog,
+      setIsDialogOpen,
+      addToast,
+    });
 
-  // --- Handlers ---
-  const updateTagStatus = (tagName: string, status: boolean) => {
-    setSteps((prev) =>
-      prev.map((step) => (step.id === tagName ? { ...step, status } : step)),
-    );
-  };
+  const handleDownloadGeneratedImage = useDownloadImage({
+    generatedImage,
+    selectedStyle,
+    addToast,
+  });
 
-  // DEMO: Simulate generation by showing /output.jpg (couple, gibli style) after a timeout
-  const handleGenerate = async () => {
-    setLoading(true);
-    setGeneratedImage(null);
+  const [steps] = useProgressSteps(file, selectedStyle, generateStatus);
 
-    try {
-      updateTagStatus("generate-tag", true);
+  const handleRemoveFile = useFileRemove({
+    file,
+    setFile,
+    addToast,
+  });
 
-      // Check for required data
-      if (!file?.imageUrl || !selectedStyle?.stylePrompt) {
-        setLoading(false);
-        return;
-      }
+  const handleStyleSelection = useStyleSelection({
+    file,
+    setSelectedStyle,
+    addToast,
+  });
 
-      // Simulate API call with setTimeout for demo
-      setTimeout(() => {
-        // Find the gibli style from stylesData
-        const gibliStyle =
-          stylesData.find(
-            (style) =>
-              style.title.toLowerCase().includes("gibli") ||
-              style.title.toLowerCase().includes("ghibli"),
-          ) || selectedStyle;
+  useScrollLock(isDialogOpen);
 
-        setGeneratedImage({
-          id: `generated-image-${gibliStyle.title}`,
-          title: gibliStyle.title,
-          imageUrl: "/output.jpg", // demo image in public directory
-          convertedStyleLabel: gibliStyle.title,
-          fileSize: undefined,
-        });
-        setGenerateStatus("success");
-        addToast({
-          message: `Your ${gibliStyle.title} image has been generated successfully!`,
-          type: "success",
-        });
-        setLoading(false);
-      }, 1200);
-    } catch (error: unknown) {
-      setGenerateStatus("failed");
-      addToast({
-        message: "Failed to generate image. Please try again!",
-        type: "error",
-      });
-      setLoading(false);
-    }
-  };
-
-  const handleDownloadGeneratedImage = () => {
-    // Download logic for /output.jpg
-    if (generatedImage?.imageUrl) {
-      const link = document.createElement("a");
-      link.href = generatedImage.imageUrl;
-      link.download = "output.jpg";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      updateTagStatus("download-tag", true);
-    }
-  };
-
-  // --- Remove uploaded file handler ---
-  const handleRemoveFile = async () => {
-    if (file?.imageUrl) {
-      try {
-        // Extract file name from imageUrl (e.g., "/input.jpg" -> "input.jpg")
-        const fileName = file.imageUrl.startsWith("/")
-          ? file.imageUrl.slice(1)
-          : file.imageUrl;
-        const response = await fetch("/api/upload", {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ fileName }),
-        });
-        if (response.ok) {
-          addToast({
-            message: "File removed successfully.",
-            type: "success",
-          });
-          setFile(null);
-          return;
-        }
-        throw new Error("Failed to delete file from server.");
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          console.error("Failed to delete file from server:", err.message);
-        } else {
-          console.error("Failed to delete file from server.");
-        }
-      }
-    }
-    setFile(null);
-  };
-
-  const handleStyleSelection = (style: ImageData) => {
-    if (!file) {
-      console.info("Please Upload File first");
-      addToast({
-        type: "info",
-        message: "Please Upload image first",
-      });
-      return;
-    }
-    setSelectedStyle(style);
-  };
-
-  // --- Render ---
+  // UI: Main Page
   return (
     <div
       id="upload-page"
@@ -246,11 +142,24 @@ export default function UploadPage() {
         }}
       />
 
-      <AppHeader />
+      <AppHeader freeUsed={!!freeUsed} />
+      <MessageDialog
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        title={messageDialog.title ?? ""}
+        description={messageDialog.description ?? ""}
+        primaryAction={
+          messageDialog.primaryAction ?? { label: "", onClick: () => {} }
+        }
+        secondaryAction={messageDialog.secondaryAction}
+      />
+
+      {/* Hero Section */}
       <main className="relative z-10 mt-24 flex h-full w-full max-w-4xl flex-col items-start justify-center gap-20 px-6">
         <HeroSection />
       </main>
 
+      {/* Key Points */}
       <section
         id="key-points"
         className="mt-8 flex w-full max-w-7xl flex-col items-center justify-center gap-4 px-4 text-white sm:px-6 lg:flex-row"
@@ -278,7 +187,7 @@ export default function UploadPage() {
               }}
             />
             <div className="relative z-10">
-              <p className="text-whtie flex w-full shrink-0 flex-row items-center justify-start gap-2 text-lg font-semibold text-nowrap">
+              <p className="flex w-full shrink-0 flex-row items-center justify-start gap-2 text-lg font-semibold text-nowrap">
                 <Check className="text-lg text-green-500" />
                 <span>{point.heading}</span>
               </p>
@@ -290,7 +199,7 @@ export default function UploadPage() {
         ))}
       </section>
 
-      {/* Steps  */}
+      {/* Steps */}
       <section className="mt-24 flex w-full max-w-7xl flex-col items-center justify-center">
         <h2 className="pb-8 text-center text-2xl font-semibold text-white md:text-3xl md:text-nowrap lg:text-4xl">
           Convert Your Image in 4 Simple Steps
@@ -408,18 +317,26 @@ export default function UploadPage() {
         </div>
       </section>
 
+      {/* Start Creating Now Button */}
       <div className="mx-auto my-16 flex w-full items-center justify-center">
         <Button
           variant="glossy"
           size="md"
           className="flex flex-row items-center justify-center font-bold"
-          // TODO: Add Click Action
+          onClick={() => {
+            // Scroll to the upload section
+            const uploadSection = document.getElementById("upload-section");
+            if (uploadSection) {
+              uploadSection.scrollIntoView({ behavior: "smooth" });
+            }
+          }}
         >
           Start Creating Now
           <ArrowRight className="ml-2 h-5 w-5" />
         </Button>
       </div>
 
+      {/* Feature Section */}
       <section
         id="feature-section"
         className="mx-auto my-10 flex w-full max-w-7xl flex-col items-center justify-center px-4 sm:px-6"

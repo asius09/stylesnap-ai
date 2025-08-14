@@ -19,13 +19,17 @@
 
 - [x] Work on UI loading states for a smoother experience. _(Done)_
 - [x] Improve the download UI for styled images. _(Done)_
-- [x] Integrate AI-powered image generation.
-- [ ] Limit to one free image generation per IP or user (add restriction logic).
-- [ ] Ensure no one can download images for free from inspect tools; test with browser inspect/tools to ensure free image download and preview works as expected.
-- [ ] Ensure image preview is clear and accessible before download.
-- [ ] Show a prompt to re-upload if the uploaded image is missing after reload (local storage handler).
-- [ ] Fix localStorage override bug for uploads and styles.
-- [ ] Fix output image not showing on result.
+- [x] Integrate AI-powered image generation. _(Done)_
+- [x] Limit to one free image generation per IP or user (add restriction logic). _(Done)_
+- [x] Ensure image preview is clear and accessible before download. _(Done)_
+- [x] Show a prompt to re-upload if the uploaded image is missing after reload (local storage handler). _(Done)_
+- [ ] Style the whole page for a polished look.
+- [ ] Handle SEO (add meta tags, improve discoverability).
+- [ ] Add more styles (at least 10), including anime and couple sections.
+- [ ] Implement payment gateway.
+- [ ] Testing.
+- [ ] Replicate API testing.
+- [ ] 🎉 Celebrate first 100 generated images!
 
 ---
 
@@ -67,42 +71,82 @@ To run the project locally:
 
 ---
 
-## 📁 Project Structure
+### File Structure
 
+<!-- FILE_STRUCTURE_START -->
 ```
-stylesmap-ai/
-├── public/
-│   ├── 1980b-pop-art.png
-│   ├── demo-art.png
-│   ├── demo-yat.png
-│   └── ghibis-art.png
-├── src/
-│   ├── app/
-│   │   ├── (pages)/
-│   │   │   └── upload/
-│   │   │       ├── page.tax
-│   │   ├── global.css
-│   │   ├── layout.tax
-│   │   └── page.tax
-│   ├── components/
-│   │   ├── AppHeader.tax
-│   │   ├── ArrowIndicator.tax
-│   │   ├── Button.tax
-│   │   ├── Loader.tax
-│   │   ├── MyDropzone.tax
-│   │   ├── PreviewCard.tax
-│   │   ├── ProgressBar.tax
-│   │   ├── SocialIcon.tax
-│   │   ├── SocialShare.tax
-│   │   └── StyleCard.tax
-│   ├── hooks/
-|   |    └── useLocalStorage.tsx
-│   └── types/
-│       ├── style.types.ts
-│       └── data.ts
+├── .env
 ├── .gitignore
-└── README.md
+├── .prettierignore
+├── .prettierrc
+├── README.md
+├── database.types.ts
+├── eslint.config.mjs
+├── middleware.ts
+├── next-env.d.ts
+├── next.config.ts
+├── package-lock.json
+├── package.json
+├── postcss.config.mjs
+├── public
+│   ├── 1980s-pop-art.png
+│   ├── anime-art.png
+│   ├── disney-art.png
+│   └── ghibli-art.png
+├── scripts
+│   └── update-readme-structure.js
+├── src
+│   ├── app
+│   │   ├── api
+│   │   │   ├── image-generator
+│   │   │   │   └── route.ts
+│   │   │   ├── trial
+│   │   │   │   └── route.ts
+│   │   │   └── upload
+│   │   │       └── route.ts
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   ├── components
+│   │   ├── AppHeader.tsx
+│   │   ├── ArrowIndicator.tsx
+│   │   ├── Button.tsx
+│   │   ├── Loader.tsx
+│   │   ├── MessageDialog.tsx
+│   │   ├── MyDropzone.tsx
+│   │   ├── PreviewCard.tsx
+│   │   ├── ProgressBar.tsx
+│   │   ├── SocialIcon.tsx
+│   │   ├── SocialShare.tsx
+│   │   ├── StyleCard.tsx
+│   │   └── Toast.tsx
+│   ├── constant.ts
+│   ├── data.ts
+│   ├── hooks
+│   │   ├── useFileRemove.ts
+│   │   ├── useImageGeneration.ts
+│   │   ├── useLocalStorage.tsx
+│   │   ├── useProgressSteps.ts
+│   │   ├── useScrollId.ts
+│   │   ├── useScrollLock.ts
+│   │   ├── useStyleSelection.ts
+│   │   └── useTrialId.ts
+│   ├── types
+│   │   ├── api.type.ts
+│   │   ├── model.types.ts
+│   │   └── style.types.ts
+│   └── utils
+│       ├── buildResponse.ts
+│       ├── downloadUtils.ts
+│       ├── generateImage.ts
+│       ├── idb.ts
+│       ├── resolveImageUrl.ts
+│       ├── supabase
+│       │   └── server.ts
+│       └── trialClient.ts
+└── tsconfig.json
 ```
+<!-- FILE_STRUCTURE_END -->
 
 ### Key Directories:
 
