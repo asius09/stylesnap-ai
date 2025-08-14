@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "prettier": "prettier --check .",
-    "prettier:fix": "prettier --write ."
+    "prettier:fix": "prettier --write .",
+    "update:readme": "node scripts/update-readme-structure.js"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",
