@@ -13,6 +13,7 @@
   "dependencies": {
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.55.0",
+    "@types/uuid": "^10.0.0",
     "dotenv": "^17.2.1",
     "lineicons-react": "^2.0.0",
     "lucide-react": "^0.539.0",
@@ -22,7 +23,8 @@
     "react-dom": "19.1.0",
     "react-dropzone": "^14.3.8",
     "replicate": "^1.0.1",
-    "together-ai": "^0.21.1"
+    "together-ai": "^0.21.1",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

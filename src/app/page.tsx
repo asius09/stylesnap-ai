@@ -23,10 +23,13 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 // Data and Types
 import { stylesData } from "@/data";
 import { ImageData, GenerateStatus, Step } from "@/types/style.types";
+import { checkTrialFreeUsed, ensureTrialId } from "@/utils/trialClient";
+import { generateImage } from "@/utils/generateImage";
 
 // --- Main Upload Page ---
 export default function UploadPage() {
   const { addToast } = useToast();
+  const [trialId, setTrialId] = useState<string | null>(null);
 
   // --- State ---
   const [file, setFile] = useLocalStorage<ImageData | null>(
@@ -75,61 +78,45 @@ export default function UploadPage() {
     setGeneratedImage(null);
 
     try {
-      updateTagStatus("generate-tag", true);
-
-      // Check for required data
-      if (!file?.imageUrl || !selectedStyle?.stylePrompt) {
+      // Check for trialId present in localstorage and indexDB... then get true, false or null
+      const freeUsed = await checkTrialFreeUsed(trialId);
+      if (
+        !file?.imageUrl ||
+        !selectedStyle?.stylePrompt ||
+        !trialId ||
+        freeUsed
+      ) {
         setLoading(false);
         return;
       }
-
-      // Call the API route
-      const apiURL = "/api/image-generator";
-      const apiConfig = {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          image_url: file.imageUrl,
-          prompt: selectedStyle.stylePrompt,
-        }),
-      };
-      const response = await fetch(apiURL, apiConfig);
-      const data = await response.json();
-      console.log("[API RESPONSE]:", data);
-
-      // Show the output image in the preview after generation is successful
-      if (
-        data &&
-        data.statusCode === 200 &&
-        data.status === "successful" &&
-        data.imageUrl
-      ) {
-        // The image is always at /output.jpg in public, as per API
-        setGeneratedImage({
-          id: `generated-image-${selectedStyle.title}`,
-          title: selectedStyle.title,
-          imageUrl: data.imageUrl.startsWith("/")
-            ? data.imageUrl
-            : `/${data.imageUrl}`,
-          convertedStyleLabel: selectedStyle?.title,
-          fileSize: undefined,
-        });
-        setGenerateStatus("success");
-        addToast({
-          message: `Your ${selectedStyle.title} image has been generated successfully!`,
-          type: "success",
-        });
-      } else {
-        setGenerateStatus("failed");
-        addToast({
-          message: "Failed to generate image. Please try again!",
-          type: "error",
-        });
-      }
+      // Check for required data
+      const generatedImageUrl = await generateImage({
+        prompt: selectedStyle.stylePrompt,
+        imageUrl: file.imageUrl,
+        trialId,
+      });
+      // The image is always at /output.{randomdigits}.jpg in public, as per API
+      setGeneratedImage({
+        id: `generated-image-${selectedStyle.title}`,
+        title: selectedStyle.title,
+        imageUrl: generatedImageUrl,
+        convertedStyleLabel: selectedStyle?.title,
+        fileSize: undefined,
+      });
+      setGenerateStatus("success");
+      addToast({
+        message: `Your ${selectedStyle.title} image has been generated successfully!`,
+        type: "success",
+      });
+      updateTagStatus("generate-tag", true);
     } catch (error: unknown) {
       setGenerateStatus("failed");
+      updateTagStatus("generate-tag", false);
+      if (error instanceof Error) {
+        console.error("Error generating image:", error.message, error);
+      } else {
+        console.error("Unknown error generating image:", error);
+      }
       addToast({
         message: "Failed to generate image. Please try again!",
         type: "error",
@@ -198,6 +185,15 @@ export default function UploadPage() {
     }
     setSelectedStyle(style);
   };
+
+  useEffect(() => {
+    const getTrialId = async () => {
+      console.log("[MAIN PAGE] Getting Trial ID");
+      const id = await ensureTrialId();
+      setTrialId(id);
+    };
+    getTrialId();
+  });
 
   // --- Render ---
   return (

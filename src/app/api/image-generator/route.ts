@@ -3,10 +3,42 @@ import Replicate from "replicate";
 import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { readFile } from "node:fs/promises";
+import { createClient } from "@/utils/supabase/server";
+import { USER_TRIALS_TABLE_NAME } from "@/constant.js";
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
+    const supabase = await createClient();
     const body = await request.json();
+    const trialID = body.trialId;
+    if (trialID)
+      return NextResponse.json({
+        status: "failed",
+        error: "Missing trail ID",
+        statusCode: 400,
+      });
+
+    const { data, error } = await supabase
+      .from(USER_TRIALS_TABLE_NAME)
+      .select()
+      .eq("id", trialID)
+      .single();
+
+    if (error || !data) {
+      return NextResponse.json({
+        error: "User not found",
+        status: "NOT FOUND",
+        statusCode: 404,
+      });
+    }
+
+    if (data.free_used && data.paid_credits <= 0)
+      NextResponse.json({
+        status: "NEED PAYMENT",
+        statusCode: 403,
+        error: "Free trial ended",
+      });
+
     const prompt = body.prompt;
     // Handle local file path or remote URL for image input
     let image_url: string;
@@ -127,7 +159,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     await writeFile(publicPath, buffer);
 
     console.log("[API] Replicate output image saved to:", publicPath);
-
+    await supabase
+      .from(USER_TRIALS_TABLE_NAME)
+      .update({
+        free_used: true,
+        last_seen: new Date().toISOString(),
+      })
+      .eq("id", trialID);
     return NextResponse.json({
       status: "successful",
       imageUrl: `/${fileName}`,
