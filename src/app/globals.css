@@ -32,11 +32,11 @@
   --background: oklch(0.1128 0.043 258.66);
   --card: oklch(0.2464 0.0379 294.95);
   --primary: oklch(0.6082 0.2508 300.25);
-  --primary-hover: oklch(0.6 0.25 280);
+  --primary-hover: oklch(0.54 0.2508 300.25);
   --secondary: oklch(0.7 0.2 40);
   --secondary-hover: oklch(0.65 0.2 40);
   --accent: oklch(0.85 0.2 85);
-  --text: oklch(0.95 0.02 260);
+  --text: white;
   /* --font-sans: var(--font-mozilla); */
   /* --font-sans: var(--font-google-sans-code); */
   --font-sans: var(--font-red-hat-display);

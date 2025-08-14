@@ -5,7 +5,7 @@ export function AppHeader() {
   return (
     <nav
       id="app-header"
-      className="border-primary/10 bg-primary/10 fixed top-0 left-0 z-[1000] flex h-16 w-full items-center justify-between border-b px-2 py-1 shadow-[0_4px_32px_0_rgba(120,90,255,0.22),0_1.5px_8px_0_rgba(120,90,255,0.10)_inset] backdrop-blur-xl md:h-16 md:px-6 md:py-2"
+      className="border-primary/10 bg-primary/10 fixed top-0 left-0 z-[1000] flex h-16 w-full items-center justify-between border-b px-2 py-1 shadow-[0_4px_32px_0_rgba(120,90,255,0.22),0_1.5px_8px_0_rgba(120,90,255,0.10)_inset] backdrop-blur-xl md:h-16 md:px-24"
       role="navigation"
       aria-label="Application Header"
       style={{ overflow: "hidden" }}
@@ -17,7 +17,7 @@ export function AppHeader() {
       />
       <Link
         href="/"
-        className="text-primary relative z-10 text-lg font-bold tracking-tight text-nowrap drop-shadow md:text-xl lg:text-2xl"
+        className="relative z-10 text-lg font-bold tracking-tight text-nowrap text-white drop-shadow md:text-xl lg:text-2xl"
         tabIndex={0}
         aria-label="StyleSnap AI Home"
       >

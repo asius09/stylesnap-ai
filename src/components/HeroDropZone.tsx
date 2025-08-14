@@ -1,9 +1,10 @@
-import React, { useRef } from "react";
+import React from "react";
+import { useDropzone } from "react-dropzone";
 import { UploadCloud } from "lucide-react";
 import { Button } from "./Button";
 
 interface HeroDropZoneProps {
-  onFileSelected: (file: File) => void;
+  onFileSelected?: (file: File) => void;
   disabled?: boolean;
 }
 
@@ -11,49 +12,58 @@ export const HeroDropZone: React.FC<Partial<HeroDropZoneProps>> = ({
   onFileSelected = () => {},
   disabled = false,
 }) => {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const {
+    getRootProps,
+    getInputProps,
+    isDragActive,
+    open,
+    inputRef,
+    isFocused,
+    isDragReject,
+  } = useDropzone({
+    onDrop: (acceptedFiles) => {
+      if (disabled) return;
+      if (acceptedFiles && acceptedFiles[0]) {
+        onFileSelected(acceptedFiles[0]);
+      }
+    },
+    accept: {
+      "image/jpeg": [],
+      "image/png": [],
+    },
+    multiple: false,
+    noClick: true, // We'll handle click with the button
+    noKeyboard: true,
+    disabled,
+    maxSize: 10 * 1024 * 1024, // 10MB
+  });
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    if (disabled) return;
-    const files = e.dataTransfer.files;
-    if (files && files[0]) {
-      onFileSelected(files[0]);
-    }
-  };
+  // Compose container classes for hover/focus/drag states
+  const baseClasses =
+    "border-primary/60 bg-background/60 focus-within:border-primary mx-auto flex w-full cursor-pointer flex-col items-center justify-center rounded-xl border-1 transition outline-none shadow-[0_0_24px_0_theme(colors.primary/80)] relative my-0 min-h-[24rem] w-full max-w-2xl px-4 py-8";
+  const hoverClasses =
+    "hover:border-primary hover:shadow-[0_0_40px_0_theme(colors.primary/60)]";
+  const dragActiveClasses =
+    "border-primary shadow-[0_0_48px_0_theme(colors.primary/80)]";
+  const disabledClasses = "pointer-events-none opacity-60";
 
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-  };
-
-  const handleClick = (e: React.MouseEvent | React.KeyboardEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (disabled) return;
-    inputRef.current?.click();
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (disabled) return;
-    const files = e.target.files;
-    if (files && files[0]) {
-      onFileSelected(files[0]);
-      // Reset input so same file can be selected again
-      e.target.value = "";
-    }
-  };
+  const containerClassName = [
+    baseClasses,
+    hoverClasses,
+    isDragActive || isFocused ? dragActiveClasses : "",
+    disabled ? disabledClasses : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <div
-      className={`border-primary/60 bg-background/60 focus-within:border-primary mx-auto flex w-full cursor-pointer flex-col items-center justify-center rounded-xl border-1 transition outline-none ${disabled ? "pointer-events-none opacity-60" : ""} shadow-[0_0_24px_0_theme(colors.primary/80)] relative my-0 min-h-[24rem] w-full max-w-2xl px-4 py-8`}
-      tabIndex={0}
-      onClick={handleClick}
-      onDrop={handleDrop}
-      onDragOver={handleDragOver}
-      aria-disabled={disabled}
-      role="button"
+      {...getRootProps({
+        className: containerClassName,
+        tabIndex: 0,
+        "aria-disabled": disabled,
+        role: "button",
+      })}
     >
       {/* Glossy overlay effect */}
       <div
@@ -72,7 +82,9 @@ export const HeroDropZone: React.FC<Partial<HeroDropZoneProps>> = ({
       <div className="relative z-10 flex w-full flex-col items-center">
         <UploadCloud className="text-primary mb-3 h-10 w-10" />
         <p className="text-center text-base font-semibold text-white md:mb-1 md:text-lg">
-          Click or drag image to upload
+          {isDragActive
+            ? "Drop the image here..."
+            : "Click or drag image to upload"}
         </p>
         <p className="text-center text-xs text-white/60 md:text-sm">
           JPG or PNG, up to 10MB
@@ -80,21 +92,18 @@ export const HeroDropZone: React.FC<Partial<HeroDropZoneProps>> = ({
         <Button
           type="button"
           variant="filled"
-          className="bg-primary hover:bg-primary-hover mt-4 flex items-center gap-2 rounded-full px-6 py-2 text-base font-semibold text-white shadow-lg transition"
-          onClick={(e) => handleClick(e)}
+          className="mt-4 cursor-pointer"
+          onClick={open}
           disabled={disabled}
           tabIndex={0}
         >
           Upload Image
         </Button>
         <input
-          ref={inputRef}
-          type="file"
-          accept="image/jpeg,image/png"
-          className="hidden"
-          onChange={handleFileChange}
-          disabled={disabled}
-          tabIndex={-1}
+          {...getInputProps({
+            tabIndex: -1,
+            className: "hidden",
+          })}
         />
       </div>
     </div>

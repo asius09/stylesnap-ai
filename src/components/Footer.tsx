@@ -2,7 +2,7 @@ import React from "react";
 
 export const Footer = () => {
   return (
-    <footer className="border-primary/10 bg-background/80 mt-16 flex w-full flex-col items-start justify-center gap-8 border-t px-4 py-8 text-white/80 md:px-6">
+    <footer className="border-primary/50 mt-16 flex w-full flex-col items-start justify-center gap-8 border-t-[0.2px] px-4 py-8 text-white/80 md:px-24">
       <div className="justify-centre mt-4 mb-10 flex w-full max-w-4xl flex-col items-start gap-16 md:flex-row">
         {/* Name */}
         <div className="flex flex-col items-start">
@@ -68,7 +68,7 @@ export const Footer = () => {
         </div>
       </div>
 
-      <div className="mt-4 flex w-full items-start justify-between gap-2 border-t-[0.5px] border-white/60 py-4 text-xs text-white/60">
+      <div className="border-primary/30 mt-4 flex w-full items-start justify-between gap-2 border-t-[0.5px] py-4 text-xs text-white/60">
         <div>© 2025 StyleSnap AI</div>
         <div className="flex gap-4">
           <a
