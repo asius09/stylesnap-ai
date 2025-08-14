@@ -178,9 +178,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       error &&
       typeof error === "object" &&
       "message" in error &&
-      typeof (error as any).message === "string"
+      typeof error.message === "string"
     ) {
-      errorMessage = (error as any).message;
+      errorMessage = error.message;
       if (
         errorMessage.toLowerCase().includes("hgihet light") ||
         errorMessage.toLowerCase().includes("highlight error") ||

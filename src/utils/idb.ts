@@ -45,7 +45,8 @@ export async function setIndexedDB(
         db.close();
       };
     });
-  } catch (err) {
+  } catch (error) {
+    console.warn("[setIndexedDB] Error:", error);
     return false;
   }
 }
@@ -80,7 +81,13 @@ export async function getIndexedDB(
         db.close();
       };
     });
-  } catch (err) {
+  } catch (err: unknown) {
+    // Use type safety: if error is an Error, log it, otherwise handle as unknown
+    if (err instanceof Error) {
+      console.warn("[getIndexedDB] Error:", err.message);
+    } else {
+      console.warn("[getIndexedDB] Unknown error:", err);
+    }
     return undefined;
   }
 }

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 
-export function AppHeader() {
+export function AppHeader({ freeUsed = false }: { freeUsed: boolean }) {
   return (
     <nav
       id="app-header"
@@ -25,7 +25,7 @@ export function AppHeader() {
       >
         Free{" "}
         <span className="font-mono" aria-label="0 out of 1">
-          0/1
+          {`${freeUsed ? "1" : "0"}/1`}
         </span>
       </div>
     </nav>

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
-import { v4 as uuidv4 } from "uuid";
 import { UserTrial } from "@/types/model.types";
 import { USER_TRIALS_TABLE_NAME } from "@/constant";
 
@@ -19,13 +18,7 @@ export async function POST(req: NextRequest) {
       req.headers.get("x-forwarded-for") || req.headers.entries || "unknown";
     const userAgent = req.headers.get("user-agent");
 
-    // Accept trialId from body, but do NOT generate one if not present
-    let body: any = {};
-    try {
-      body = await req.json();
-    } catch (e) {
-      body = {};
-    }
+    const body = await req.json();
     const trialId = body?.trialId;
 
     // If no trialId present, just respond with error
@@ -107,13 +100,14 @@ export async function POST(req: NextRequest) {
     return response;
   } catch (err: unknown) {
     let message = "Internal Server Error";
-    let statusCode = 500;
+    const statusCode = 500;
 
     if (err instanceof Error) {
       message = err.message;
     } else if (typeof err === "string") {
       message = err;
     } else if (typeof err === "object" && err !== null && "message" in err) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       message = (err as any).message;
     }
 
@@ -198,14 +192,12 @@ export async function GET(req: NextRequest) {
     }
   } catch (err: unknown) {
     let message = "Internal Server Error";
-    let statusCode = 500;
+    const statusCode = 500;
 
     if (err instanceof Error) {
       message = err.message;
     } else if (typeof err === "string") {
       message = err;
-    } else if (typeof err === "object" && err !== null && "message" in err) {
-      message = (err as any).message;
     }
 
     console.error("[TRIAL-GET] Error:", err);
@@ -269,14 +261,17 @@ export async function DELETE(req: NextRequest) {
     });
   } catch (err: unknown) {
     let message = "Internal Server Error";
-    let statusCode = 500;
+    const statusCode = 500;
 
     if (err instanceof Error) {
       message = err.message;
     } else if (typeof err === "string") {
       message = err;
     } else if (typeof err === "object" && err !== null && "message" in err) {
-      message = (err as any).message;
+      message =
+        typeof (err as { message?: unknown }).message === "string"
+          ? (err as { message: string }).message
+          : message;
     }
 
     console.error("[TRIAL-DELETE] Error:", err);

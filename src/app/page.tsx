@@ -1,12 +1,8 @@
 "use client";
 
-import { useToast } from "@/components/Toast";
-
-// React and state management
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion } from "motion/react";
-
-// UI Components
+import { useToast } from "@/components/Toast";
 import { MyDropzone } from "@/components/MyDropzone";
 import { StyleCard } from "@/components/StyleCard";
 import { PreviewCard } from "@/components/PreviewCard";
@@ -16,22 +12,28 @@ import { SocialShare } from "@/components/SocialShare";
 import { AppHeader } from "@/components/AppHeader";
 import { ProgressBar } from "@/components/ProgressBar";
 import { ArrowIndicator } from "@/components/ArrowIndicator";
-
-// Hooks
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-
-// Data and Types
 import { stylesData } from "@/data";
-import { ImageData, GenerateStatus, Step } from "@/types/style.types";
-import { checkTrialFreeUsed, ensureTrialId } from "@/utils/trialClient";
-import { generateImage } from "@/utils/generateImage";
+import { ImageData } from "@/types/style.types";
+import { MessageDialog, MessageDialogProps } from "@/components/MessageDialog";
 
-// --- Main Upload Page ---
+// hooks
+import { useProgressSteps } from "@/hooks/useProgressSteps";
+import { useImageGeneration } from "@/hooks/useImageGeneration";
+import { useFileRemove } from "@/hooks/useFileRemove";
+import { useStyleSelection } from "@/hooks/useStyleSelection";
+import { useTrialId } from "@/hooks/useTrialId";
+import { useScrollLock } from "@/hooks/useScrollLock";
+import { useDownloadImage } from "@/utils/downloadUtils";
+
 export default function UploadPage() {
   const { addToast } = useToast();
-  const [trialId, setTrialId] = useState<string | null>(null);
 
-  // --- State ---
+  // State
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [messageDialog, setMessageDialog] = useState<
+    Partial<MessageDialogProps>
+  >({});
   const [file, setFile] = useLocalStorage<ImageData | null>(
     "uploadedFile",
     null,
@@ -40,192 +42,76 @@ export default function UploadPage() {
     "selectedStyle",
     null,
   );
-  const [generatedImage, setGeneratedImage] = useState<ImageData | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [generateStatus, setGenerateStatus] =
-    useState<GenerateStatus>("success");
-
   const [error, setError] = useState<string | null>(null);
-
-  // --- Steps for progress bar ---
-  const [steps, setSteps] = useState<Step[]>([
-    { id: "upload-tag", label: "Upload", status: false },
-    { id: "select-style-tag", label: "Select Style", status: false },
-    { id: "generate-tag", label: "Generate", status: false },
-    { id: "download-tag", label: "Download", status: false },
-  ]);
-
-  // Keep steps in sync with file and selectedStyle
-  useEffect(() => {
-    setSteps((prev) => [
-      { ...prev[0], status: !!file },
-      { ...prev[1], status: !!selectedStyle },
-      prev[2],
-      prev[3],
-    ]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [file, selectedStyle]);
-
-  // --- Handlers ---
-  const updateTagStatus = (tagName: string, status: boolean) => {
-    setSteps((prev) =>
-      prev.map((step) => (step.id === tagName ? { ...step, status } : step)),
-    );
-  };
-
-  const handleGenerate = async () => {
-    setLoading(true);
-    setGeneratedImage(null);
-
-    try {
-      // Check for trialId present in localstorage and indexDB... then get true, false or null
-      const freeUsed = await checkTrialFreeUsed(trialId);
-      if (
-        !file?.imageUrl ||
-        !selectedStyle?.stylePrompt ||
-        !trialId ||
-        freeUsed
-      ) {
-        setLoading(false);
-        return;
-      }
-      // Check for required data
-      const generatedImageUrl = await generateImage({
-        prompt: selectedStyle.stylePrompt,
-        imageUrl: file.imageUrl,
-        trialId,
-      });
-      // The image is always at /output.{randomdigits}.jpg in public, as per API
-      setGeneratedImage({
-        id: `generated-image-${selectedStyle.title}`,
-        title: selectedStyle.title,
-        imageUrl: generatedImageUrl,
-        convertedStyleLabel: selectedStyle?.title,
-        fileSize: undefined,
-      });
-      setGenerateStatus("success");
-      addToast({
-        message: `Your ${selectedStyle.title} image has been generated successfully!`,
-        type: "success",
-      });
-      updateTagStatus("generate-tag", true);
-    } catch (error: unknown) {
-      setGenerateStatus("failed");
-      updateTagStatus("generate-tag", false);
-      if (error instanceof Error) {
-        console.error("Error generating image:", error.message, error);
-      } else {
-        console.error("Unknown error generating image:", error);
-      }
-      addToast({
-        message: "Failed to generate image. Please try again!",
-        type: "error",
-      });
-    } finally {
-      setTimeout(() => setLoading(false), 600);
-    }
-  };
-
-  const handleDownloadGeneratedImage = () => {
-    // Download logic for /output.jpg
-    if (generatedImage?.imageUrl) {
-      const link = document.createElement("a");
-      link.href = generatedImage.imageUrl;
-      link.download = "output.jpg";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      updateTagStatus("download-tag", true);
-    }
-  };
-
-  // --- Remove uploaded file handler ---
-  const handleRemoveFile = async () => {
-    if (file?.imageUrl) {
-      try {
-        // Extract file name from imageUrl (e.g., "/input.jpg" -> "input.jpg")
-        const fileName = file.imageUrl.startsWith("/")
-          ? file.imageUrl.slice(1)
-          : file.imageUrl;
-        const response = await fetch("/api/upload", {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ fileName }),
-        });
-        if (response.ok) {
-          addToast({
-            message: "File removed successfully.",
-            type: "success",
-          });
-          setFile(null);
-          return;
-        }
-        throw new Error("Failed to delete file from server.");
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          console.error("Failed to delete file from server:", err.message);
-        } else {
-          console.error("Failed to delete file from server.");
-        }
-      }
-    }
-    setFile(null);
-  };
-
-  const handleStyleSelection = (style: ImageData) => {
-    if (!file) {
-      console.info("Please Upload File first");
-      addToast({
-        type: "info",
-        message: "Please Upload image first",
-      });
-      return;
-    }
-    setSelectedStyle(style);
-  };
-
-  useEffect(() => {
-    const getTrialId = async () => {
-      console.log("[MAIN PAGE] Getting Trial ID");
-      const id = await ensureTrialId();
-      setTrialId(id);
-    };
-    getTrialId();
+  const { trialId, freeUsed } = useTrialId();
+  const { handleGenerate, generateStatus, generatedImage, loading } =
+    useImageGeneration({
+      file,
+      selectedStyle,
+      trialId: typeof trialId === "string" ? trialId : null,
+      freeUsed: typeof freeUsed === "boolean" ? freeUsed : false,
+      setMessageDialog,
+      setIsDialogOpen,
+      addToast,
+    });
+  const handleDownloadGeneratedImage = useDownloadImage({
+    generatedImage,
+    selectedStyle,
+    addToast,
   });
-
-  // --- Render ---
+  const [steps] = useProgressSteps(file, selectedStyle, generateStatus);
+  const handleRemoveFile = useFileRemove({
+    file,
+    setFile,
+    addToast,
+  });
+  const handleStyleSelection = useStyleSelection({
+    file,
+    setSelectedStyle,
+    addToast,
+  });
+  useScrollLock(isDialogOpen);
+  const disableMotion = isDialogOpen;
   return (
     <div
       id="upload-page"
-      className="from-background via-primary/20 to-background text-text-light relative flex min-h-screen w-full items-center justify-center bg-gradient-to-br md:overflow-x-hidden"
+      className={`from-background via-primary/20 to-background text-text-light relative flex min-h-screen w-full items-center justify-center bg-gradient-to-br md:overflow-x-hidden ${
+        isDialogOpen ? "overflow-hidden" : "overflow-auto"
+      }`}
     >
-      <AppHeader />
+      <AppHeader freeUsed={!!freeUsed} />
+      <MessageDialog
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        title={messageDialog.title ?? ""}
+        description={messageDialog.description ?? ""}
+        primaryAction={
+          messageDialog.primaryAction ?? { label: "", onClick: () => {} }
+        }
+        secondaryAction={messageDialog.secondaryAction}
+      />
 
       <main className="mt-20 flex w-full max-w-4xl flex-col items-center justify-center px-4">
         <ProgressBar steps={steps} />
-        {/* Dropzone & Previews */}
-        <section
-          className={`relative flex h-auto min-h-[24rem] w-full items-center justify-center md:h-96`}
-        >
+        <section className="relative flex h-auto min-h-[24rem] w-full items-center justify-center md:h-96">
           {loading ? (
             <Loader />
           ) : generateStatus === "success" && generatedImage?.imageUrl ? (
-            // Show the generated image in the preview after successful generation
             <motion.div
               className="flex h-full w-full flex-col items-center justify-center gap-x-20 overflow-hidden md:flex-row"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={disableMotion ? false : { opacity: 0, y: 30 }}
+              animate={disableMotion ? false : { opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 30 }}
-              transition={{ duration: 0.5 }}
+              transition={disableMotion ? undefined : { duration: 0.5 }}
             >
               <motion.div
                 key="generated-preview"
-                initial={{ opacity: 0, scale: 0.95, y: 30 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
+                initial={
+                  disableMotion ? false : { opacity: 0, scale: 0.95, y: 30 }
+                }
+                animate={disableMotion ? false : { opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 30 }}
-                transition={{ duration: 0.5 }}
+                transition={disableMotion ? undefined : { duration: 0.5 }}
               >
                 <PreviewCard
                   id={generatedImage.id}
@@ -233,10 +119,7 @@ export default function UploadPage() {
                   title={generatedImage.title ?? ""}
                   convertedStyleLabel={generatedImage.convertedStyleLabel}
                   isStyleCard={false}
-                  onRemove={() => {
-                    setGeneratedImage(null);
-                    setGenerateStatus("idle");
-                  }}
+                  onRemove={() => {}}
                   disableRemoveButton={false}
                   fileSize={generatedImage.fileSize}
                 />
@@ -244,25 +127,26 @@ export default function UploadPage() {
               <motion.div
                 id="image-download-actions"
                 className="mt-4 flex h-full flex-col items-center justify-center gap-4 md:mt-0"
-                initial={{ opacity: 0, x: 40 }}
-                animate={{ opacity: 1, x: 0 }}
+                initial={disableMotion ? false : { opacity: 0, x: 40 }}
+                animate={disableMotion ? false : { opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 40 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
+                transition={
+                  disableMotion ? undefined : { duration: 0.5, delay: 0.2 }
+                }
               >
                 <Button
                   variant={"gradient"}
                   className="w-full max-w-xs"
                   onClick={handleDownloadGeneratedImage}
+                  disabled={isDialogOpen}
                 >
                   Download
                 </Button>
                 <Button
                   variant={"outline"}
                   className="w-full max-w-xs text-white"
-                  onClick={() => {
-                    setGeneratedImage(null);
-                    setGenerateStatus("idle");
-                  }}
+                  onClick={() => {}}
+                  disabled={isDialogOpen}
                 >
                   Generate Another for ₹9
                 </Button>
@@ -270,15 +154,14 @@ export default function UploadPage() {
               </motion.div>
             </motion.div>
           ) : (
-            // Only show file upload if file not uploaded
             <>
               {!file && (
                 <motion.div
                   key="dropzone-inner"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
+                  initial={disableMotion ? false : { opacity: 0, scale: 0.95 }}
+                  animate={disableMotion ? false : { opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.4 }}
+                  transition={disableMotion ? undefined : { duration: 0.4 }}
                   className="flex h-full w-full max-w-sm items-center justify-center"
                 >
                   <MyDropzone
@@ -286,41 +169,45 @@ export default function UploadPage() {
                     setFile={setFile}
                     setError={setError}
                     error={error}
+                    disabled={isDialogOpen}
                   />
                 </motion.div>
               )}
 
-              {/* If file is uploaded, show file preview */}
               {file && (
-                <div
-                  className={`flex w-full flex-col items-center justify-center md:flex-row`}
-                >
+                <div className="flex w-full flex-col items-center justify-center md:flex-row">
                   <PreviewCard
                     id={file.imageUrl}
                     imageUrl={file.imageUrl}
                     title={file.title}
                     isStyleCard={false}
                     onRemove={handleRemoveFile}
-                    disableRemoveButton={!!selectedStyle}
+                    disableRemoveButton={!!selectedStyle || isDialogOpen}
                     fileSize={file.fileSize}
                   />
 
-                  {/* If style is selected, show arrow, style preview, and generate button centered between file and style */}
                   {selectedStyle && (
                     <>
                       <div className="justify-centre flex h-full w-full flex-col items-center">
                         <ArrowIndicator show={!!selectedStyle} />
                         <motion.div
                           className="mt-8 hidden w-full items-center justify-center md:flex"
-                          initial={{ opacity: 0, y: 30 }}
-                          animate={{ opacity: 1, y: 0 }}
+                          initial={
+                            disableMotion ? false : { opacity: 0, y: 30 }
+                          }
+                          animate={disableMotion ? false : { opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: 30 }}
-                          transition={{ duration: 0.5, delay: 0.5 }}
+                          transition={
+                            disableMotion
+                              ? undefined
+                              : { duration: 0.5, delay: 0.5 }
+                          }
                         >
                           <Button
                             variant={"gradient"}
                             className="w-full max-w-xs md:max-w-1/2"
                             onClick={handleGenerate}
+                            disabled={isDialogOpen}
                           >
                             Generate
                           </Button>
@@ -334,19 +221,24 @@ export default function UploadPage() {
                         isStyleCard={true}
                         stylePrompt={selectedStyle.stylePrompt}
                         onRemove={() => setSelectedStyle(null)}
-                        disableRemoveButton={false}
+                        disableRemoveButton={isDialogOpen}
                       />
                       <motion.div
                         className="mt-4 flex w-full items-center justify-center px-2 md:hidden"
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
+                        initial={disableMotion ? false : { opacity: 0, y: 30 }}
+                        animate={disableMotion ? false : { opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 30 }}
-                        transition={{ duration: 0.5, delay: 0.5 }}
+                        transition={
+                          disableMotion
+                            ? undefined
+                            : { duration: 0.5, delay: 0.5 }
+                        }
                       >
                         <Button
                           variant={"gradient"}
                           className="w-full max-w-xs md:max-w-1/2"
                           onClick={handleGenerate}
+                          disabled={isDialogOpen}
                         >
                           Generate
                         </Button>
@@ -369,18 +261,28 @@ export default function UploadPage() {
           </h2>
           <motion.div
             className="scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent flex w-full items-center justify-start gap-3 overflow-x-auto px-1 py-1 sm:gap-4 md:gap-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+            initial={disableMotion ? false : { opacity: 0, y: 20 }}
+            animate={disableMotion ? false : { opacity: 1, y: 0 }}
+            transition={
+              disableMotion ? undefined : { duration: 0.5, delay: 0.2 }
+            }
           >
             {stylesData.map((style, idx) => (
               <motion.div
                 key={style.id}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: idx * 0.05 }}
+                initial={disableMotion ? false : { opacity: 0, scale: 0.95 }}
+                animate={disableMotion ? false : { opacity: 1, scale: 1 }}
+                transition={
+                  disableMotion
+                    ? undefined
+                    : { duration: 0.3, delay: idx * 0.05 }
+                }
               >
-                <StyleCard style={style} onClick={handleStyleSelection} />
+                <StyleCard
+                  style={style}
+                  onClick={isDialogOpen ? () => {} : handleStyleSelection}
+                  disabled={isDialogOpen}
+                />
               </motion.div>
             ))}
           </motion.div>

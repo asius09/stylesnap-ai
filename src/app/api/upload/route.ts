@@ -59,7 +59,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Parse the incoming form data (expects multipart/form-data)
     const formData = await request.formData();
     const file = formData.get("file");
-    let fileNameFromForm = formData.get("fileName");
+    const fileNameFromForm = formData.get("fileName");
 
     if (!file || typeof file === "string") {
       return NextResponse.json(
@@ -75,7 +75,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Determine file name
     let fileName: string;
-    if (fileNameFromForm && typeof fileNameFromForm === "string" && fileNameFromForm.trim() !== "") {
+    if (
+      fileNameFromForm &&
+      typeof fileNameFromForm === "string" &&
+      fileNameFromForm.trim() !== ""
+    ) {
       // Use provided file name, ensure it has extension
       let sanitized = sanitizeFileName(fileNameFromForm);
       if (!extname(sanitized)) {
@@ -136,7 +140,11 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
     // Try to get from JSON body first
     try {
       const body = await request.json();
-      if (body && typeof body.fileName === "string" && body.fileName.trim() !== "") {
+      if (
+        body &&
+        typeof body.fileName === "string" &&
+        body.fileName.trim() !== ""
+      ) {
         fileName = sanitizeFileName(body.fileName);
       }
     } catch {

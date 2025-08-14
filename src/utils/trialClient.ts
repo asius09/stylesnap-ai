@@ -13,8 +13,8 @@ import { setIndexedDB, getIndexedDB } from "@/utils/idb";
  * Returns the trialId if present, else null.
  */
 export async function ensureTrialId() {
-  let trialIdLocal = localStorage.getItem(TRIAL_ID_LOCAL_STORAGE_KEY);
-  let trialIdIndexedDB = await getIndexedDB(TRIAL_ID_LOCAL_STORAGE_KEY);
+  const trialIdLocal = localStorage.getItem(TRIAL_ID_LOCAL_STORAGE_KEY);
+  const trialIdIndexedDB = await getIndexedDB(TRIAL_ID_LOCAL_STORAGE_KEY);
 
   console.log("[ensureTrialId] trialId from localStorage:", trialIdLocal);
   console.log("[ensureTrialId] trialId from IndexedDB:", trialIdIndexedDB);
@@ -147,9 +147,9 @@ export const checkTrialFreeUsed = async (
     // If the response is not successful, throw an error
     throw new Error("Error while fetching trial data");
   } catch (error: unknown) {
-    // Catch any errors and throw a new error with a descriptive message
+    // Catch any errors and throw a new error with a descriptive message, including the original error
     throw new Error(
-      "[checkTrialFreeUsed] Error while checking free_used status",
+      `[checkTrialFreeUsed] Error while checking free_used status: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
 };
