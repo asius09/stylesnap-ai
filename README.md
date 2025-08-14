@@ -23,7 +23,7 @@
 - [x] Limit to one free image generation per IP or user (add restriction logic). _(Done)_
 - [x] Ensure image preview is clear and accessible before download. _(Done)_
 - [x] Show a prompt to re-upload if the uploaded image is missing after reload (local storage handler). _(Done)_
-- [ ] Style the whole page for a polished look.
+- [x] Style the whole page for a polished look.
 - [ ] Handle SEO (add meta tags, improve discoverability).
 - [ ] Add more styles (at least 10), including anime and couple sections.
 - [ ] Implement payment gateway.
@@ -111,6 +111,8 @@ To run the project locally:
 │   │   ├── AppHeader.tsx
 │   │   ├── ArrowIndicator.tsx
 │   │   ├── Button.tsx
+│   │   ├── Footer.tsx
+│   │   ├── HeroDropZone.tsx
 │   │   ├── Loader.tsx
 │   │   ├── MessageDialog.tsx
 │   │   ├── MyDropzone.tsx
@@ -119,7 +121,14 @@ To run the project locally:
 │   │   ├── SocialIcon.tsx
 │   │   ├── SocialShare.tsx
 │   │   ├── StyleCard.tsx
-│   │   └── Toast.tsx
+│   │   ├── StyleSelectionDialog.tsx
+│   │   ├── Toast.tsx
+│   │   └── sections
+│   │       ├── ButtonCTASection.tsx
+│   │       ├── FeatureSection.tsx
+│   │       ├── HeroSection.tsx
+│   │       ├── KeyPoints.tsx
+│   │       └── StepsSection.tsx
 │   ├── constant.ts
 │   ├── data.ts
 │   ├── hooks
@@ -131,6 +140,8 @@ To run the project locally:
 │   │   ├── useScrollLock.ts
 │   │   ├── useStyleSelection.ts
 │   │   └── useTrialId.ts
+│   ├── lib
+│   │   └── utils.ts
 │   ├── types
 │   │   ├── api.type.ts
 │   │   ├── model.types.ts
