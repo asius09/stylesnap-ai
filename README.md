@@ -25,7 +25,7 @@
 - [x] Show a prompt to re-upload if the uploaded image is missing after reload (local storage handler). _(Done)_
 - [x] Style the whole page for a polished look.
 - [x] Handle SEO (add meta tags, improve discoverability).
-- [ ] Add more styles (at least 10), including anime and couple sections.
+- [x] Add more styles (at least 10), including anime and couple sections.
 - [ ] Implement payment gateway.
 - [ ] Testing.
 - [ ] Replicate API testing.
