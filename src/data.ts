@@ -1,73 +1,110 @@
 import { ImageData } from "./types/style.types";
 
+/**
+ * Key features of StyleSnap AI, with concise subheadings for quick scanning.
+ */
 export const keyPoints = [
   {
     id: "no-signup-required",
-    heading: "No signup required",
-    subHeading: "just upload & generate",
+    heading: "No Signup Required",
+    subHeading: "Create art instantly—no account needed.",
   },
   {
-    id: "100s-presets-style",
-    heading: "100s presets style",
-    subHeading: "One click style convert",
+    id: "hundreds-of-styles",
+    heading: "100+ Art Styles",
+    subHeading: "Pick from a wide range of styles.",
   },
   {
-    id: "high-quality-jpg",
-    heading: "High Quality JPG",
-    subHeading: "High quality every time",
+    id: "pro-quality-output",
+    heading: "High-Quality JPG",
+    subHeading: "Download crisp, clear images.",
   },
 ];
 
+/**
+ * Step-by-step guide, each step short and actionable.
+ */
 export const stepsContent = [
   {
     id: "upload-step",
-    heading: "Upload Image",
-    detail: "Upload any image from your device.",
+    heading: "Step 1: Upload",
+    detail: "Choose a photo to start.",
   },
   {
     id: "select-style-step",
-    heading: "Pick Style",
-    detail: "Select a style to apply.",
+    heading: "Step 2: Pick Style",
+    detail: "Select your favorite art style.",
   },
   {
     id: "generate-step",
-    heading: "Generate",
-    detail: "Create your new image.",
+    heading: "Step 3: Generate",
+    detail: "Let FluxPro AI create your art.",
   },
   {
     id: "download-step",
-    heading: "Download & Share",
-    detail: "Save or share instantly.",
+    heading: "Step 4: Download/Share",
+    detail: "Save or share your new image.",
   },
 ];
 
+/**
+ * SEO-optimized style data for FluxPro (Replicate AI) model.
+ */
 export const stylesData: ImageData[] = [
   {
     id: "1980s-pop-art",
     title: "1980s Pop Art",
     imageUrl: "/1980s-pop-art.png",
-    stylePrompt:
-      "Convert this image into a striking 1980s pop art portrait, inspired by Roy Lichtenstein and Andy Warhol. Use bold primary colors, halftone dot shading, thick black outlines, and strong graphic contrast. Keep facial features stylized but recognizable, with a playful, energetic feel.",
+    stylePrompt: `
+      Create a vibrant 1980s pop art portrait inspired by Roy Lichtenstein and Andy Warhol. 
+      Use bold primary colors, halftone dots, thick black outlines, and strong contrast. 
+      Stylize facial features but keep them recognizable and energetic. 
+      High-resolution, sharp, and visually striking.
+      Negative Prompt: blurry, low quality, distorted, extra limbs, watermark, text, signature, logo, duplicate, mutation.
+    `
+      .replace(/\s+/g, " ")
+      .trim(),
   },
   {
     id: "anime-art",
     title: "Anime Art",
     imageUrl: "/anime-art.png",
-    stylePrompt:
-      "Transform this image into a polished anime illustration in the style of Makoto Shinkai. Use clean sharp linework, large expressive eyes with detailed irises, smooth skin tones, and soft gradient shading. Add vibrant colors and cinematic lighting for a high-quality, hand-drawn anime feel.",
+    stylePrompt: `
+      Transform the photo into a polished anime illustration inspired by Makoto Shinkai. 
+      Use clean lines, expressive eyes, smooth skin, and soft shading. 
+      Add vibrant colors and cinematic lighting for a hand-drawn anime look. 
+      Crisp, detailed, and appealing.
+      Negative Prompt: blurry, low quality, distorted, extra limbs, watermark, text, signature, logo, duplicate, mutation.
+    `
+      .replace(/\s+/g, " ")
+      .trim(),
   },
   {
     id: "disney-art",
     title: "Disney Art",
     imageUrl: "/disney-art.png",
-    stylePrompt:
-      "Convert this image into a classic Disney animation style, inspired by the 1990s Disney renaissance. Use soft rounded features, bright yet warm colors, subtle painterly shading, and expressive eyes. Give the background a storybook-like charm with gentle lighting and a magical atmosphere.",
+    stylePrompt: `
+      Convert the image to a classic Disney animation style. 
+      Use soft features, bright warm colors, painterly shading, and expressive eyes. 
+      Add a storybook background with gentle lighting and a magical feel. 
+      High-resolution and family-friendly.
+      Negative Prompt: blurry, low quality, distorted, extra limbs, watermark, text, signature, logo, duplicate, mutation.
+    `
+      .replace(/\s+/g, " ")
+      .trim(),
   },
   {
     id: "ghibli-art",
     title: "Ghibli Art",
     imageUrl: "/ghibli-art.png",
-    stylePrompt:
-      "Transform this image into a Studio Ghibli-style illustration, inspired by films like Spirited Away and Howl’s Moving Castle. Use hand-painted backgrounds with lush natural details, soft pastel colors, and a warm nostalgic glow. Characters should have gentle expressions, clean outlines, and natural proportions.",
+    stylePrompt: `
+      Render the photo in Studio Ghibli style, inspired by Spirited Away and Howl’s Moving Castle. 
+      Use hand-painted backgrounds, soft pastel colors, and a warm glow. 
+      Characters should have gentle expressions and clean outlines. 
+      Dreamy, high-quality, and charming.
+      Negative Prompt: blurry, low quality, distorted, extra limbs, watermark, text, signature, logo, duplicate, mutation.
+    `
+      .replace(/\s+/g, " ")
+      .trim(),
   },
 ];

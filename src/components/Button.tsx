@@ -25,7 +25,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 // Use fully rounded classes for a pill/rounded look
 const baseClasses =
-  "inline-flex items-center justify-center font-semibold rounded-full transition-colors duration-150 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed selection:bg-primary/50 selection:text-white cursor-pointer relative overflow-hidden";
+  "inline-flex items-center justify-center font-semibold rounded-full transition-colors duration-150 focus:outline-none focus-ring-primary disabled:opacity-60 disabled:cursor-not-allowed selection:bg-primary/50 selection:text-text-color cursor-pointer relative overflow-hidden";
 
 // Responsive size classes
 const sizeClasses: Record<ButtonSize, string> = {
@@ -38,15 +38,15 @@ function getVariantClasses(variant: ButtonVariant): string {
   switch (variant) {
     case "filled":
       // Use brand primary and primary-hover from globals.css
-      return "bg-primary text-white shadow-md hover:bg-primary-hover";
+      return "bg-primary text-text-color shadow-md hover:bg-primary-hover";
     case "outline":
       return "border-2 border-primary text-primary bg-transparent hover:bg-primary/10";
     case "gradient":
       // Use primary and secondary from globals.css
-      return "bg-gradient-to-r from-primary to-secondary text-white shadow-lg hover:from-primary-hover hover:to-secondary-hover";
+      return "bg-gradient-to-r from-primary to-secondary text-text-color shadow-lg hover:from-primary-hover hover:to-secondary-hover";
     case "glossy":
       // Use bg-primary as base, shadow, and handle hover with primary-hover
-      return "bg-primary text-white shadow-lg hover:bg-primary-hover";
+      return "bg-primary text-text-color shadow-lg hover:bg-primary-hover";
     default:
       return "";
   }
@@ -57,6 +57,7 @@ export const Button: React.FC<ButtonProps> = ({
   size = "md",
   children,
   className,
+  type = "button",
   ...props
 }) => {
   const isGradientOutline = variant === "gradient-outline";
@@ -77,8 +78,23 @@ export const Button: React.FC<ButtonProps> = ({
       }
     : undefined;
 
+  // Accessibility: ensure role, tabIndex, and aria-disabled are set appropriately
+  // (button element already has role="button" by default)
+  // If disabled, tabIndex should be -1, otherwise 0 (default for button)
+  const { disabled, ...restProps } = props;
+  const tabIndex = disabled ? -1 : props.tabIndex ?? undefined;
+  const ariaDisabled = disabled ? true : undefined;
+
   return (
-    <button className={buttonClassName} style={gradientOutlineStyle} {...props}>
+    <button
+      className={buttonClassName}
+      style={gradientOutlineStyle}
+      type={type}
+      tabIndex={tabIndex}
+      aria-disabled={ariaDisabled}
+      disabled={disabled}
+      {...restProps}
+    >
       {isGlossy && (
         <span
           aria-hidden="true"

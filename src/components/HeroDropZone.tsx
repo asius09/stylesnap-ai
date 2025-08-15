@@ -130,27 +130,49 @@ export const HeroDropZone: React.FC<Partial<HeroDropZoneProps>> = ({
         tabIndex: disabled ? -1 : 0,
         "aria-disabled": disabled,
         role: "button",
+        "aria-label": "Upload image dropzone",
         style: disabled ? { pointerEvents: "none", opacity: 0.6 } : undefined,
         onClick: (e: React.MouseEvent) => {
           // Prevent propagation to dropzone, only allow button to open dialog
           e.stopPropagation();
         },
+        onKeyDown: (e: React.KeyboardEvent) => {
+          // Allow Enter/Space to trigger file dialog for accessibility
+          if (!disabled && (e.key === "Enter" || e.key === " ")) {
+            e.preventDefault();
+            if (inputRef.current) {
+              inputRef.current.value = "";
+              inputRef.current.click();
+            }
+          }
+        },
       })}
+      aria-describedby={error ? "herodropzone-error" : undefined}
     >
-      <div className="relative z-10 flex w-full flex-col items-center">
-        <UploadCloud className="text-primary mb-3 h-10 w-10" />
-        <p className="text-center text-base font-semibold text-white md:mb-1 md:text-lg">
+      <div className="relative z-10 flex h-full w-full flex-col items-center">
+        <UploadCloud
+          className="text-primary mb-3 h-10 w-10"
+          aria-hidden="true"
+          focusable="false"
+        />
+        <p
+          className="text-center text-base font-semibold text-text-color md:mb-1 md:text-lg"
+          id="herodropzone-label"
+        >
           {isDragActive
             ? "Drop the image here..."
             : "Click or drag image to upload"}
         </p>
-        <p className="text-center text-xs text-white/60 md:text-sm">
+        <p
+          className="text-center text-xs text-text-color/60 md:text-sm"
+          id="herodropzone-desc"
+        >
           PNG, JPEG, or image, up to 10MB
         </p>
         <Button
           type="button"
           variant="filled"
-          className="mt-4 cursor-pointer"
+          className="focus-ring-primary selection-primary mt-4 cursor-pointer"
           onClick={(e) => {
             e.stopPropagation();
             if (inputRef.current) {
@@ -160,6 +182,7 @@ export const HeroDropZone: React.FC<Partial<HeroDropZoneProps>> = ({
           }}
           disabled={disabled}
           tabIndex={0}
+          aria-label="Open file dialog to upload image"
         >
           Upload Image
         </Button>
@@ -178,9 +201,24 @@ export const HeroDropZone: React.FC<Partial<HeroDropZoneProps>> = ({
                 await handleFileUpload(file);
               }
             },
+            "aria-label": "Image file input",
+            "aria-describedby":
+              "herodropzone-label herodropzone-desc" +
+              (error ? " herodropzone-error" : ""),
+            "aria-disabled": disabled,
+            disabled,
           })}
         />
-        {error && <p className="mt-2 text-red-500">{error}</p>}
+        {error && (
+          <p
+            className="mt-2 text-red-500"
+            id="herodropzone-error"
+            role="alert"
+            aria-live="assertive"
+          >
+            {error}
+          </p>
+        )}
       </div>
     </div>
   );

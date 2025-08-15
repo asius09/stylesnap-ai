@@ -64,7 +64,7 @@ export const PreviewCard: React.FC<PreviewCardProps> = ({
                   type="button"
                   aria-label="Switch style"
                   onClick={onSwitchStyle}
-                  className="bg-secondary/50 hover:bg-secondary focus:bg-secondary focus:ring-secondary flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-white shadow-lg backdrop-blur-md transition-colors duration-200 focus:ring-2 focus:ring-offset-2 focus:outline-none active:text-white "
+                  className="bg-secondary/50 hover:bg-secondary focus:bg-secondary focus:ring-secondary flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-text-color shadow-lg backdrop-blur-md transition-colors duration-200 focus:ring-2 focus:ring-offset-2 focus:outline-none active:text-text-color"
                   tabIndex={0}
                   title="Switch style"
                   style={{
@@ -73,7 +73,7 @@ export const PreviewCard: React.FC<PreviewCardProps> = ({
                 >
                   <span className="sr-only">Switch style</span>
                   <RefreshCw
-                    className="h-5 w-5 text-white"
+                    className="h-5 w-5 text-text-color"
                     aria-hidden="true"
                   />
                 </button>
@@ -83,7 +83,7 @@ export const PreviewCard: React.FC<PreviewCardProps> = ({
                   type="button"
                   aria-label="Remove image"
                   onClick={onRemove}
-                  className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-white/30 bg-black/60 shadow-lg backdrop-blur-md transition-colors duration-200 hover:bg-red-600 hover:text-white focus:bg-red-600 focus:text-white focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none active:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                  className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-white/30 bg-black/60 shadow-lg backdrop-blur-md transition-colors duration-200 hover:bg-red-600 hover:text-text-color focus:bg-red-600 focus:text-text-color focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none active:text-text-color disabled:cursor-not-allowed disabled:opacity-60"
                   tabIndex={0}
                   disabled={disableRemoveButton}
                   title="Remove image"
@@ -92,17 +92,17 @@ export const PreviewCard: React.FC<PreviewCardProps> = ({
                   }}
                 >
                   <span className="sr-only">Remove image</span>
-                  <X className="h-5 w-5 text-white" aria-hidden="true" />
+                  <X className="h-5 w-5 text-text-color" aria-hidden="true" />
                 </button>
               )}
             </div>
           )}
       </div>
       <div className="text-center">
-        <p className="selection:bg-primary/50 text-xs font-semibold break-all text-white selection:text-white sm:text-sm">
+        <p className="selection-primary text-xs font-semibold break-all text-text-color sm:text-sm">
           {convertedStyleLabel ? convertedStyleLabel : title}
         </p>
-        <p className="selection:bg-primary/50 mb-1 text-[11px] text-white/55 selection:text-white">
+        <p className="selection-primary mb-1 text-[11px] text-text-color/55">
           {fileSize ? fileSize : "Selected Style"}
         </p>
       </div>

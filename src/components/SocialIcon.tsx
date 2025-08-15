@@ -64,23 +64,19 @@ const icons = {
   ),
 };
 
-export function SocialIcon({ name, className, ...props }: SocialIconProps) {
-  // Default to 32x32, allow override
-  const size = {
-    width: props.width ?? 32,
-    height: props.height ?? 32,
-  };
+export function SocialIcon({ name, className, w, h, ...props }: SocialIconProps) {
+  // Default to 32x32, allow override, and take w/h as props
+  const width = props.width ?? 32;
+  const height =  props.height ?? 32;
 
-  // Color: white by default, primary on hover
-  // Use Tailwind classes: text-white hover:text-primary
-  // Allow passing extra className
   return (
     <svg
       {...props}
-      {...size}
+      width={width}
+      height={height}
       viewBox="0 0 24 24"
       fill="none"
-      className={`hover:text-primary text-white transition-colors duration-200 ${className} h-10 w-10 cursor-pointer`}
+      className={`hover:text-primary text-text-color transition-colors duration-200 ${className ?? ""} selection-primary h-10 w-10 cursor-pointer`}
       xmlns="http://www.w3.org/2000/svg"
     >
       {icons[name]}

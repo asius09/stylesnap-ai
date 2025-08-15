@@ -48,17 +48,9 @@ export function HeroSection() {
     selectedStyle,
     addToast,
   });
-  const [steps] = useProgressSteps(file, selectedStyle, generateStatus);
+  useProgressSteps(file, selectedStyle, generateStatus);
 
-  // =========================
-  // Handlers: File & Style
-  // =========================
-  const handleRemoveFile = useFileRemove({
-    file,
-    setFile,
-    addToast,
-  });
-
+  const handleRemoveFile = useFileRemove({ file, setFile, addToast });
   const handleStyleSelection = useStyleSelection({
     file,
     setSelectedStyle,
@@ -71,12 +63,11 @@ export function HeroSection() {
 
   function renderMainContent() {
     if (!file) {
-      // Section: Upload
       return (
         <div
           className="flex w-full flex-col items-center justify-center py-8"
           id="hero-upload-section"
-          aria-label="Upload Section"
+          aria-label="Upload your photo"
         >
           <HeroDropZone
             onFileSelected={(selectedFile: ImageData) => setFile(selectedFile)}
@@ -86,7 +77,6 @@ export function HeroSection() {
     }
 
     if (loading) {
-      // Section: Loader
       return (
         <div
           className="flex h-[400px] w-full items-center justify-center"
@@ -100,12 +90,11 @@ export function HeroSection() {
     }
 
     if (generateStatus === "success" && generatedImage?.imageUrl) {
-      // Section: Generation Success
       return (
         <div
           className="flex h-full w-full flex-col items-center justify-center gap-8 py-8 md:flex-row"
           id="hero-generation-success"
-          aria-label="Image Generation Success"
+          aria-label="Photo style transfer result"
         >
           <div className="flex w-full flex-col items-center justify-center md:w-1/2">
             <PreviewCard
@@ -116,7 +105,7 @@ export function HeroSection() {
               onRemove={() => {}}
               disableRemoveButton={false}
               fileSize={generatedImage.fileSize}
-              aria-label="Generated Image Preview"
+              aria-label="Styled photo preview"
             />
           </div>
           <div className="flex w-full flex-col items-center justify-center gap-10 md:w-1/2">
@@ -126,48 +115,46 @@ export function HeroSection() {
               onClick={handleDownloadGeneratedImage}
               disabled={isDialogOpen}
               id="download-generated-image-btn"
-              aria-label="Download generated image"
+              aria-label="Download styled photo"
             >
               Download
             </Button>
             <Button
               variant={"outline"}
-              className="w-full max-w-xs text-white"
+              className="w-full max-w-xs text-text-color"
               onClick={() => {
                 setFile(null);
                 setSelectedStyle(null);
               }}
               disabled={isDialogOpen}
               id="generate-another-btn"
-              aria-label="Generate another image"
+              aria-label="Style another photo"
             >
-              Generate Another for ₹9
+              Style Another for ₹9
             </Button>
           </div>
         </div>
       );
     }
 
-    // Section: Main Workflow (Image, Arrow, Style)
+    // Main workflow: upload, select style, generate
     return (
       <div
         className="flex h-full w-full flex-col items-center justify-center gap-0 p-4 md:flex-row md:gap-4 md:px-6"
         id="hero-main-workflow"
-        aria-label="Main Workflow"
+        aria-label="Photo style transfer workflow"
       >
-        {/* Image (left on md+, top on mobile) */}
         <PreviewCard
           {...file}
           onRemove={handleRemoveFile}
           disableRemoveButton={!!selectedStyle || loading}
-          aria-label="Uploaded Image Preview"
+          aria-label="Uploaded photo preview"
         />
 
-        {/* Arrow and Button (center) */}
         <div
           className="flex w-full flex-col items-center justify-center gap-y-10 md:gap-x-20"
           id="arrow-and-generate"
-          aria-label="Generate Section"
+          aria-label="Generate styled photo"
         >
           <div className="flex flex-col items-center justify-center">
             <ArrowIndicator show={!!selectedStyle} aria-hidden="true" />
@@ -179,7 +166,7 @@ export function HeroSection() {
               onClick={handleGenerate}
               disabled={!isReadyToGenerate}
               id="generate-btn"
-              aria-label="Generate stylized image"
+              aria-label="Apply style to photo"
             >
               Generate
             </Button>
@@ -188,6 +175,7 @@ export function HeroSection() {
                 className="mt-2 text-center text-sm text-red-500"
                 role="alert"
                 id="generate-error"
+                aria-live="assertive"
               >
                 {error}
               </div>
@@ -195,11 +183,10 @@ export function HeroSection() {
           </div>
         </div>
 
-        {/* Style (right on md+, bottom on mobile) */}
         <div
           className="flex w-full flex-col items-center justify-center"
           id="style-selection-area"
-          aria-label="Style Selection"
+          aria-label="Choose a style"
         >
           {selectedStyle ? (
             <PreviewCard
@@ -209,19 +196,19 @@ export function HeroSection() {
               showRemoveButton={true}
               showSwitchButton={true}
               onSwitchStyle={() => setIsStyleDialogOpen(true)}
-              aria-label="Selected Style Preview"
+              aria-label="Selected style preview"
             />
           ) : (
             <div
-              className="border-primary/40 bg-background/70 hover:border-primary/70 focus-within:ring-primary/30 relative mb-3 flex aspect-[4/5] h-[300px] w-[240px] cursor-pointer items-center justify-center overflow-hidden rounded-xl border transition focus-within:ring-2 focus-within:outline-none"
+              className="border-primary/40 bg-background/70 hover:border-primary/70 focus-within:ring-primary/30 focus-ring-primary relative mb-3 flex aspect-[4/5] h-[300px] w-[240px] cursor-pointer items-center justify-center overflow-hidden rounded-xl border transition focus-within:ring-2 focus-within:outline-none"
               id="empty-style-card"
               aria-label="No style selected"
             >
               <button
                 type="button"
-                className="flex h-full w-full items-center justify-center outline-none"
+                className="focus-ring-primary flex h-full w-full items-center justify-center outline-none"
                 tabIndex={0}
-                aria-label="Select style"
+                aria-label="Select a style"
                 onClick={() => setIsStyleDialogOpen(true)}
                 id="select-style-btn"
               >
@@ -233,21 +220,26 @@ export function HeroSection() {
           )}
           <div className="w-full text-center">
             <p
-              className="selection:bg-primary/50 text-xs font-semibold break-all text-white selection:text-white sm:text-sm"
+              className="selection-primary focus-ring-primary rounded px-2 py-1 text-xs font-semibold break-all text-text-color sm:text-sm"
               id="style-selection-label"
+              tabIndex={0}
+              aria-label={selectedStyle ? "Style selected" : "Select a style"}
             >
-              {selectedStyle ? "" : "Select style"}
+              {selectedStyle ? "" : "Select a style"}
             </p>
             <p
-              className="selection:bg-primary/50 mb-1 text-[11px] text-white/55 selection:text-white"
+              className="selection-primary focus-ring-primary mb-1 rounded px-2 py-1 text-[11px] text-text-color/55"
               id="style-selection-desc"
+              tabIndex={0}
+              aria-label={
+                selectedStyle ? "" : "Pick a style to apply to your photo"
+              }
             >
-              {selectedStyle ? "" : "Choose a style to apply"}
+              {selectedStyle ? "" : "Pick a style to apply to your photo"}
             </p>
           </div>
         </div>
 
-        {/* Mobile Generate Button */}
         <div
           className="flex h-full w-full items-center justify-center md:hidden"
           id="mobile-generate-btn-area"
@@ -258,7 +250,7 @@ export function HeroSection() {
             onClick={handleGenerate}
             disabled={!isReadyToGenerate}
             id="mobile-generate-btn"
-            aria-label="Generate stylized image"
+            aria-label="Apply style to photo"
           >
             Generate
           </Button>
@@ -267,6 +259,7 @@ export function HeroSection() {
               className="mt-2 text-center text-sm text-red-500"
               role="alert"
               id="mobile-generate-error"
+              aria-live="assertive"
             >
               {error}
             </div>
@@ -278,69 +271,56 @@ export function HeroSection() {
 
   return (
     <section
-      className="relative mt-20 flex min-h-screen w-full flex-col items-center justify-center px-2 sm:px-4 md:mt-16 md:px-6 lg:mt-6"
+      className="relative mt-20 flex min-h-screen w-full flex-col items-center justify-center px-2 sm:px-4 md:mt-16 md:px-6 lg:mt-8"
       id="hero-section"
-      aria-label="Photo Style Transfer Hero Section"
+      aria-label="AI Photo Style Transfer - Instantly Apply Art Styles to Your Photos"
     >
-      {/* Section: Heading */}
       <h1
-        className="selection:bg-primary/60 from-primary to-primary relative z-10 mb-3 bg-gradient-to-r via-white bg-clip-text text-center text-5xl font-bold text-transparent drop-shadow-lg selection:text-white md:text-6xl md:text-nowrap lg:text-7xl"
+        className="selection-primary focus-ring-primary from-primary to-primary focus:ring-primary relative z-10 rounded bg-gradient-to-r via-white bg-clip-text px-4 py-2 text-center text-5xl font-bold text-transparent drop-shadow-lg focus:ring-2 focus:outline-none active:ring-0 md:text-6xl md:text-nowrap lg:text-7xl"
         id="hero-title"
         tabIndex={0}
-        aria-label="Transform your photos in seconds"
+        aria-label="Turn Photos Into Art Instantly"
+        onMouseDown={(e) => e.preventDefault()}
       >
-        Transform your photos
-        <br className="hidden md:block" /> in seconds
+        Turn Photos Into <br className="hidden md:block" />
+        Art Instantly
       </h1>
       <p
-        className="selection:bg-primary/40 relative z-10 mb-4 max-w-xl text-center text-xs font-medium text-white/70 selection:text-white sm:text-sm md:mb-6 md:text-base"
+        className="selection-primary focus-ring-primary relative z-10 mb-6 max-w-xl rounded px-3 py-2 text-center text-sm font-medium text-text-color/70 outline-none md:mb-8 md:text-base"
         id="hero-subtitle"
         tabIndex={0}
-        aria-label="One free image. Just ₹9 for more. No subscription needed."
+        aria-label="Upload a photo and apply a style in seconds."
+        onMouseDown={(e) => e.preventDefault()}
       >
-        One free image. Just ₹9 for more. No subscription needed.
+        Upload a photo and apply a style in seconds.
       </p>
 
-      {/* Section: Main Card */}
       <div
         className="border-primary/60 bg-background/60 focus-within:border-primary shadow-[0_0_24px_0_theme(colors.primary/80)] hover:border-primary hover:shadow-[0_0_40px_0_theme(colors.primary/60)] relative my-0 flex min-h-[28rem] w-full max-w-4xl flex-col items-center justify-center overflow-hidden rounded-xl border-1 transition outline-none"
         id="hero-main-card"
-        aria-label="Main Card"
+        aria-label="Photo style transfer main card"
       >
-        {/* Glossy overlay effect */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-0 rounded-xl"
-          style={{
-            background:
-              "linear-gradient(120deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 40%, rgba(255,255,255,0.02) 100%)",
-            WebkitMaskImage:
-              "linear-gradient(120deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.2) 60%, rgba(255,255,255,0) 100%)",
-            maskImage:
-              "linear-gradient(120deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.2) 60%, rgba(255,255,255,0) 100%)",
-            borderRadius: "0.75rem",
-          }}
+          className="glossy-effect pointer-events-none absolute inset-0 z-0 rounded-[0.75rem]"
         />
-        {/* Section: Main Content */}
         {renderMainContent()}
       </div>
 
-      {/* Section: Style Selection Dialog */}
       <StyleSelectionDialog
         isOpen={isStyleDialogOpen}
         onClose={() => setIsStyleDialogOpen(false)}
         selectedStyleId={selectedStyle?.id}
         onSelect={(style) => handleStyleSelection(style)}
         onReplace={(style) => handleStyleSelection(style, { replace: true })}
-        aria-label="Style Selection Dialog"
+        aria-label="Choose a style dialog"
       />
 
-      {/* Section: Message Dialog */}
       <MessageDialog
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         {...messageDialog}
-        aria-label="Message Dialog"
+        aria-label="Photo style transfer message"
       />
     </section>
   );

@@ -30,17 +30,17 @@ import { X } from "lucide-react";
 const variant = {
   error: {
     bg: "bg-gradient-to-br from-red-900/90 via-orange-700/80 to-red-800/80 backdrop-blur-md",
-    text: "text-white",
+    text: "text-text-color",
     title: "Error",
   },
   info: {
     bg: "bg-gradient-to-br from-indigo-900/90 via-purple-700/80 to-indigo-800/80 backdrop-blur-md",
-    text: "text-white",
+    text: "text-text-color",
     title: "Info",
   },
   success: {
     bg: "bg-gradient-to-br from-emerald-900/90 via-lime-700/80 to-emerald-800/80 backdrop-blur-md",
-    text: "text-white",
+    text: "text-text-color",
     title: "Success",
   },
 };
@@ -184,7 +184,7 @@ const ToastItem = ({ id, type, message, onRemove }: ToastItemProps) => {
       className={`flex w-full flex-col items-start rounded-lg ${style.bg} p-2 md:p-4 ${style.text} pointer-events-auto shadow-2xl`}
     >
       <div className="flex w-full items-center justify-between">
-        <p className="text-xs leading-5 font-bold md:text-sm md:leading-6">
+        <p className="selection-primary text-xs leading-5 font-bold md:text-sm md:leading-6">
           {style.title} Message:
         </p>
         <button
@@ -194,7 +194,7 @@ const ToastItem = ({ id, type, message, onRemove }: ToastItemProps) => {
           <X className="h-4 w-4 md:h-5 md:w-5" />
         </button>
       </div>
-      <span className="text-[10px] leading-relaxed font-medium md:text-xs">
+      <span className="selection-primary text-[10px] leading-relaxed font-medium md:text-xs">
         {message}
       </span>
     </div>

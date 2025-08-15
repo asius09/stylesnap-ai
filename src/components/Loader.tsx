@@ -2,46 +2,36 @@
 
 import { motion } from "framer-motion";
 
+// NOTE: Each particle now has a unique CSS class for its shadow and effects.
+// These classes are for visual decoration only and are not accessible to assistive tech.
+
 const PARTICLES = [
   {
-    className:
-      "left-4 top-2 w-[3px] h-[3px] bg-primary shadow-[0_0_8px_2px_theme(colors.primary.DEFAULT/_0.35)]",
+    className: "left-4 top-2 w-[3px] h-[3px] bg-primary loader-particle-1",
     delay: 0,
     opacity: 0.55,
-    blur: "blur-[2.5px]",
-    brightness: "brightness-150",
   },
   {
-    className:
-      "left-8 top-3 w-[2px] h-[2px] bg-primary shadow-[0_0_10px_2px_theme(colors.primary.DEFAULT/_0.22)]",
+    className: "left-8 top-3 w-[2px] h-[2px] bg-primary loader-particle-2",
     delay: 0.3,
     opacity: 0.22,
-    blur: "blur-[3px]",
-    brightness: "brightness-200",
   },
   {
     className:
-      "left-[30px] top-[34px] w-[2.5px] h-[2.5px] bg-primary shadow-[0_0_9px_2px_theme(colors.primary.DEFAULT/_0.28)]",
+      "left-[30px] top-[34px] w-[2.5px] h-[2.5px] bg-primary loader-particle-3",
     delay: 0.6,
     opacity: 0.18,
-    blur: "blur-[3.5px]",
-    brightness: "brightness-125",
   },
   {
     className:
-      "left-[10px] top-8 w-[1.5px] h-[1.5px] bg-primary shadow-[0_0_7px_2px_theme(colors.primary.DEFAULT/_0.18)]",
+      "left-[10px] top-8 w-[1.5px] h-[1.5px] bg-primary loader-particle-4",
     delay: 0.9,
     opacity: 0.15,
-    blur: "blur-[2.5px]",
-    brightness: "brightness-175",
   },
   {
-    className:
-      "left-5 top-4 w-[2px] h-[2px] bg-primary shadow-[0_0_10px_2px_theme(colors.primary.DEFAULT/_0.22)]",
+    className: "left-5 top-4 w-[2px] h-[2px] bg-primary loader-particle-5",
     delay: 1.2,
     opacity: 0.19,
-    blur: "blur-[3px]",
-    brightness: "brightness-200",
   },
 ];
 
@@ -58,6 +48,8 @@ export const Loader = () => {
         height="48"
         viewBox="0 0 48 48"
         fill="none"
+        aria-hidden="true"
+        focusable="false"
       >
         <defs>
           <radialGradient id="glossy-bg" cx="50%" cy="40%" r="70%">
@@ -94,11 +86,12 @@ export const Loader = () => {
           duration: 2.5,
           ease: "linear",
         }}
+        aria-hidden="true"
       >
         {PARTICLES.map((p, i) => (
           <motion.div
             key={i}
-            className={`absolute rounded-full ${p.className} ${p.blur} ${p.brightness}`}
+            className={`absolute rounded-full ${p.className}`}
             style={{
               opacity: p.opacity,
               background:
@@ -111,12 +104,7 @@ export const Loader = () => {
               opacity: [p.opacity, 0.85, p.opacity],
               x: [0, 2, 0],
               y: [0, -2, 0],
-              filter: [
-                // Use primary color for the blue shadow, with the same opacity as before
-                `drop-shadow(0 0 4px #fff8) drop-shadow(0 0 8px theme(colors.primary.DEFAULT)/0.53)`,
-                `drop-shadow(0 0 8px #fff8) drop-shadow(0 0 16px theme(colors.primary.DEFAULT)/0.53)`,
-                `drop-shadow(0 0 4px #fff8) drop-shadow(0 0 8px theme(colors.primary.DEFAULT)/0.53)`,
-              ],
+              // Shadow and blur are handled by the loader-particle-N class in CSS
             }}
             transition={{
               duration: 1.7,
@@ -125,12 +113,13 @@ export const Loader = () => {
               delay: p.delay,
               ease: "easeInOut",
             }}
+            aria-hidden="true"
           />
         ))}
       </motion.div>
       {/* Animated star with glossy shine using primary color */}
       <motion.div
-        className="absolute top-2 left-2 z-[3] flex h-8 w-8 items-center justify-center"
+        className="loader-star absolute top-2 left-2 z-[3] flex h-8 w-8 items-center justify-center"
         style={{ transformOrigin: "50% 50%" }}
         animate={{ rotate: [0, 360] }}
         transition={{
@@ -138,6 +127,7 @@ export const Loader = () => {
           duration: 2.5,
           ease: [0.77, 0, 0.18, 1],
         }}
+        aria-hidden="true"
       >
         <motion.svg
           className="text-primary block h-full w-full"
@@ -149,14 +139,7 @@ export const Loader = () => {
           animate={{
             scale: [1, 0.7, 1, 0.7, 1],
             opacity: [1, 0.85, 1, 0.85, 1],
-            filter: [
-              // Use primary color for the blue shadow, with the same opacity as before
-              `drop-shadow(0 0 8px #fff8) drop-shadow(0 0 16px theme(colors.primary.DEFAULT)/0.53)`,
-              `drop-shadow(0 0 16px #fff8) drop-shadow(0 0 24px theme(colors.primary.DEFAULT)/0.53)`,
-              `drop-shadow(0 0 8px #fff8) drop-shadow(0 0 16px theme(colors.primary.DEFAULT)/0.53)`,
-              `drop-shadow(0 0 16px #fff8) drop-shadow(0 0 24px theme(colors.primary.DEFAULT)/0.53)`,
-              `drop-shadow(0 0 8px #fff8) drop-shadow(0 0 16px theme(colors.primary.DEFAULT)/0.53)`,
-            ],
+            // Shadow is handled by the loader-star class in CSS
           }}
           transition={{
             repeat: Infinity,
@@ -164,6 +147,8 @@ export const Loader = () => {
             times: [0, 0.25, 0.5, 0.75, 1],
             ease: [0.77, 0, 0.18, 1],
           }}
+          aria-hidden="true"
+          focusable="false"
         >
           <defs>
             <radialGradient id="star-gloss" cx="50%" cy="40%" r="70%">
@@ -197,3 +182,45 @@ export const Loader = () => {
     </div>
   );
 };
+
+/*
+  --- Add the following CSS to your global stylesheet (e.g. globals.css) ---
+
+  .loader-particle-1 {
+    filter:
+      blur(2.5px)
+      brightness(1.5)
+      drop-shadow(0 0 8px rgba(120,90,255,0.35));
+  }
+  .loader-particle-2 {
+    filter:
+      blur(3px)
+      brightness(2)
+      drop-shadow(0 0 10px rgba(120,90,255,0.22));
+  }
+  .loader-particle-3 {
+    filter:
+      blur(3.5px)
+      brightness(1.25)
+      drop-shadow(0 0 9px rgba(120,90,255,0.28));
+  }
+  .loader-particle-4 {
+    filter:
+      blur(2.5px)
+      brightness(1.75)
+      drop-shadow(0 0 7px rgba(120,90,255,0.18));
+  }
+  .loader-particle-5 {
+    filter:
+      blur(3px)
+      brightness(2)
+      drop-shadow(0 0 10px rgba(120,90,255,0.22));
+  }
+  .loader-star {
+    filter:
+      drop-shadow(0 0 8px #fff8)
+      drop-shadow(0 0 16px rgba(120,90,255,0.53));
+  }
+
+  // These classes are for visual decoration only and are not accessible.
+*/

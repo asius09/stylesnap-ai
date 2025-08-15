@@ -7,7 +7,7 @@ export function ProgressBar({ steps }: { steps: Step[] }) {
   return (
     <nav
       aria-label="Progress"
-      className="mb-5 flex flex-row items-center gap-0.5 text-xs text-white/55 md:mb-3 md:gap-2 md:text-sm"
+      className="mb-5 flex flex-row items-center gap-0.5 text-xs text-text-color/55 md:mb-3 md:gap-2 md:text-sm"
     >
       {steps.map((step, idx) => (
         <motion.div
@@ -19,7 +19,7 @@ export function ProgressBar({ steps }: { steps: Step[] }) {
           transition={{ duration: 0.3, delay: idx * 0.08 }}
         >
           <span
-            className={`selection:bg-primary/50 text-nowrap selection:text-white ${
+            className={`selection-primary text-nowrap ${
               step.status ? "text-primary font-semibold" : ""
             }`}
           >

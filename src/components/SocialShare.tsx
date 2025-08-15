@@ -11,10 +11,13 @@ export function SocialShare() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.3 }}
     >
-      <p id="cta-text" className="text-base font-semibold text-white">
+      <p
+        id="cta-text"
+        className="selection-primary text-base font-semibold text-text-color"
+      >
         Share On :-
       </p>
-      <div className="flex w-full items-center justify-center gap-4">
+      <div className="selection-primary flex w-full items-center justify-center gap-4">
         <SocialIcon name="instagram" />
         <SocialIcon name="discord" />
         <SocialIcon name="reddit" />

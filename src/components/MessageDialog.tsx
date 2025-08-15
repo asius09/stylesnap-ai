@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import { X } from "lucide-react";
 import { Button } from "./Button";
 
@@ -55,6 +55,53 @@ export const MessageDialog: React.FC<MessageDialogProps> = ({
   secondaryAction,
   ...rest
 }) => {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Focus management for accessibility
+  useEffect(() => {
+    if (!isOpen) return;
+    const focusableSelectors =
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    const focusableEls = Array.from(
+      dialog.querySelectorAll<HTMLElement>(focusableSelectors),
+    ).filter((el) => !el.hasAttribute("disabled"));
+
+    if (focusableEls.length > 0) {
+      (closeButtonRef.current || focusableEls[0]).focus();
+    }
+
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+      }
+      if (e.key === "Tab") {
+        const firstEl = focusableEls[0];
+        const lastEl = focusableEls[focusableEls.length - 1];
+        if (e.shiftKey) {
+          if (document.activeElement === firstEl) {
+            e.preventDefault();
+            lastEl.focus();
+          }
+        } else {
+          if (document.activeElement === lastEl) {
+            e.preventDefault();
+            firstEl.focus();
+          }
+        }
+      }
+    }
+
+    dialog.addEventListener("keydown", handleKeyDown);
+    return () => {
+      dialog.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   // Validate required props
@@ -110,10 +157,11 @@ export const MessageDialog: React.FC<MessageDialogProps> = ({
       aria-modal="true"
       role="dialog"
       tabIndex={-1}
+      ref={dialogRef}
       {...rest}
     >
       <div
-        className="border-primary/30 bg-background/80 before:bg-primary/10 relative w-full max-w-md overflow-hidden rounded-xl border p-7 text-white shadow-2xl backdrop-blur-xl before:pointer-events-none before:absolute before:inset-0 before:z-0 before:rounded-2xl before:backdrop-blur-xl"
+        className="border-primary/30 bg-background/80 before:bg-primary/10 relative w-full max-w-md overflow-hidden rounded-xl border p-7 text-text-color shadow-2xl backdrop-blur-xl before:pointer-events-none before:absolute before:inset-0 before:z-0 before:rounded-2xl before:backdrop-blur-xl"
         id={dialogId}
         role="document"
         aria-labelledby={labelId}
@@ -121,7 +169,8 @@ export const MessageDialog: React.FC<MessageDialogProps> = ({
       >
         {/* Close Button */}
         <button
-          className="hover:bg-primary/70 absolute top-2 right-2 z-10 cursor-pointer rounded-full bg-background/60 p-1.5 shadow-sm transition-colors hover:text-white md:top-3 md:right-3"
+          ref={closeButtonRef}
+          className="hover:bg-primary/70 focus-ring-primary bg-background/60 absolute top-2 right-2 z-10 cursor-pointer rounded-full p-1.5 shadow-sm transition-colors hover:text-text-color md:top-3 md:right-3"
           onClick={onClose}
           aria-label="Close dialog"
           type="button"
@@ -133,14 +182,14 @@ export const MessageDialog: React.FC<MessageDialogProps> = ({
         {/* Dialog Content */}
         <div className="relative z-10 flex flex-col items-center text-center">
           <h2
-            className="selection:bg-primary/50 mb-2 text-base font-bold text-white drop-shadow selection:text-white sm:text-xl"
+            className="selection-primary focus-ring-primary mb-2 text-base font-bold text-text-color drop-shadow sm:text-xl"
             id={labelId}
             tabIndex={0}
           >
             {title}
           </h2>
           <p
-            className="selection:bg-primary/40 mb-7 text-xs text-white/80 selection:text-white sm:text-base"
+            className="selection-primary focus-ring-primary mb-7 text-xs text-text-color/80 sm:text-base"
             id={descId}
             tabIndex={0}
           >
@@ -151,7 +200,7 @@ export const MessageDialog: React.FC<MessageDialogProps> = ({
             <Button
               variant="gradient"
               size="md"
-              className="w-full max-w-xs"
+              className="focus-ring-primary selection-primary w-full max-w-xs"
               onClick={handlePrimaryAction}
               id={primaryAction.id || `${dialogId}-primary-btn`}
               aria-label={primaryAction["aria-label"] || primaryAction.label}
@@ -162,7 +211,7 @@ export const MessageDialog: React.FC<MessageDialogProps> = ({
               <Button
                 variant="outline"
                 size="md"
-                className="w-full max-w-xs"
+                className="focus-ring-primary selection-primary w-full max-w-xs"
                 onClick={handleSecondaryAction}
                 id={secondaryAction.id || `${dialogId}-secondary-btn`}
                 aria-label={
