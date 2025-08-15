@@ -24,7 +24,7 @@
 - [x] Ensure image preview is clear and accessible before download. _(Done)_
 - [x] Show a prompt to re-upload if the uploaded image is missing after reload (local storage handler). _(Done)_
 - [x] Style the whole page for a polished look.
-- [ ] Handle SEO (add meta tags, improve discoverability).
+- [x] Handle SEO (add meta tags, improve discoverability).
 - [ ] Add more styles (at least 10), including anime and couple sections.
 - [ ] Implement payment gateway.
 - [ ] Testing.

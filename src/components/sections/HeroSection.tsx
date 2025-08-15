@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { HeroDropZone } from "../HeroDropZone";
 import { PreviewCard } from "../PreviewCard";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
@@ -60,7 +60,11 @@ export function HeroSection() {
 
   const isReadyToGenerate =
     !!file && !!selectedStyle && !loading && generateStatus !== "success";
+  const [mounted, setMounted] = useState(false);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   function renderMainContent() {
     if (!file) {
       return (
@@ -121,7 +125,7 @@ export function HeroSection() {
             </Button>
             <Button
               variant={"outline"}
-              className="w-full max-w-xs text-text-color"
+              className="text-text-color w-full max-w-xs"
               onClick={() => {
                 setFile(null);
                 setSelectedStyle(null);
@@ -188,7 +192,7 @@ export function HeroSection() {
           id="style-selection-area"
           aria-label="Choose a style"
         >
-          {selectedStyle ? (
+          {selectedStyle && mounted ? (
             <PreviewCard
               {...selectedStyle}
               onRemove={() => setSelectedStyle(null)}
@@ -218,26 +222,28 @@ export function HeroSection() {
               </button>
             </div>
           )}
-          <div className="w-full text-center">
-            <p
-              className="selection-primary focus-ring-primary rounded px-2 py-1 text-xs font-semibold break-all text-text-color sm:text-sm"
-              id="style-selection-label"
-              tabIndex={0}
-              aria-label={selectedStyle ? "Style selected" : "Select a style"}
-            >
-              {selectedStyle ? "" : "Select a style"}
-            </p>
-            <p
-              className="selection-primary focus-ring-primary mb-1 rounded px-2 py-1 text-[11px] text-text-color/55"
-              id="style-selection-desc"
-              tabIndex={0}
-              aria-label={
-                selectedStyle ? "" : "Pick a style to apply to your photo"
-              }
-            >
-              {selectedStyle ? "" : "Pick a style to apply to your photo"}
-            </p>
-          </div>
+          {!selectedStyle && (
+            <div className="w-full text-center">
+              <>
+                <p
+                  className="selection-primary focus-ring-primary text-text-color rounded px-2 py-1 text-xs font-semibold break-all sm:text-sm"
+                  id="style-selection-label"
+                  tabIndex={0}
+                  aria-label="Select a style"
+                >
+                  Select a style
+                </p>
+                <p
+                  className="selection-primary focus-ring-primary text-text-color/55 mb-1 rounded px-2 py-1 text-[11px]"
+                  id="style-selection-desc"
+                  tabIndex={0}
+                  aria-label="Pick a style to apply to your photo"
+                >
+                  Pick a style to apply to your photo
+                </p>
+              </>
+            </div>
+          )}
         </div>
 
         <div
@@ -286,7 +292,7 @@ export function HeroSection() {
         Art Instantly
       </h1>
       <p
-        className="selection-primary focus-ring-primary relative z-10 mb-6 max-w-xl rounded px-3 py-2 text-center text-sm font-medium text-text-color/70 outline-none md:mb-8 md:text-base"
+        className="selection-primary focus-ring-primary text-text-color/70 relative z-10 mb-6 max-w-xl rounded px-3 py-2 text-center text-sm font-medium outline-none md:mb-8 md:text-base"
         id="hero-subtitle"
         tabIndex={0}
         aria-label="Upload a photo and apply a style in seconds."
