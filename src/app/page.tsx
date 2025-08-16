@@ -9,10 +9,9 @@ import { StepsSection } from "@/components/sections/StepsSection";
 import { ButtonCTASection } from "@/components/sections/ButtonCTASection";
 import { FeatureSection } from "@/components/sections/FeatureSection";
 import Head from "next/head";
+import Paywall from "@/components/pay/Paywall";
 
 export default function UploadPage() {
-  const { trialId, freeUsed } = useTrialId();
-
   // SEO meta data - Focus on Ghibli Art as trending topic
   const title =
     "Ghibli Art AI Photo Generator - Instantly Turn Photos Into Ghibli Art | StyleSnap AI";
@@ -38,7 +37,7 @@ export default function UploadPage() {
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
         <meta name="twitter:image" content={image} />
-        <link rel="canonical" href={url} />
+        {/* <link rel="canonical" href={url} /> */}
         {/* Schema.org JSON-LD for SEO with Ghibli Art focus */}
         <script
           type="application/ld+json"
@@ -76,7 +75,8 @@ export default function UploadPage() {
           aria-hidden="true"
           className="background-glossy-effect pointer-events-none absolute inset-0 z-[1]"
         />
-        <AppHeader freeUsed={!!freeUsed} />
+        <AppHeader />
+        <Paywall />
 
         {/* Hero Section */}
         <HeroSection />

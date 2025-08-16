@@ -58,14 +58,14 @@ export const HeroDropZone: React.FC<Partial<HeroDropZoneProps>> = ({
         body: formData,
       });
       const data = await response.json();
-      if (data.status === "successful" && data.imageUrl) {
+      if (data.success && data.data?.imageUrl) {
         const imageData: ImageData = {
           id:
             typeof crypto.randomUUID === "function"
               ? crypto.randomUUID()
               : Math.random().toString(36).substring(2, 15),
           title: file.name,
-          imageUrl: data.imageUrl,
+          imageUrl: data.data.imageUrl,
           fileSize: file.size
             ? `${Math.round(file.size / 1024)} KB`
             : undefined,
@@ -156,7 +156,7 @@ export const HeroDropZone: React.FC<Partial<HeroDropZoneProps>> = ({
           focusable="false"
         />
         <p
-          className="text-center text-base font-semibold text-text-color md:mb-1 md:text-lg"
+          className="text-text-color text-center text-base font-semibold md:mb-1 md:text-lg"
           id="herodropzone-label"
         >
           {isDragActive
@@ -164,7 +164,7 @@ export const HeroDropZone: React.FC<Partial<HeroDropZoneProps>> = ({
             : "Click or drag image to upload"}
         </p>
         <p
-          className="text-center text-xs text-text-color/60 md:text-sm"
+          className="text-text-color/60 text-center text-xs md:text-sm"
           id="herodropzone-desc"
         >
           PNG, JPEG, or image, up to 10MB

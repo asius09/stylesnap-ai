@@ -1,7 +1,23 @@
 "use client";
+import { useTrialId } from "@/hooks/useTrialId";
+import { getTrialUsageStatus } from "@/utils/trialClient";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
-export function AppHeader({ freeUsed = false }: { freeUsed: boolean }) {
+export function AppHeader() {
+  const { trialId } = useTrialId();
+  const [freeUsed, setFreeUsed] = useState<boolean>(false);
+  const [padiCredits, setPaidCredits] = useState<number>(0); //TODO: plan to implement this
+  useEffect(() => {
+    const fetchTrialUsageStatus = async () => {
+      if (!trialId) return;
+      const status = await getTrialUsageStatus(trialId);
+      if (status && typeof status.hasUsedFreeTrial === "boolean") {
+        setFreeUsed(status.hasUsedFreeTrial);
+      }
+    };
+    fetchTrialUsageStatus();
+  }, [trialId]);
   return (
     <nav
       id="app-header"
@@ -17,7 +33,7 @@ export function AppHeader({ freeUsed = false }: { freeUsed: boolean }) {
       />
       <Link
         href="/"
-        className="focus-visible:ring-primary relative z-10 text-lg font-bold tracking-tight text-nowrap text-text-color drop-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 md:text-xl lg:text-2xl"
+        className="focus-visible:ring-primary text-text-color relative z-10 text-lg font-bold tracking-tight text-nowrap drop-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 md:text-xl lg:text-2xl"
         tabIndex={0}
         aria-label="Go to StyleSnap AI Home"
         role="link"
@@ -26,7 +42,7 @@ export function AppHeader({ freeUsed = false }: { freeUsed: boolean }) {
       </Link>
       <button
         type="button"
-        className="border-primary/20 bg-primary/85 selection:bg-primary/50 focus-visible:ring-primary relative z-10 shrink-0 rounded-2xl border px-3 py-1 text-sm font-semibold text-text-color shadow-[0_0_16px_0_rgba(120,90,255,0.22),0_1.5px_8px_0_rgba(120,90,255,0.10)_inset] backdrop-blur-md selection:text-text-color focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+        className="border-primary/20 bg-primary/85 selection:bg-primary/50 focus-visible:ring-primary text-text-color selection:text-text-color relative z-10 shrink-0 rounded-2xl border px-3 py-1 text-sm font-semibold shadow-[0_0_16px_0_rgba(120,90,255,0.22),0_1.5px_8px_0_rgba(120,90,255,0.10)_inset] backdrop-blur-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
         aria-live="polite"
         aria-label={`Free usage: ${freeUsed ? "1" : "0"} out of 1`}
         tabIndex={0}

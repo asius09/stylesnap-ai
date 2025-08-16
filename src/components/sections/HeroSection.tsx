@@ -15,13 +15,11 @@ import { ArrowIndicator } from "../ArrowIndicator";
 import { Plus } from "lucide-react";
 import { StyleSelectionDialog } from "../StyleSelectionDialog";
 import { Loader } from "../Loader";
-import { MessageDialog } from "@/components/MessageDialog";
 import { useScrollLock } from "@/hooks/useScrollLock";
 
 export function HeroSection() {
   const { addToast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [messageDialog, setMessageDialog] = useState<any>({});
   const [isStyleDialogOpen, setIsStyleDialogOpen] = useState(false);
   const [file, setFile] = useLocalStorage<ImageData | null>(
     "uploadedFile",
@@ -32,15 +30,12 @@ export function HeroSection() {
     null,
   );
   const [error, setError] = useState<string | null>(null);
-  const { trialId, freeUsed } = useTrialId();
+  const { trialId } = useTrialId();
   const { handleGenerate, generateStatus, generatedImage, loading } =
     useImageGeneration({
       file,
       selectedStyle,
       trialId: typeof trialId === "string" ? trialId : null,
-      freeUsed: typeof freeUsed === "boolean" ? freeUsed : false,
-      setMessageDialog,
-      setIsDialogOpen,
       addToast,
     });
   const handleDownloadGeneratedImage = useDownloadImage({
@@ -320,13 +315,6 @@ export function HeroSection() {
         onSelect={(style) => handleStyleSelection(style)}
         onReplace={(style) => handleStyleSelection(style, { replace: true })}
         aria-label="Choose a style dialog"
-      />
-
-      <MessageDialog
-        isOpen={isDialogOpen}
-        onClose={() => setIsDialogOpen(false)}
-        {...messageDialog}
-        aria-label="Photo style transfer message"
       />
     </section>
   );

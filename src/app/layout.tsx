@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ToastContainer, ToastProvider } from "@/components/Toast";
+import {
+  MessageDialog,
+  MessageDialogProvider,
+} from "@/components/MessageDialog";
+import { PaywallProvider } from "@/components/pay/Paywall";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -17,7 +22,9 @@ export default function RootLayout({
       <body className={`overscroll-none antialiased`}>
         <ToastProvider>
           <ToastContainer />
-          {children}
+          <PaywallProvider>
+            <MessageDialogProvider>{children}</MessageDialogProvider>
+          </PaywallProvider>
         </ToastProvider>
       </body>
     </html>

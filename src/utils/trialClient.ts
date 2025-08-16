@@ -99,40 +99,37 @@ export async function ensureTrialId() {
 }
 
 /**
- * Checks if the free trial has been used for a given trialId.
+ * Checks the trial usage and payment status for a given trialId.
  *
  * @param trialId {string | null} - The trial ID to check. If null, returns null immediately.
- * @returns {Promise<boolean | null>} - Returns true if free_used is true, false if not, or null if trialId is not provided.
+ * @returns {Promise<{hasUsedFreeTrial: boolean, isPaidUser: boolean} | null>} - Returns an object with hasUsedFreeTrial and isPaidUser, or null if trialId is not provided.
  * @throws {Error} - Throws an error if the fetch fails or the response is not successful.
  */
-export const checkTrialFreeUsed = async (
+export const getTrialUsageStatus = async (
   trialId: string | null,
-): Promise<boolean | null> => {
-  // If no trialId is provided, return null early
+): Promise<{ hasUsedFreeTrial: boolean; isPaidUser: boolean } | null> => {
   if (!trialId) return null;
 
   try {
-    // Make a GET request to the /api/trial endpoint to fetch the user trial data
     const res = await fetch(`/api/trial?trialId=${trialId}`, {
       method: "GET",
     });
 
-    // Parse the JSON response
     const data = await res.json();
 
-    // Check if the response indicates success
-    if (data.statusCode === 200 && data.status === "successful") {
-      const userTrial = data.userTrial;
-      // Return true if free_used is true, otherwise false
-      return userTrial.free_used === true;
+    if (data.success && data.data?.userTrial) {
+      const userTrial = data.data.userTrial;
+      const hasUsedFreeTrial = userTrial.free_used === true;
+      const isPaidUser =
+        typeof userTrial.paid_credits === "number" &&
+        userTrial.paid_credits > 0;
+      return { hasUsedFreeTrial, isPaidUser };
     }
 
-    // If the response is not successful, throw an error
     throw new Error("Error while fetching trial data");
   } catch (error: unknown) {
-    // Catch any errors and throw a new error with a descriptive message, including the original error
     throw new Error(
-      `[checkTrialFreeUsed] Error while checking free_used status: ${error instanceof Error ? error.message : String(error)}`,
+      `[getTrialUsageStatus] Error while checking trial usage/payment status: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
 };

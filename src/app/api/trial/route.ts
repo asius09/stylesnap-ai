@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { UserTrial } from "@/types/model.types";
 import { USER_TRIALS_TABLE_NAME } from "@/constant";
+import { success, failure } from "@/lib/apiResponse";
 
 /**
  * POST /api/trial
@@ -13,20 +14,16 @@ import { USER_TRIALS_TABLE_NAME } from "@/constant";
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
-    const ip =
-      req.headers.get("x-forwarded-for") || req.headers.entries || "unknown";
+    const ip = req.headers.get("x-forwarded-for") || "unknown";
     const userAgent = req.headers.get("user-agent");
+    const { trialId } = await req.json();
 
-    const body = await req.json();
-    const trialId = body?.trialId;
-
-    // If no trialId present, just respond with error
-    if (!trialId || typeof trialId !== "string") {
-      return NextResponse.json({
-        error: "Missing or invalid trialId in request body",
-        statusCode: 400,
-        status: "failed" as const,
-      });
+    if (!trialId || typeof trialId !== "string" || trialId.trim() === "") {
+      return failure(
+        "Missing or invalid trialId in request body",
+        400,
+        "INVALID_TRIAL_ID",
+      );
     }
 
     // Check if trial already exists
@@ -37,24 +34,27 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (existingTrial) {
-      // Always set the cookie if trialId exists
-      const response = NextResponse.json({
-        trialId,
-        statusCode: 200,
-        status: "already_exists" as const,
-        message: "Trial already exists",
-      });
-      response.headers.set(
+      const res = success(
+        { trialId, status: "already_exists" },
+        200,
+        undefined,
+        "Trial already exists",
+      );
+      res.headers.set(
         "Set-Cookie",
         `trialId=${trialId}; Path=/; HttpOnly; Max-Age=31536000`,
       );
-      return response;
-    } else if (selectError && selectError.code !== "PGRST116") {
-      // PGRST116: No rows found (so it's ok), otherwise error
-      throw new Error(selectError.message);
+      return res;
+    }
+    if (selectError && selectError.code !== "PGRST116") {
+      return failure(
+        selectError.message || "Database error",
+        500,
+        selectError.code,
+      );
     }
 
-    // If not present, insert new trial
+    // Insert new trial
     const { error } = await supabase.from(USER_TRIALS_TABLE_NAME).insert({
       id: trialId,
       ip: ip.toString(),
@@ -63,42 +63,46 @@ export async function POST(req: NextRequest) {
       free_used: false,
       paid_credits: 0,
     });
-
     if (error) {
-      throw new Error(error.message);
+      return failure(
+        error.message || "Failed to create trial",
+        500,
+        error.code,
+      );
     }
 
-    // Always set the cookie if trialId object is created
-    const response = NextResponse.json({
-      trialId,
-      statusCode: 200,
-      status: "successful" as const,
-    });
-    response.headers.set(
+    const res = success(
+      { trialId, status: "successful" },
+      200,
+      undefined,
+      "Trial created successfully",
+    );
+    res.headers.set(
       "Set-Cookie",
       `trialId=${trialId}; Path=/; HttpOnly; Max-Age=31536000`,
     );
-    return response;
-  } catch (err: unknown) {
-    let message = "Internal Server Error";
-    const statusCode = 500;
-
-    if (err instanceof Error) {
-      message = err.message;
-    } else if (typeof err === "string") {
-      message = err;
-    } else if (typeof err === "object" && err !== null && "message" in err) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      message = (err as any).message;
-    }
-
+    return res;
+  } catch (err: any) {
+    const message =
+      typeof err === "string"
+        ? err
+        : err instanceof Error
+          ? err.message
+          : err &&
+              typeof err === "object" &&
+              "message" in err &&
+              typeof err.message === "string"
+            ? err.message
+            : "Internal Server Error";
     console.error("[TRIAL-POST] Error:", err);
-
-    return NextResponse.json({
-      error: message,
-      statusCode,
-      status: "failed" as const,
-    });
+    return failure(
+      message,
+      500,
+      "INTERNAL_ERROR",
+      undefined,
+      undefined,
+      err?.stack,
+    );
   }
 }
 
@@ -114,19 +118,8 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const trialId = searchParams.get("trialId");
 
-    // If no trialId present, just respond with error
-    if (
-      trialId === null ||
-      trialId === undefined ||
-      (typeof trialId === "string" && trialId.trim() === "") ||
-      (Array.isArray(trialId) && trialId.length === 0)
-    ) {
-      return NextResponse.json({
-        userTrial: null,
-        statusCode: 400,
-        status: "failed" as const,
-        error: "Missing or invalid trialId",
-      });
+    if (!trialId || (typeof trialId === "string" && trialId.trim() === "")) {
+      return failure("Missing or invalid trialId", 400, "INVALID_TRIAL_ID");
     }
 
     const { data, error } = await supabase
@@ -136,48 +129,39 @@ export async function GET(req: NextRequest) {
       .single();
 
     if (error && error.code !== "PGRST116") {
-      // PGRST116: No rows found
-      throw new Error(error.message);
+      return failure(error.message || "Database error", 500, error.code);
     }
 
     if (data) {
-      // Set cookie if trialId found
-      const response = NextResponse.json({
-        userTrial: data as UserTrial,
-        statusCode: 200,
-        status: "successful" as const,
-      });
-      response.headers.set(
+      const res = success(
+        { userTrial: data as UserTrial, status: "successful" },
+        200,
+        undefined,
+        "Trial found",
+      );
+      res.headers.set(
         "Set-Cookie",
         `trialId=${trialId}; Path=/; HttpOnly; Max-Age=31536000`,
       );
-      return response;
-    } else {
-      // Not found
-      return NextResponse.json({
-        userTrial: null,
-        statusCode: 404,
-        status: "failed" as const,
-        error: "Trial not found",
-      });
+      return res;
     }
-  } catch (err: unknown) {
-    let message = "Internal Server Error";
-    const statusCode = 500;
-
-    if (err instanceof Error) {
-      message = err.message;
-    } else if (typeof err === "string") {
-      message = err;
-    }
-
+    return failure("Trial not found", 404, "TRIAL_NOT_FOUND");
+  } catch (err: any) {
+    const message =
+      typeof err === "string"
+        ? err
+        : err instanceof Error
+          ? err.message
+          : "Internal Server Error";
     console.error("[TRIAL-GET] Error:", err);
-
-    return NextResponse.json({
-      error: message,
-      statusCode,
-      status: "failed" as const,
-    });
+    return failure(
+      message,
+      500,
+      "INTERNAL_ERROR",
+      undefined,
+      undefined,
+      err?.stack,
+    );
   }
 }
 
@@ -189,59 +173,140 @@ export async function GET(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     const supabase = await createClient();
-    const body = await req.json();
-    const trialId = body.trialId;
+    const { trialId } = await req.json();
 
-    if (
-      trialId === null ||
-      trialId === undefined ||
-      (typeof trialId === "string" && trialId.trim() === "") ||
-      (Array.isArray(trialId) && trialId.length === 0)
-    ) {
-      return NextResponse.json({
-        statusCode: 400,
-        status: "failed" as const,
-        error: "Missing or invalid trialId",
-      });
+    if (!trialId || (typeof trialId === "string" && trialId.trim() === "")) {
+      return failure("Missing or invalid trialId", 400, "INVALID_TRIAL_ID");
     }
 
-    // Delete the trial row
     const { error } = await supabase
       .from(USER_TRIALS_TABLE_NAME)
       .delete()
       .eq("id", trialId);
 
     if (error) {
-      throw new Error(error.message);
+      return failure(
+        error.message || "Failed to delete trial",
+        500,
+        error.code,
+      );
     }
 
-    return NextResponse.json({
-      trialId,
-      statusCode: 200,
-      status: "successful" as const,
-      message: "Trial deleted",
-    });
-  } catch (err: unknown) {
-    let message = "Internal Server Error";
-    const statusCode = 500;
-
-    if (err instanceof Error) {
-      message = err.message;
-    } else if (typeof err === "string") {
-      message = err;
-    } else if (typeof err === "object" && err !== null && "message" in err) {
-      message =
-        typeof (err as { message?: unknown }).message === "string"
-          ? (err as { message: string }).message
-          : message;
-    }
-
+    return success(
+      { trialId, status: "successful", message: "Trial deleted" },
+      200,
+      undefined,
+      "Trial deleted successfully",
+    );
+  } catch (err: any) {
+    const message =
+      typeof err === "string"
+        ? err
+        : err instanceof Error
+          ? err.message
+          : err &&
+              typeof err === "object" &&
+              "message" in err &&
+              typeof err.message === "string"
+            ? err.message
+            : "Internal Server Error";
     console.error("[TRIAL-DELETE] Error:", err);
+    return failure(
+      message,
+      500,
+      "INTERNAL_ERROR",
+      undefined,
+      undefined,
+      err?.stack,
+    );
+  }
+}
 
-    return NextResponse.json({
-      error: message,
-      statusCode,
-      status: "failed" as const,
-    });
+/**
+ * PATCH /api/trial?id=...
+ * Updates a trial row by id with provided body fields.
+ * If "paid_credits" is in the body, it will be added to the current paid_credits value.
+ */
+export async function PATCH(req: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const body = await req.json();
+    const { searchParams } = new URL(req.url);
+    const trialId = searchParams.get("id");
+
+    if (!trialId || Object.keys(body).length === 0) {
+      return failure("Invalid Data or TrialId", 400, "INVALID_PATCH_DATA");
+    }
+
+    let updateFields = { ...body };
+
+    // If paid_credits is present, add to the current value
+    if (typeof body.paid_credits === "number") {
+      // Fetch current paid_credits
+      const { data: currentTrial, error: fetchError } = await supabase
+        .from(USER_TRIALS_TABLE_NAME)
+        .select("paid_credits")
+        .eq("id", trialId)
+        .maybeSingle();
+
+      if (fetchError) {
+        return failure(
+          fetchError.message || "Failed to fetch trial",
+          500,
+          fetchError.code,
+        );
+      }
+
+      if (!currentTrial) {
+        return failure("Trial not found", 404, "TRIAL_NOT_FOUND");
+      }
+
+      const currentPaidCredits =
+        typeof currentTrial.paid_credits === "number"
+          ? currentTrial.paid_credits
+          : 0;
+      updateFields.paid_credits = currentPaidCredits + body.paid_credits;
+    }
+
+    const { data, error } = await supabase
+      .from(USER_TRIALS_TABLE_NAME)
+      .update(updateFields)
+      .eq("id", trialId)
+      .select()
+      .maybeSingle();
+
+    if (error) {
+      return failure(
+        error.message || "Failed to update trial",
+        500,
+        error.code,
+      );
+    }
+
+    if (!data) {
+      return failure("Trial not found", 404, "TRIAL_NOT_FOUND");
+    }
+
+    return success(
+      { userTrial: data, status: "updated" },
+      200,
+      undefined,
+      "Trial updated successfully",
+    );
+  } catch (err: unknown) {
+    const message =
+      typeof err === "string"
+        ? err
+        : err instanceof Error
+          ? err.message
+          : "Internal Server Error";
+    return failure(
+      message,
+      500,
+      "INTERNAL_ERROR",
+      undefined,
+      undefined,
+      (err as Error)?.stack,
+    );
   }
 }
