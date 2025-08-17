@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { generateImage } from "@/utils/generateImage";
 import { ImageData, GenerateStatus } from "@/types/style.types";
@@ -136,8 +137,8 @@ export const useImageGeneration = ({
       const status = await getTrialUsageStatus(trialId);
       if (status && typeof status === "object") {
         trialStatus = {
-          hasUsedFreeTrial: Boolean(status.hasUsedFreeTrial),
-          isPaidUser: Boolean(status.isPaidUser),
+          hasUsedFreeTrial: Boolean((status as { hasUsedFreeTrial?: boolean }).hasUsedFreeTrial),
+          isPaidUser: Boolean((status as { isPaidUser?: boolean }).isPaidUser),
         };
       }
     } catch (err) {
@@ -218,14 +219,14 @@ export const useImageGeneration = ({
       let errorMessage = "Failed to generate image.";
 
       if (err && typeof err === "object" && err !== null) {
-        if ("code" in err && typeof (err as any).code === "string") {
-          errorCode = (err as any).code;
+        if ("code" in err && typeof (err as { code?: string }).code === "string") {
+          errorCode = (err as { code?: string }).code as string;
         }
-        if ("status" in err && typeof (err as any).status === "number") {
-          errorStatus = (err as any).status;
+        if ("status" in err && typeof (err as { status?: number }).status === "number") {
+          errorStatus = (err as { status?: number }).status;
         }
-        if ("message" in err && typeof (err as any).message === "string") {
-          errorMessage = (err as any).message;
+        if ("message" in err && typeof (err as { message?: string }).message === "string") {
+          errorMessage = (err as { message?: string }).message as string;
         }
       } else if (typeof err === "string") {
         errorMessage = err;
