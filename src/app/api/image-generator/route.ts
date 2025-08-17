@@ -39,7 +39,7 @@ function extractErrorMessage(err: unknown, fallback: string): string {
     err &&
     typeof err === "object" &&
     "message" in err &&
-    typeof (err as any).message === "string"
+    typeof err.message === "string"
   ) {
     return (err as { message: string }).message;
   }
@@ -61,6 +61,7 @@ function isHighlightModelError(msg: string): boolean {
 /**
  * Utility: Extract image URL from Replicate output.
  */
+// @ts-ignore
 function extractImageUrl(output: any): string | undefined {
   if (
     Array.isArray(output) &&
@@ -76,6 +77,7 @@ function extractImageUrl(output: any): string | undefined {
     output &&
     typeof output === "object" &&
     "url" in output &&
+    // @ts-ignore
     typeof (output as any).url === "function"
   ) {
     return (output as any).url();
@@ -85,6 +87,7 @@ function extractImageUrl(output: any): string | undefined {
 
 /**
  * Utility: Handle Replicate API errors and return appropriate failure response.
+ * Always returns the same status code as the one provided by Replicate, if available.
  */
 function handleReplicateError(replicateError: any) {
   let statusCode = 500;
@@ -105,12 +108,13 @@ function handleReplicateError(replicateError: any) {
         errorMsg = msg as ErrorMessage;
       }
     }
+    // Always return the same status code as Replicate, even for payment errors
     if (
       statusCode === 402 ||
       (typeof errorMsg === "string" &&
         errorMsg.toLowerCase().includes("payment required"))
     ) {
-      return failure(errorMsg, 403, "NEED_PAYMENT");
+      return failure(errorMsg, statusCode, "NEED_PAYMENT");
     }
   }
   return failure(errorMsg, statusCode, "REPLICATE_ERROR");

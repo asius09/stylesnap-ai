@@ -13,7 +13,7 @@ export function SocialShare() {
     >
       <p
         id="cta-text"
-        className="selection-primary text-base font-semibold text-text-color"
+        className="selection-primary text-text-color text-base font-semibold"
       >
         Share On :-
       </p>

@@ -74,6 +74,7 @@ To run the project locally:
 ### File Structure
 
 <!-- FILE_STRUCTURE_START -->
+
 ```
 ├── .env
 ├── .gitignore
@@ -157,6 +158,7 @@ To run the project locally:
 │       └── trialClient.ts
 └── tsconfig.json
 ```
+
 <!-- FILE_STRUCTURE_END -->
 
 ### Key Directories:
@@ -300,3 +302,27 @@ To ensure clarity and consistency in our git history, please follow these commit
 
 By following these guidelines, we keep the StylesMap-AI project history clean, readable, and easy to maintain.  
 Feel free to refer to this section whenever you make a commit!
+
+Here is a table of HTTP status codes used in `src/app/api/image-generator/route.ts`:
+
+| Status Code | Where Used / Meaning                                                                                                                     |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| 200         | Success responses (image generated, file saved, etc.)                                                                                    |
+| 400         | Bad request (missing trialId, prompt, or image_url; invalid image URL)                                                                   |
+| 403         | Forbidden (free trial ended, need payment, free limit reached, payment required)                                                         |
+| 404         | Not found (user not found, daily quota not found, trial not found)                                                                       |
+| 500         | Internal server error (failed to update quota, failed to fetch daily quota, failed to update paid credits, unknown errors, model errors) |
+| 502         | Bad gateway (failed to fetch image from upstream/Replicate)                                                                              |
+
+**Summary Table:**
+
+| Status | Description/Context Example                                   |
+| ------ | ------------------------------------------------------------- |
+| 200    | Success (image generated, file saved)                         |
+| 400    | Missing/invalid input (trialId, prompt, image_url, image URL) |
+| 403    | Free trial ended, payment required, free limit reached        |
+| 404    | User/trial/quota not found                                    |
+| 500    | Internal/model/Replicate/general error, failed DB update      |
+| 502    | Failed to fetch image from Replicate/upstream                 |
+
+These status codes are used throughout the route to indicate the result of API operations and error handling.

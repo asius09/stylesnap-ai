@@ -1,19 +1,14 @@
 import { ImageData } from "@/types/style.types";
-
-type AddToast = (toast: {
-  type: "success" | "error" | "info";
-  message: string;
-}) => void;
+import { useToast } from "@/components/Toast";
 
 export const useFileRemove = ({
   file,
   setFile,
-  addToast,
 }: {
   file: ImageData | null;
   setFile: (f: ImageData | null) => void;
-  addToast?: AddToast;
 }) => {
+  const { addToast } = useToast();
   const handleRemove = async () => {
     try {
       const imageUrl = file?.imageUrl;

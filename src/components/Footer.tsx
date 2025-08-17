@@ -13,7 +13,7 @@ export const Footer = () => {
         <div className="flex flex-col items-start">
           <Link
             href="/"
-            className="focus-visible:ring-primary text-text-color relative z-10 text-lg flex items-center justify-center font-medium tracking-tight text-nowrap drop-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            className="focus-visible:ring-primary text-text-color relative z-10 flex items-center justify-center text-lg font-medium tracking-tight text-nowrap drop-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             tabIndex={0}
             aria-label="Go to StyleSnap AI Home"
             role="link"

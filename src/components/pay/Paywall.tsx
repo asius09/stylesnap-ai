@@ -153,15 +153,22 @@ export default function Paywall() {
                 const patchResult = await patchRes.json();
                 log("Trial PATCH result:", patchResult);
                 if (!patchRes.ok || !patchResult?.success) {
-                  warn("Failed to update paid_credits after payment", patchResult);
-                  alert("Payment succeeded, but failed to update credits. Please contact support.");
+                  warn(
+                    "Failed to update paid_credits after payment",
+                    patchResult,
+                  );
+                  alert(
+                    "Payment succeeded, but failed to update credits. Please contact support.",
+                  );
                 } else {
                   alert("Payment Success 🎉");
                   setOpen(false);
                 }
               } catch (patchErr) {
                 error("Error updating paid_credits after payment:", patchErr);
-                alert("Payment succeeded, but failed to update credits. Please contact support.");
+                alert(
+                  "Payment succeeded, but failed to update credits. Please contact support.",
+                );
               }
             } else {
               warn("Payment Verification Failed ❌", result);

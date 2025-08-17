@@ -5,6 +5,7 @@ import type { MessageDialogProps } from "@/components/MessageDialog";
 import { useMessageDialog } from "@/components/MessageDialog";
 import { usePaywall } from "@/components/pay/Paywall";
 import { getTrialUsageStatus } from "@/utils/trialClient";
+import { useToast } from "@/components/Toast";
 
 /**
  * useImageGeneration
@@ -16,7 +17,6 @@ import { getTrialUsageStatus } from "@/utils/trialClient";
  * @param trialId      User's trial identifier (string or null)
  * @param onError      Optional error callback
  * @param onSuccess    Optional success callback
- * @param addToast     Optional toast notification function
  *
  * @returns {
  *   handleGenerate: () => void,
@@ -31,7 +31,6 @@ export const useImageGeneration = ({
   trialId,
   onError,
   onSuccess,
-  addToast,
 }: {
   file: ImageData | null;
   selectedStyle: ImageData | null;
@@ -42,12 +41,9 @@ export const useImageGeneration = ({
     errorDetails?: string,
   ) => void;
   onSuccess?: (generatedImage: ImageData) => void;
-  addToast?: (toast: {
-    type: "success" | "error" | "info";
-    message: string;
-  }) => void;
 }) => {
   const [loading, setLoading] = useState(false);
+  const { addToast } = useToast();
   const [generateStatus, setGenerateStatus] = useState<GenerateStatus>("idle");
   const [generatedImage, setGeneratedImage] = useState<ImageData | null>(null);
 
@@ -150,7 +146,7 @@ export const useImageGeneration = ({
         "Free trial used",
         "You have already used your free image. To generate more images, please proceed to payment.",
         {
-          label: "Pay $9",
+          label: "Pay ₹9",
           onClick: () => {
             setPaywallOpen(true);
             setDialogOpen(false);
@@ -189,20 +185,57 @@ export const useImageGeneration = ({
           message: "Image generated successfully.",
         });
         onSuccess?.(genImg);
-      } else {
-        setGenerateStatus("failed");
-        addToast?.({ type: "error", message: "Failed to generate image." });
-        onError?.(
-          null,
-          "Failed to generate image.",
-          "No image URL returned from generation.",
-        );
       }
       setGeneratedImage(genImg);
     } catch (error: any) {
       setGenerateStatus("failed");
       setGeneratedImage(null);
-      addToast?.({ type: "error", message: "Failed to generate image." });
+
+      // Check for paywall error (status 403), then show paywall dialog (not toast, open dialog)
+      const isPaywallError =
+        typeof error?.status === "number" && error.status === 403;
+
+      if (isPaywallError) {
+        openDialog(
+          "Payment Required",
+          "You need to pay to generate more images. Please proceed to payment to continue.",
+          {
+            label: "Pay ₹9",
+            onClick: () => {
+              setPaywallOpen(true);
+              setDialogOpen(false);
+            },
+          },
+          {
+            label: "Cancel",
+            onClick: () => setDialogOpen(false),
+          },
+        );
+      } else {
+        // Check for Replicate error (status 500 or 502 or error message contains "replicate")
+        const isReplicateError =
+          (typeof error?.status === "number" &&
+            (error.status === 500 || error.status === 502)) ||
+          (typeof error?.message === "string" &&
+            error.message.toLowerCase().includes("replicate"));
+
+        addToast?.({
+          type: "error",
+          message: "Failed to generate image.",
+        });
+
+        if (isReplicateError) {
+          openDialog(
+            "Image Generation Error",
+            "There was a problem with the AI image generation service. Please try again later or contact support if the issue persists.",
+            {
+              label: "Okay",
+              onClick: () => setDialogOpen(false),
+            },
+          );
+        }
+      }
+
       onError?.(
         error,
         "Failed to generate image.",

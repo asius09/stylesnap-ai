@@ -5,25 +5,20 @@ import { PreviewCard } from "../PreviewCard";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useTrialId } from "@/hooks/useTrialId";
 import { useImageGeneration } from "@/hooks/useImageGeneration";
-import { useDownloadImage } from "@/utils/downloadUtils";
+import { useDownloadImage } from "@/hooks/useDownloadImage";
 import { useProgressSteps } from "@/hooks/useProgressSteps";
 import { useFileRemove } from "@/hooks/useFileRemove";
 import { useStyleSelection } from "@/hooks/useStyleSelection";
 import { Button } from "../Button";
 import { ImageData } from "@/types/style.types";
-import { useToast } from "@/components/Toast";
 import { ArrowIndicator } from "../ArrowIndicator";
 import { Check, Plus } from "lucide-react";
 import { StyleSelectionDialog } from "../StyleSelectionDialog";
 import { Loader } from "../Loader";
-import { useScrollLock } from "@/hooks/useScrollLock";
 import { keyPoints } from "@/data";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function HeroSection() {
-  // All hooks and state in element only, no const/let for animation variants or helpers
-  const { addToast } = useToast();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isStyleDialogOpen, setIsStyleDialogOpen] = useState(false);
   const [file, setFile] = useLocalStorage<ImageData | null>(
     "uploadedFile",
@@ -33,29 +28,24 @@ export function HeroSection() {
     "selectedStyle",
     null,
   );
-  const [error, setError] = useState<string | null>(null);
   const { trialId } = useTrialId();
   const { handleGenerate, generateStatus, generatedImage, loading } =
     useImageGeneration({
       file,
       selectedStyle,
       trialId: typeof trialId === "string" ? trialId : null,
-      addToast,
     });
   const handleDownloadGeneratedImage = useDownloadImage({
     generatedImage,
     selectedStyle,
-    addToast,
   });
   useProgressSteps(file, selectedStyle, generateStatus);
 
-  const handleRemoveFile = useFileRemove({ file, setFile, addToast });
+  const handleRemoveFile = useFileRemove({ file, setFile });
   const handleStyleSelection = useStyleSelection({
     file,
     setSelectedStyle,
-    addToast,
   });
-  useScrollLock(isDialogOpen);
 
   const isReadyToGenerate =
     !!file && !!selectedStyle && !loading && generateStatus !== "success";
@@ -199,7 +189,6 @@ export function HeroSection() {
               variant={"gradient"}
               className="hidden w-full"
               onClick={handleDownloadGeneratedImage}
-              disabled={isDialogOpen}
               id="download-generated-image-btn"
               aria-label="Download styled photo"
             >
@@ -212,7 +201,6 @@ export function HeroSection() {
                 setFile(null);
                 setSelectedStyle(null);
               }}
-              disabled={isDialogOpen}
               id="generate-another-btn"
               aria-label="Style another photo"
             >
@@ -257,6 +245,7 @@ export function HeroSection() {
             filter: "blur(8px)",
             transition: { duration: 0.3, ease: "easeIn" },
           }}
+          className="p-4"
         >
           <PreviewCard
             {...file}
@@ -324,29 +313,6 @@ export function HeroSection() {
             >
               Generate
             </Button>
-            <AnimatePresence>
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, filter: "blur(8px)" }}
-                  animate={{
-                    opacity: 1,
-                    filter: "blur(0px)",
-                    transition: { duration: 0.5, ease: "easeOut" },
-                  }}
-                  exit={{
-                    opacity: 0,
-                    filter: "blur(8px)",
-                    transition: { duration: 0.3, ease: "easeIn" },
-                  }}
-                  className="mt-2 text-center text-sm text-red-500"
-                  role="alert"
-                  id="generate-error"
-                  aria-live="assertive"
-                >
-                  {error}
-                </motion.div>
-              )}
-            </AnimatePresence>
           </motion.div>
         </motion.div>
 
@@ -389,7 +355,6 @@ export function HeroSection() {
                 <PreviewCard
                   {...selectedStyle}
                   onRemove={() => setSelectedStyle(null)}
-                  disableRemoveButton={isDialogOpen}
                   showRemoveButton={true}
                   showSwitchButton={true}
                   onSwitchStyle={() => setIsStyleDialogOpen(true)}
@@ -448,7 +413,7 @@ export function HeroSection() {
             >
               <>
                 <p
-                  className="selection-primary focus-ring-primary text-text-color rounded px-2 py-1 text-xs font-semibold break-all sm:text-sm"
+                  className="selection-primary focus-ring-primary text-text-color rounded px-2 text-xs font-semibold break-all sm:text-sm"
                   id="style-selection-label"
                   tabIndex={0}
                   aria-label="Select a style"
@@ -456,7 +421,7 @@ export function HeroSection() {
                   Select a style
                 </p>
                 <p
-                  className="selection-primary focus-ring-primary text-text-color/55 mb-1 rounded px-2 py-1 text-[11px]"
+                  className="selection-primary focus-ring-primary text-text-color/55 mb-1 rounded px-2 text-[11px]"
                   id="style-selection-desc"
                   tabIndex={0}
                   aria-label="Pick a style to apply to your photo"

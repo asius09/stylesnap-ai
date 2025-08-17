@@ -105,7 +105,7 @@ export function StyleSelectionDialog({
               duration: 0.38,
               ease: [0.4, 0, 0.2, 1],
             }}
-            className="border-primary/30 bg-background/80 relative flex h-[90vh] w-full items-start justify-center overflow-y-auto rounded-t-2xl rounded-b-none border p-10 text-text-color shadow-2xl backdrop-blur-xl md:max-w-6xl"
+            className="border-primary/30 bg-background/80 text-text-color relative flex h-[90vh] w-full items-start justify-center overflow-y-auto rounded-t-2xl rounded-b-none border p-10 shadow-2xl backdrop-blur-xl md:max-w-6xl"
             role="document"
             aria-labelledby="style-dialog-title"
             aria-describedby="style-dialog-desc"
@@ -129,7 +129,7 @@ export function StyleSelectionDialog({
             {/* Close Button */}
             <button
               ref={closeButtonRef}
-              className="hover:bg-primary/70 focus:ring-primary absolute top-4 right-4 z-10 cursor-pointer rounded-full bg-white/40 p-2 shadow-sm transition-colors hover:text-text-color focus:ring-2 focus:outline-none md:top-6 md:right-6"
+              className="hover:bg-primary/70 focus:ring-primary hover:text-text-color absolute top-4 right-4 z-10 cursor-pointer rounded-full bg-white/40 p-2 shadow-sm transition-colors focus:ring-2 focus:outline-none md:top-6 md:right-6"
               onClick={onClose}
               aria-label="Close style selection dialog"
               type="button"
@@ -140,14 +140,14 @@ export function StyleSelectionDialog({
             {/* Dialog Content */}
             <div className="relative z-10 flex w-full flex-col items-center text-center">
               <h2
-                className="selection-primary focus:ring-primary focus-ring-primary mb-2 text-xl font-bold text-text-color drop-shadow sm:text-2xl"
+                className="selection-primary focus:ring-primary focus-ring-primary text-text-color mb-2 text-xl font-bold drop-shadow sm:text-2xl"
                 id="style-dialog-title"
                 tabIndex={0}
               >
                 Pick a style
               </h2>
               <p
-                className="selection-primary focus-ring-primary mb-8 text-sm text-text-color/80 sm:text-base"
+                className="selection-primary focus-ring-primary text-text-color/80 mb-8 text-sm sm:text-base"
                 id="style-dialog-desc"
                 tabIndex={0}
               >
@@ -163,7 +163,7 @@ export function StyleSelectionDialog({
                   const isSelected = style.id === selectedStyleId;
                   return (
                     <li
-                      className="flex items-center justify-center selection-primary"
+                      className="selection-primary flex items-center justify-center"
                       key={style.id}
                     >
                       <StyleCard

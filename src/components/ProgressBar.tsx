@@ -7,7 +7,7 @@ export function ProgressBar({ steps }: { steps: Step[] }) {
   return (
     <nav
       aria-label="Progress"
-      className="mb-5 flex flex-row items-center gap-0.5 text-xs text-text-color/55 md:mb-3 md:gap-2 md:text-sm"
+      className="text-text-color/55 mb-5 flex flex-row items-center gap-0.5 text-xs md:mb-3 md:gap-2 md:text-sm"
     >
       {steps.map((step, idx) => (
         <motion.div

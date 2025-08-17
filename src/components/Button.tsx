@@ -59,7 +59,7 @@ export const Button: React.FC<ButtonProps> = ({
       <button
         type={type}
         className={cn(
-          "focus-visible:ring-primary relative cursor-pointer items-center rounded-3xl bg-inset font-medium text-white transition duration-300 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60",
+          "focus-visible:ring-primary bg-inset relative cursor-pointer items-center rounded-3xl font-medium text-white transition duration-300 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60",
           className,
         )}
         tabIndex={props.disabled ? -1 : (props.tabIndex ?? undefined)}

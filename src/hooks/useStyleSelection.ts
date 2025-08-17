@@ -1,20 +1,15 @@
 import { ImageData } from "@/types/style.types";
-
-type AddToast = (toast: {
-  type: "success" | "error" | "info";
-  message: string;
-}) => void;
+import { useToast } from "@/components/Toast";
 
 export const useStyleSelection = ({
   file,
   setSelectedStyle,
-  addToast,
 }: {
   file: ImageData | null;
   setSelectedStyle: (style: ImageData | null) => void;
-  addToast?: AddToast;
 }) => {
   // Handles both selecting and replacing a style
+  const { addToast } = useToast();
   const handleSelect = (style: ImageData, options?: { replace?: boolean }) => {
     if (!file) {
       if (addToast) {

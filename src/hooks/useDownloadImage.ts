@@ -1,19 +1,14 @@
 import { ImageData } from "@/types/style.types";
-
-type AddToast = (toast: {
-  type: "success" | "error" | "info";
-  message: string;
-}) => void;
+import { useToast } from "@/components/Toast";
 
 export const useDownloadImage = ({
   generatedImage,
   selectedStyle,
-  addToast,
 }: {
   generatedImage: ImageData | null;
   selectedStyle: ImageData | null;
-  addToast?: AddToast;
 }) => {
+  const { addToast } = useToast();
   const handleDownload = () => {
     if (!generatedImage?.imageUrl) {
       if (addToast)
