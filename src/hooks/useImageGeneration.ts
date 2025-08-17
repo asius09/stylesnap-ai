@@ -17,6 +17,7 @@ import { useToast } from "@/components/Toast";
  * @param trialId      User's trial identifier (string or null)
  * @param onError      Optional error callback
  * @param onSuccess    Optional success callback
+
  *
  * @returns {
  *   handleGenerate: () => void,
@@ -187,13 +188,27 @@ export const useImageGeneration = ({
         onSuccess?.(genImg);
       }
       setGeneratedImage(genImg);
-    } catch (error: any) {
+    } catch (err) {
       setGenerateStatus("failed");
       setGeneratedImage(null);
 
+      // Use a type-safe error object
+      let errorMessage: string | undefined;
+      let errorStatus: number | undefined;
+      if (err instanceof Error) {
+        errorMessage = err.message;
+        // Optionally, if your error object has a status property (e.g., from fetch/axios)
+        // @ts-expect-error: custom error may have status
+        errorStatus = typeof err.status === "number" ? err.status : undefined;
+      } else if (typeof err === "object" && err !== null) {
+        // @ts-expect-error: custom error may have message/status
+        errorMessage = typeof err.message === "string" ? err.message : undefined;
+        // @ts-expect-error: custom error may have status
+        errorStatus = typeof err.status === "number" ? err.status : undefined;
+      }
+
       // Check for paywall error (status 403), then show paywall dialog (not toast, open dialog)
-      const isPaywallError =
-        typeof error?.status === "number" && error.status === 403;
+      const isPaywallError = typeof errorStatus === "number" && errorStatus === 403;
 
       if (isPaywallError) {
         openDialog(
@@ -214,10 +229,10 @@ export const useImageGeneration = ({
       } else {
         // Check for Replicate error (status 500 or 502 or error message contains "replicate")
         const isReplicateError =
-          (typeof error?.status === "number" &&
-            (error.status === 500 || error.status === 502)) ||
-          (typeof error?.message === "string" &&
-            error.message.toLowerCase().includes("replicate"));
+          (typeof errorStatus === "number" &&
+            (errorStatus === 500 || errorStatus === 502)) ||
+          (typeof errorMessage === "string" &&
+            errorMessage.toLowerCase().includes("replicate"));
 
         addToast?.({
           type: "error",
@@ -237,9 +252,9 @@ export const useImageGeneration = ({
       }
 
       onError?.(
-        error,
+        err,
         "Failed to generate image.",
-        error?.message || undefined,
+        errorMessage,
       );
     } finally {
       setLoading(false);

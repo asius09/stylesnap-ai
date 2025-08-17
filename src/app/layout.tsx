@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ToastContainer, ToastProvider } from "@/components/Toast";
-import {
-  MessageDialog,
-  MessageDialogProvider,
-} from "@/components/MessageDialog";
+import { MessageDialogProvider } from "@/components/MessageDialog";
 import { PaywallProvider } from "@/components/pay/Paywall";
 
 // ---

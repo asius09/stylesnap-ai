@@ -39,7 +39,7 @@ function extractErrorMessage(err: unknown, fallback: string): string {
     err &&
     typeof err === "object" &&
     "message" in err &&
-    typeof err.message === "string"
+    typeof (err as Record<string, unknown>).message === "string"
   ) {
     return (err as { message: string }).message;
   }
@@ -61,8 +61,7 @@ function isHighlightModelError(msg: string): boolean {
 /**
  * Utility: Extract image URL from Replicate output.
  */
-// @ts-ignore
-function extractImageUrl(output: any): string | undefined {
+function extractImageUrl(output: unknown): string | undefined {
   if (
     Array.isArray(output) &&
     output.length > 0 &&
@@ -77,10 +76,9 @@ function extractImageUrl(output: any): string | undefined {
     output &&
     typeof output === "object" &&
     "url" in output &&
-    // @ts-ignore
-    typeof (output as any).url === "function"
+    typeof (output as Record<string, unknown>).url === "function"
   ) {
-    return (output as any).url();
+    return (output as { url: () => string }).url();
   }
   return undefined;
 }
@@ -89,21 +87,21 @@ function extractImageUrl(output: any): string | undefined {
  * Utility: Handle Replicate API errors and return appropriate failure response.
  * Always returns the same status code as the one provided by Replicate, if available.
  */
-function handleReplicateError(replicateError: any) {
+function handleReplicateError(replicateError: unknown) {
   let statusCode = 500;
   let errorMsg = ErrorMessage.UNKNOWN_REPLICATE;
   if (replicateError && typeof replicateError === "object") {
     if (
       "status" in replicateError &&
-      typeof (replicateError as any).status === "number"
+      typeof (replicateError as Record<string, unknown>).status === "number"
     ) {
-      statusCode = (replicateError as any).status;
+      statusCode = (replicateError as { status: number }).status;
     }
     if (
       "message" in replicateError &&
-      typeof (replicateError as any).message === "string"
+      typeof (replicateError as Record<string, unknown>).message === "string"
     ) {
-      const msg = (replicateError as any).message as string;
+      const msg = (replicateError as { message: string }).message;
       if (Object.values(ErrorMessage).includes(msg as ErrorMessage)) {
         errorMsg = msg as ErrorMessage;
       }
@@ -123,21 +121,21 @@ function handleReplicateError(replicateError: any) {
 /**
  * Utility: General error handler for the catch block.
  */
-function handleGeneralError(error: any) {
+function handleGeneralError(error: unknown) {
   let errorMessage = ErrorMessage.UNKNOWN;
   let httpStatus = 500;
   if (
     error &&
     typeof error === "object" &&
     "message" in error &&
-    typeof (error as any).message === "string"
+    typeof (error as Record<string, unknown>).message === "string"
   ) {
     if (
       Object.values(ErrorMessage).includes(
-        (error as any).message as ErrorMessage,
+        (error as { message: string }).message as ErrorMessage,
       )
     ) {
-      errorMessage = (error as any).message as ErrorMessage;
+      errorMessage = (error as { message: string }).message as ErrorMessage;
     }
     if (isHighlightModelError(errorMessage)) {
       errorMessage = ErrorMessage.HIGHLIGHT_MODEL;
@@ -274,7 +272,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     };
 
     // 6. Call Replicate API and handle errors
-    let output;
+    let output: unknown;
     try {
       output = await replicate.run(REPLICATE_IMAGE_MODEL, {
         input: replicateInput,
@@ -307,7 +305,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // 10. Update user trial info and quota/credits
     // Helper for updating free trial and quota
-    async function updateFreeTrialAndQuota() {
+    async function updateFreeTrialAndQuota(): Promise<NextResponse | null> {
       await supabase
         .from(USER_TRIALS_TABLE_NAME)
         .update({
@@ -332,7 +330,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // Helper for updating paid credits
-    async function updatePaidCredits() {
+    async function updatePaidCredits(): Promise<NextResponse | null> {
       const { error: paidCreditsError } = await supabase
         .from(USER_TRIALS_TABLE_NAME)
         .update({ paid_credits: PAID_CREDITS - 100 })
@@ -340,7 +338,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
       if (paidCreditsError) {
         return failure(
-          paidCreditsError.message || "Failed to update paid credits",
+          (paidCreditsError as { message?: string }).message || "Failed to update paid credits",
           500,
           "FAILED_UPDATE_PAID_CREDITS",
         );

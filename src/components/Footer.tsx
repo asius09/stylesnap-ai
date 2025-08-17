@@ -1,6 +1,7 @@
 import React from "react";
 import { SocialIcon } from "./SocialIcon";
 import Link from "next/link";
+import Image from "next/image";
 
 export const Footer = () => {
   return (
@@ -18,7 +19,7 @@ export const Footer = () => {
             aria-label="Go to StyleSnap AI Home"
             role="link"
           >
-            <img
+            <Image
               src="/logo.svg"
               alt="stylesnap"
               aria-hidden="true"

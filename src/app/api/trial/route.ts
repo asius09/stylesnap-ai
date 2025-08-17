@@ -82,18 +82,22 @@ export async function POST(req: NextRequest) {
       `trialId=${trialId}; Path=/; HttpOnly; Max-Age=31536000`,
     );
     return res;
-  } catch (err: any) {
-    const message =
-      typeof err === "string"
-        ? err
-        : err instanceof Error
-          ? err.message
-          : err &&
-              typeof err === "object" &&
-              "message" in err &&
-              typeof err.message === "string"
-            ? err.message
-            : "Internal Server Error";
+  } catch (err) {
+    let message: string;
+    if (typeof err === "string") {
+      message = err;
+    } else if (err instanceof Error) {
+      message = err.message;
+    } else if (
+      err &&
+      typeof err === "object" &&
+      "message" in err &&
+      typeof (err as { message: unknown }).message === "string"
+    ) {
+      message = (err as { message: string }).message;
+    } else {
+      message = "Internal Server Error";
+    }
     console.error("[TRIAL-POST] Error:", err);
     return failure(
       message,
@@ -101,7 +105,7 @@ export async function POST(req: NextRequest) {
       "INTERNAL_ERROR",
       undefined,
       undefined,
-      err?.stack,
+      (err as Error)?.stack,
     );
   }
 }
@@ -146,13 +150,15 @@ export async function GET(req: NextRequest) {
       return res;
     }
     return failure("Trial not found", 404, "TRIAL_NOT_FOUND");
-  } catch (err: any) {
-    const message =
-      typeof err === "string"
-        ? err
-        : err instanceof Error
-          ? err.message
-          : "Internal Server Error";
+  } catch (err) {
+    let message: string;
+    if (typeof err === "string") {
+      message = err;
+    } else if (err instanceof Error) {
+      message = err.message;
+    } else {
+      message = "Internal Server Error";
+    }
     console.error("[TRIAL-GET] Error:", err);
     return failure(
       message,
@@ -160,7 +166,7 @@ export async function GET(req: NextRequest) {
       "INTERNAL_ERROR",
       undefined,
       undefined,
-      err?.stack,
+      (err as Error)?.stack,
     );
   }
 }
@@ -198,18 +204,22 @@ export async function DELETE(req: NextRequest) {
       undefined,
       "Trial deleted successfully",
     );
-  } catch (err: any) {
-    const message =
-      typeof err === "string"
-        ? err
-        : err instanceof Error
-          ? err.message
-          : err &&
-              typeof err === "object" &&
-              "message" in err &&
-              typeof err.message === "string"
-            ? err.message
-            : "Internal Server Error";
+  } catch (err) {
+    let message: string;
+    if (typeof err === "string") {
+      message = err;
+    } else if (err instanceof Error) {
+      message = err.message;
+    } else if (
+      err &&
+      typeof err === "object" &&
+      "message" in err &&
+      typeof (err as { message: unknown }).message === "string"
+    ) {
+      message = (err as { message: string }).message;
+    } else {
+      message = "Internal Server Error";
+    }
     console.error("[TRIAL-DELETE] Error:", err);
     return failure(
       message,
@@ -217,7 +227,7 @@ export async function DELETE(req: NextRequest) {
       "INTERNAL_ERROR",
       undefined,
       undefined,
-      err?.stack,
+      (err as Error)?.stack,
     );
   }
 }
@@ -238,7 +248,7 @@ export async function PATCH(req: NextRequest) {
       return failure("Invalid Data or TrialId", 400, "INVALID_PATCH_DATA");
     }
 
-    let updateFields = { ...body };
+    const updateFields = { ...body };
 
     // If paid_credits is present, add to the current value
     if (typeof body.paid_credits === "number") {
@@ -293,13 +303,15 @@ export async function PATCH(req: NextRequest) {
       undefined,
       "Trial updated successfully",
     );
-  } catch (err: unknown) {
-    const message =
-      typeof err === "string"
-        ? err
-        : err instanceof Error
-          ? err.message
-          : "Internal Server Error";
+  } catch (err) {
+    let message: string;
+    if (typeof err === "string") {
+      message = err;
+    } else if (err instanceof Error) {
+      message = err.message;
+    } else {
+      message = "Internal Server Error";
+    }
     return failure(
       message,
       500,

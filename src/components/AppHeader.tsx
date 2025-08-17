@@ -1,13 +1,14 @@
 "use client";
 import { useTrialId } from "@/hooks/useTrialId";
 import { getTrialUsageStatus } from "@/utils/trialClient";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 export function AppHeader() {
   const { trialId } = useTrialId();
   const [freeUsed, setFreeUsed] = useState<boolean>(false);
-  const [padiCredits, setPaidCredits] = useState<number>(0); //TODO: plan to implement this
+  // const [padiCredits, setPaidCredits] = useState<number>(0); //TODO: plan to implement this
   useEffect(() => {
     const fetchTrialUsageStatus = async () => {
       if (!trialId) return;
@@ -34,7 +35,7 @@ export function AppHeader() {
           aria-label="Go to StyleSnap AI Home"
           role="link"
         >
-          <img
+          <Image
             src="/logo.svg"
             alt="stylesnap"
             aria-hidden="true"

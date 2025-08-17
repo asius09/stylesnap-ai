@@ -24,10 +24,11 @@ export default function RazorpayButton() {
     ref.current.appendChild(script);
 
     return () => {
-      if (ref.current) {
+      const form = ref.current;
+      if (form) {
         // Remove all children (including the script and button) on cleanup
-        while (ref.current.firstChild) {
-          ref.current.removeChild(ref.current.firstChild);
+        while (form.firstChild) {
+          form.removeChild(form.firstChild);
         }
       }
     };

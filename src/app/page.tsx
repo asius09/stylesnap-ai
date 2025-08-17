@@ -1,7 +1,6 @@
 "use client";
 
 import { AppHeader } from "@/components/AppHeader";
-import { useTrialId } from "@/hooks/useTrialId";
 import { HeroSection } from "@/components/sections/HeroSection";
 import { Footer } from "@/components/Footer";
 import { StepsSection } from "@/components/sections/StepsSection";

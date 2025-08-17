@@ -235,9 +235,9 @@ export const MessageDialog: React.FC<MessageDialogProps> = ({
       assertNonEmptyString(secondaryAction.label, "secondaryAction.label");
       assertFunction(secondaryAction.onClick, "secondaryAction.onClick");
     }
-  } catch (error: unknown) {
+  } catch (err: unknown) {
+    const error = err;
     if (process.env.NODE_ENV !== "production") {
-      // eslint-disable-next-line no-console
       console.error("MessageDialog validation error:", error);
     }
     return null;

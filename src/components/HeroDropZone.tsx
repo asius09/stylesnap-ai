@@ -77,11 +77,17 @@ export const HeroDropZone: React.FC<Partial<HeroDropZoneProps>> = ({
           message: "File uploaded successfully.",
         });
       }
-    } catch (err) {
-      setError("Failed to upload image.");
+    } catch (err: unknown) {
+      let errorMessage = "Failed to upload image.";
+      if (err instanceof Error && err.message) {
+        errorMessage = `Failed to upload image: ${err.message}`;
+      } else if (typeof err === "string") {
+        errorMessage = `Failed to upload image: ${err}`;
+      }
+      setError(errorMessage);
       addToast({
         type: "error",
-        message: "Failed to upload image.",
+        message: errorMessage,
       });
     }
   };

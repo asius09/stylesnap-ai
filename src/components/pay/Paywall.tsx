@@ -1,24 +1,25 @@
 "use client";
 
 import { useTrialId } from "@/hooks/useTrialId";
-import { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+  Dispatch,
+  SetStateAction,
+} from "react";
 
-// --- Top-notch console utilities ---
-const log = (...args: any[]) =>
-  console.log(
-    "%c[Paywall]%c",
-    "background: #7c3aed; color: #fff; font-weight: bold; padding:2px 6px; border-radius:3px;",
-    "",
-    ...args,
-  );
-const warn = (...args: any[]) =>
+// --- Console utilities (only error/warn for important issues) ---
+const warn = (...args: unknown[]) =>
   console.warn(
     "%c[Paywall]%c",
     "background: #f59e42; color: #222; font-weight: bold; padding:2px 6px; border-radius:3px;",
     "",
     ...args,
   );
-const error = (...args: any[]) =>
+const error = (...args: unknown[]) =>
   console.error(
     "%c[Paywall]%c",
     "background: #ef4444; color: #fff; font-weight: bold; padding:2px 6px; border-radius:3px;",
@@ -26,23 +27,62 @@ const error = (...args: any[]) =>
     ...args,
   );
 
-// Create context for 'open' state
-type PaywallContextType = {
+// --- Types ---
+interface PaywallContextType {
   open: boolean;
-  setOpen: (open: boolean) => void;
-};
+  setOpen: Dispatch<SetStateAction<boolean>>;
+}
 
+interface PaywallProviderProps {
+  children: ReactNode;
+}
+
+interface RazorpayOrder {
+  id: string;
+  amount: number;
+  currency: string;
+}
+
+interface RazorpayPaymentResponse {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+  [key: string]: unknown;
+}
+
+interface RazorpayOptions {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  order_id: string;
+  handler: (response: RazorpayPaymentResponse) => void;
+  prefill: {
+    name: string;
+    email: string;
+    contact: string;
+  };
+  theme: {
+    color: string;
+  };
+  modal: {
+    ondismiss: () => void;
+  };
+  [key: string]: unknown;
+}
+
+// --- Context ---
 const PaywallContext = createContext<PaywallContextType | undefined>(undefined);
 
-export function usePaywall() {
+export function usePaywall(): PaywallContextType {
   const ctx = useContext(PaywallContext);
   if (!ctx) throw new Error("usePaywall must be used within PaywallProvider");
   return ctx;
 }
 
-export function PaywallProvider({ children }: { children: React.ReactNode }) {
-  // Default open should be false
-  const [open, setOpen] = useState(false);
+export function PaywallProvider({ children }: PaywallProviderProps) {
+  const [open, setOpen] = useState<boolean>(false);
   return (
     <PaywallContext.Provider value={{ open, setOpen }}>
       {children}
@@ -50,89 +90,70 @@ export function PaywallProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-// Razorpay types for TS
+// Razorpay global type
 declare global {
   interface Window {
-    Razorpay: any;
+    Razorpay?: new (options: RazorpayOptions) => {
+      open: () => void;
+    };
   }
 }
 
-type RazorpayOrder = {
-  id: string;
-  amount: number;
-  currency: string;
-};
+// Razorpay global
+if (typeof window !== "undefined") {
+  window.Razorpay = window.Razorpay || undefined;
+}
 
 async function createOrder(trialId: string): Promise<RazorpayOrder> {
-  // You should implement this API route in your backend
-  // It should return { id, amount, currency }
-  log("Creating order with trialId:", trialId);
   const res = await fetch("/api/order", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ amount: 900, currency: "INR", trialId }), // ₹9 in paise
+    body: JSON.stringify({ amount: 900, currency: "INR", trialId }),
   });
   const data = await res.json();
   if (!res.ok || !data?.success || !data?.data?.order) {
     error("Failed to create order", res.status, res.statusText, data);
     throw new Error("Failed to create order");
   }
-  log("Order created:", data);
-  return data.data.order;
+  return data.data.order as RazorpayOrder;
 }
 
 export default function Paywall() {
   const { trialId } = useTrialId();
-  // Use context for open state
   const paywallCtx = useContext(PaywallContext);
-  // Default open should be false if context is missing
-  const open = paywallCtx ? paywallCtx.open : false;
-  const setOpen = paywallCtx ? paywallCtx.setOpen : () => {};
+  const open = paywallCtx?.open ?? false;
+  const setOpen = paywallCtx?.setOpen ?? (() => {});
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  // Load Razorpay script dynamically
   useEffect(() => {
     if (!open) return;
-    if ((window as any).Razorpay) {
-      log("Razorpay script already loaded");
+    if (typeof window !== "undefined" && window.Razorpay) {
       return;
     }
 
-    log("Loading Razorpay script...");
     const script = document.createElement("script");
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
     script.async = true;
     document.body.appendChild(script);
 
-    script.onload = () => log("Razorpay script loaded");
-    script.onerror = () => error("Failed to load Razorpay script");
-
-    return () => {
-      // Optionally remove script on close
-      // document.body.removeChild(script);
-    };
+    // Optionally remove script on close
+    // return () => { document.body.removeChild(script); };
   }, [open]);
 
-  // Handler to launch Razorpay checkout
   const handlePay = async () => {
     setLoading(true);
-    log("Initiating payment...");
     try {
       if (typeof trialId !== "string") return;
-      // 1. Create order on backend
       const order = await createOrder(trialId);
-      // 2. Prepare Razorpay options
-      const options = {
+      const options: RazorpayOptions = {
         key: "rzp_test_R5bRP5pjCPZgIo",
         amount: order.amount,
         currency: order.currency,
         name: "My App",
         description: "Test Transaction",
         order_id: order.id,
-        handler: async function (response: any) {
-          log("Razorpay payment handler called with response:", response);
-          // Call backend to verify
+        handler: async function (response: RazorpayPaymentResponse) {
           try {
             const verifyRes = await fetch("/api/verify-payment", {
               method: "POST",
@@ -140,10 +161,7 @@ export default function Paywall() {
               body: JSON.stringify(response),
             });
             const result = await verifyRes.json();
-            log("Verification result:", result);
-            if (result?.success) {
-              log("Payment Success 🎉");
-              // PATCH paid_credits to 100 for this trialId
+            if (result && result.success) {
               try {
                 const patchRes = await fetch(`/api/trial?id=${trialId}`, {
                   method: "PATCH",
@@ -151,8 +169,7 @@ export default function Paywall() {
                   body: JSON.stringify({ paid_credits: 100 }),
                 });
                 const patchResult = await patchRes.json();
-                log("Trial PATCH result:", patchResult);
-                if (!patchRes.ok || !patchResult?.success) {
+                if (!patchRes.ok || !patchResult || !patchResult.success) {
                   warn(
                     "Failed to update paid_credits after payment",
                     patchResult,
@@ -184,25 +201,22 @@ export default function Paywall() {
           email: "test@example.com",
           contact: "9999999999",
         },
-        theme: { color: "#2563eb" }, // Tailwind blue
+        theme: { color: "#2563eb" },
         modal: {
           ondismiss: () => {
-            log("Razorpay modal dismissed by user");
             setOpen(false);
           },
         },
       };
 
-      // 3. Open Razorpay checkout
-      if ((window as any).Razorpay) {
-        log("Opening Razorpay checkout with options:", options);
-        const rzp = new (window as any).Razorpay(options);
+      if (typeof window !== "undefined" && window.Razorpay) {
+        const rzp = new window.Razorpay(options);
         rzp.open();
       } else {
         error("Payment SDK not loaded. Please try again.");
         alert("Payment SDK not loaded. Please try again.");
       }
-    } catch (err: any) {
+    } catch (err) {
       error("Error while initiating payment:", err);
       alert("Failed to initiate payment. Please try again.");
     } finally {
@@ -232,7 +246,6 @@ export default function Paywall() {
           <button
             className="mb-1 w-40 cursor-pointer rounded bg-gray-200 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-300 focus:outline-none"
             onClick={() => {
-              log("Paywall modal cancelled by user");
               setOpen(false);
             }}
             type="button"

@@ -3,13 +3,13 @@ import { NextResponse } from "next/server";
 /**
  * Generic API response type, future-proofed for extensibility.
  */
-export type ApiResponse<T = any, M = any> = {
+export type ApiResponse<T = unknown, M = unknown> = {
   success: boolean;
   data?: T;
   error?: {
     message: string;
     code?: string;
-    details?: any;
+    details?: unknown;
     // For future: add stack trace, error type, etc.
     type?: string;
     stack?: string;
@@ -21,16 +21,14 @@ export type ApiResponse<T = any, M = any> = {
   timestamp?: string;
   requestId?: string;
   // For future: add traceId, debug, warnings, etc.
-  [key: string]: any;
+  [key: string]: unknown;
 };
 
 /**
  * Helper to generate a unique request ID (for tracing, debugging, etc.)
  */
 function generateRequestId(): string {
-  return (
-    Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10)
-  );
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
 /**
@@ -41,12 +39,12 @@ function generateRequestId(): string {
  * @param message - Optional top-level message.
  * @param extra - Any extra fields to include in the response.
  */
-export function success<T, M = any>(
+export function success<T, M = unknown>(
   data: T,
   status = 200,
   meta?: M,
   message?: string,
-  extra?: Record<string, any>,
+  extra?: Record<string, unknown>,
 ): NextResponse {
   const now = new Date().toISOString();
   const body: ApiResponse<T, M> = {
@@ -57,7 +55,7 @@ export function success<T, M = any>(
     message,
     timestamp: now,
     requestId: generateRequestId(),
-    ...extra,
+    ...(extra || {}),
   };
   return NextResponse.json(body, {
     status,
@@ -80,11 +78,11 @@ export function failure(
   message: string,
   status = 400,
   code?: string,
-  details?: any,
+  details?: unknown,
   errorType?: string,
   stack?: string,
-  meta?: any,
-  extra?: Record<string, any>,
+  meta?: unknown,
+  extra?: Record<string, unknown>,
 ): NextResponse {
   const now = new Date().toISOString();
   const body: ApiResponse = {
@@ -102,7 +100,7 @@ export function failure(
     message,
     timestamp: now,
     requestId: generateRequestId(),
-    ...extra,
+    ...(extra || {}),
   };
   return NextResponse.json(body, {
     status,

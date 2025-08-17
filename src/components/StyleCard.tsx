@@ -36,7 +36,7 @@ export const StyleCard: React.FC<StyleCardProps> = ({
   const className = `${baseClass} ${pointerClass} ${selectedClass}`;
 
   // Accessibility: handle keyboard and click
-  const handleDivClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleDivClick = () => {
     if (!disabled && onClick) onClick(style);
   };
 
