@@ -1,118 +1,99 @@
 import { stepsContent } from "@/data";
 import React from "react";
+import { Button } from "../Button";
+import { ArrowRight } from "lucide-react";
 
 export const StepsSection = () => {
+  // Accessibility: Focus and scroll to upload section
+  const handleCTAClick = () => {
+    const uploadSection =
+      document.getElementById("upload-section") ||
+      document.getElementById("hero-upload-section");
+    if (uploadSection) {
+      uploadSection.scrollIntoView({ behavior: "smooth", block: "center" });
+      // Try to focus the first focusable element inside upload section
+      const focusable = uploadSection.querySelector(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      );
+      if (focusable && typeof (focusable as HTMLElement).focus === "function") {
+        (focusable as HTMLElement).focus();
+      } else {
+        uploadSection.focus?.();
+      }
+    }
+  };
   return (
     <section
       id="steps-section"
-      className="mt-24 flex w-full max-w-7xl flex-col items-center justify-center"
+      className="flex w-full max-w-7xl flex-col items-center justify-center py-20"
       aria-labelledby="steps-section-title"
       role="region"
     >
       <h2
         id="steps-section-title"
-        className="pb-8 text-center text-2xl font-semibold text-text-color md:text-3xl md:text-nowrap lg:text-4xl"
+        className="text-text-color text-center text-2xl font-semibold md:text-3xl md:text-nowrap lg:text-4xl"
       >
         Convert Your Image in 4 Simple Steps
       </h2>
       <ol
-        className="mt-12 grid w-full grid-cols-1 items-center justify-center gap-8 px-4 sm:grid-cols-2 sm:px-6"
+        className="mt-12 grid w-full grid-cols-1 items-center justify-center gap-8 px-6 sm:grid-cols-2"
         aria-label="Image conversion steps"
       >
         {stepsContent.map((step, idx) => (
           <li
             id={step.id}
             key={step.id}
-            className="bg-background/60 hover:shadow-primary/30 focus-ring-primary selection-primary relative z-0 w-full rounded-xl p-6 hover:shadow-md"
+            className="bg-background/60 hover:shadow-primary/30 focus-ring-primary selection-primary relative z-0 w-full rounded-xl p-4 hover:shadow-md md:p-6"
             aria-label={`Step ${idx + 1}: ${step.heading}`}
             tabIndex={0}
           >
-            {/* Glossy effect overlay for steps */}
             <div
-              aria-hidden="true"
-              className="glossy-effect pointer-events-none absolute inset-0 z-0 rounded-[0.75rem]"
-            />
-            <div
-              className="border-primary/40 from-primary/80 via-primary/60 to-background/80 absolute -top-6 -left-2 z-10 flex h-12 w-12 items-center justify-center rounded-2xl border-2 bg-gradient-to-br shadow-[0_2px_16px_0_rgba(120,90,255,0.35),0_0_0_2px_rgba(255,255,255,0.12)_inset]"
+              className="border-primary/40 from-primary/90 via-primary/60 to-background/80 absolute -top-4 -left-2 z-10 flex h-8 w-8 items-center justify-center rounded-xl border-2 bg-gradient-to-br shadow-sm md:h-12 md:w-12 md:rounded-2xl"
               aria-hidden="true"
             >
-              <svg
-                className="absolute z-[1] h-12 w-12"
-                width="48"
-                height="48"
-                viewBox="0 0 48 48"
-                fill="none"
-                aria-hidden="true"
-                focusable="false"
-              >
-                <defs>
-                  <radialGradient
-                    id={`glossy-bg-${idx}`}
-                    cx="50%"
-                    cy="40%"
-                    r="70%"
-                  >
-                    <stop offset="0%" stopColor="#fff" stopOpacity="0.55" />
-                    <stop
-                      offset="60%"
-                      stopColor="currentColor"
-                      stopOpacity="0.18"
-                    />
-                    <stop
-                      offset="100%"
-                      stopColor="currentColor"
-                      stopOpacity="0.08"
-                    />
-                  </radialGradient>
-                  <linearGradient
-                    id={`shine-${idx}`}
-                    x1="0"
-                    y1="0"
-                    x2="48"
-                    y2="24"
-                    gradientUnits="userSpaceOnUse"
-                  >
-                    <stop offset="0%" stopColor="#fff" stopOpacity="0.7" />
-                    <stop offset="80%" stopColor="#fff" stopOpacity="0.05" />
-                  </linearGradient>
-                </defs>
-                <rect
-                  x="0.2"
-                  y="0.2"
-                  width="47.6"
-                  height="47.6"
-                  rx="12"
-                  fill={`url(#glossy-bg-${idx})`}
-                />
-                {/* Glossy shine overlay */}
-                <rect
-                  x="0.2"
-                  y="0.2"
-                  width="47.6"
-                  height="18"
-                  rx="12"
-                  fill={`url(#shine-${idx})`}
-                />
-              </svg>
               <span
-                className="selection:bg-primary/50 relative z-10 text-2xl font-bold text-text-color drop-shadow-[0_2px_8px_rgba(120,90,255,0.25)] [filter:brightness(1.15)] [text-shadow:0_2px_8px_rgba(120,90,255,0.25),0_1px_0_#fff8] selection:text-text-color"
+                className="drop-shadow-[0_0_8px_theme(colors.primary)] pointer-events-none relative z-10 text-lg font-extrabold text-white md:text-2xl"
                 aria-label={`Step ${idx + 1}`}
+                aria-hidden="true"
               >
                 {idx + 1}
               </span>
+              <span
+                className="bg-primary pointer-events-none absolute inset-0 z-0 rounded-xl opacity-60 blur-[6px] md:rounded-2xl"
+                aria-hidden="true"
+              />
             </div>
             <h3
-              className="selection:bg-primary/50 relative z-10 mt-4 text-left text-lg font-semibold text-text-color selection:text-text-color"
+              className="text-text-color selection-primary relative z-10 mt-2 text-left text-base font-semibold md:mt-4"
               tabIndex={-1}
             >
               {step.heading}
             </h3>
-            <p className="selection:bg-primary/50 relative z-10 text-left text-base font-medium text-text-color/60 selection:text-text-color">
+            <p className="text-text-color/60 selection-primary relative z-10 text-left text-base font-normal">
               {step.detail}
             </p>
           </li>
         ))}
       </ol>
+
+      <Button
+        variant="filled"
+        size="lg"
+        className="mt-20"
+        onClick={handleCTAClick}
+        aria-label="Start creating your stylized image now"
+        tabIndex={0}
+      >
+        <span className="sr-only">Start creating your stylized image now</span>
+        <span aria-hidden="true" className="flex items-center">
+          Start Creating Now
+          <ArrowRight
+            className="ml-3 h-6 w-6 transition-transform duration-200 group-hover:translate-x-1 group-focus:translate-x-1"
+            aria-hidden="true"
+            focusable="false"
+          />
+        </span>
+      </Button>
     </section>
   );
 };

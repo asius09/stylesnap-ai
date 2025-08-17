@@ -4,9 +4,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { useTrialId } from "@/hooks/useTrialId";
 import { HeroSection } from "@/components/sections/HeroSection";
 import { Footer } from "@/components/Footer";
-import { KeyPoints } from "@/components/sections/KeyPoints";
 import { StepsSection } from "@/components/sections/StepsSection";
-import { ButtonCTASection } from "@/components/sections/ButtonCTASection";
 import { FeatureSection } from "@/components/sections/FeatureSection";
 import Head from "next/head";
 
@@ -81,14 +79,8 @@ export default function UploadPage() {
         {/* Hero Section */}
         <HeroSection />
 
-        {/* Key Points */}
-        <KeyPoints />
-
         {/* Steps */}
         <StepsSection />
-
-        {/* Start Creating Now Button */}
-        <ButtonCTASection />
 
         {/* Feature Section */}
         <FeatureSection />

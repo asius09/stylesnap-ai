@@ -12,11 +12,12 @@ import { Button } from "../Button";
 import { ImageData } from "@/types/style.types";
 import { useToast } from "@/components/Toast";
 import { ArrowIndicator } from "../ArrowIndicator";
-import { Plus } from "lucide-react";
+import { Check, Plus } from "lucide-react";
 import { StyleSelectionDialog } from "../StyleSelectionDialog";
 import { Loader } from "../Loader";
 import { MessageDialog } from "@/components/MessageDialog";
 import { useScrollLock } from "@/hooks/useScrollLock";
+import { keyPoints } from "@/data";
 
 export function HeroSection() {
   const { addToast } = useToast();
@@ -166,7 +167,7 @@ export function HeroSection() {
           <div className="hidden w-full flex-col items-center justify-center md:flex">
             <Button
               variant={"gradient"}
-              className="w-full"
+              className="w-full max-w-56"
               onClick={handleGenerate}
               disabled={!isReadyToGenerate}
               id="generate-btn"
@@ -277,42 +278,86 @@ export function HeroSection() {
 
   return (
     <section
-      className="relative mt-20 flex min-h-screen w-full flex-col items-center justify-center px-2 sm:px-4 md:mt-16 md:px-6 lg:mt-8"
+      className="relative flex min-h-screen w-full flex-col items-center justify-center bg-cover bg-center bg-no-repeat"
       id="hero-section"
       aria-label="AI Photo Style Transfer - Instantly Apply Art Styles to Your Photos"
     >
-      <h1
-        className="selection-primary focus-ring-primary from-primary to-primary focus:ring-primary relative z-10 rounded bg-gradient-to-r via-white bg-clip-text px-4 py-2 text-center text-5xl font-bold text-transparent drop-shadow-lg focus:ring-2 focus:outline-none active:ring-0 md:text-6xl md:text-nowrap lg:text-7xl"
-        id="hero-title"
-        tabIndex={0}
-        aria-label="Turn Photos Into Art Instantly"
-        onMouseDown={(e) => e.preventDefault()}
-      >
-        Turn Photos Into <br className="hidden md:block" />
-        Art Instantly
-      </h1>
-      <p
-        className="selection-primary focus-ring-primary text-text-color/70 relative z-10 mb-6 max-w-xl rounded px-3 py-2 text-center text-sm font-medium outline-none md:mb-8 md:text-base"
-        id="hero-subtitle"
-        tabIndex={0}
-        aria-label="Upload a photo and apply a style in seconds."
-        onMouseDown={(e) => e.preventDefault()}
-      >
-        Upload a photo and apply a style in seconds.
-      </p>
+      <div className="flex h-full w-full flex-col items-center justify-center px-6 pt-30">
+        <h1
+          className="selection-primary from-text-color to-primary via-text-color relative z-10 rounded bg-gradient-to-r bg-clip-text py-3 text-center text-5xl font-bold tracking-tighter text-pretty text-transparent drop-shadow-lg md:px-4 md:py-2 md:text-6xl md:tracking-tight md:text-nowrap"
+          id="hero-title"
+          tabIndex={0}
+          aria-label="Turn Photos Into Art Instantly"
+          onMouseDown={(e) => e.preventDefault()}
+        >
+          Turn Photos Into <br className="hidden md:block" />
+          Art Instantly
+        </h1>
+        <p
+          className="selection-primary text-text-color/80 font-base relative z-10 mb-16 rounded text-center text-xs md:px-3 md:text-base"
+          id="hero-subtitle"
+          tabIndex={0}
+          aria-label="Upload a photo and apply a style in seconds."
+          onMouseDown={(e) => e.preventDefault()}
+        >
+          Upload a photo and apply a style in seconds.
+        </p>
 
-      <div
-        className="border-primary/60 bg-background/60 focus-within:border-primary shadow-[0_0_24px_0_theme(colors.primary/80)] hover:border-primary hover:shadow-[0_0_40px_0_theme(colors.primary/60)] relative my-0 flex min-h-[28rem] w-full max-w-4xl flex-col items-center justify-center overflow-hidden rounded-xl border-1 transition outline-none"
-        id="hero-main-card"
-        aria-label="Photo style transfer main card"
-      >
         <div
-          aria-hidden="true"
-          className="glossy-effect pointer-events-none absolute inset-0 z-0 rounded-[0.75rem]"
-        />
-        {renderMainContent()}
+          className="border-primary/30 bg-background/60 focus-within:border-primary hover:border-primary relative flex min-h-[28rem] w-full max-w-4xl flex-col items-center justify-center overflow-hidden rounded-xl border-1 shadow-[0_4px_32px_0_var(--color-primary),0_0_64px_0_var(--color-primary)] transition outline-none hover:shadow-[0_6px_48px_0_var(--color-primary),0_0_80px_0_var(--color-primary)]"
+          id="hero-main-card"
+          aria-label="Photo style transfer main card"
+        >
+          {renderMainContent()}
+        </div>
       </div>
-
+      <div
+        id="key-points"
+        className="text-text-color flex w-full max-w-7xl flex-col items-center justify-center gap-4 px-6 pt-32 sm:px-6 lg:flex-row"
+        aria-labelledby="key-points-title"
+        role="region"
+      >
+        <h2 id="key-points-title" className="sr-only">
+          Key Features
+        </h2>
+        {keyPoints.map((point) => (
+          <div
+            className="bg-background/60 hover:shadow-primary/20 focus-visible:ring-primary focus-visible:ring-offset-background relative w-full overflow-hidden rounded-lg p-4 transition-shadow hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            key={point.id}
+            id={point.id}
+            tabIndex={0}
+            role="listitem"
+            aria-label={`${point.heading}: ${point.subHeading}`}
+            aria-describedby={`key-point-desc-${point.id}`}
+            style={{ position: "relative" }}
+          >
+            {/* Glossy effect overlay for key points */}
+            <div
+              aria-hidden="true"
+              className="glossy-effect pointer-events-none absolute inset-0 z-[1]"
+            />
+            <div className="relative z-10">
+              <div className="selection-primary focus-ring-primary flex w-full shrink-0 flex-row items-center justify-start gap-2 text-lg font-semibold text-nowrap">
+                <Check
+                  className="text-lg text-green-500"
+                  aria-hidden="true"
+                  focusable="false"
+                  role="presentation"
+                />
+                <p className="text-base font-semibold text-nowrap md:text-lg">
+                  {point.heading}
+                </p>
+              </div>
+              <span
+                id={`key-point-desc-${point.id}`}
+                className="selection-primary focus-ring-primary text-text-color/60 mt-2 ml-8 text-xs font-normal text-nowrap sm:text-sm md:text-base md:font-medium"
+              >
+                {point.subHeading}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
       <StyleSelectionDialog
         isOpen={isStyleDialogOpen}
         onClose={() => setIsStyleDialogOpen(false)}

@@ -5,77 +5,83 @@
 /* Import Red Hat Display font from Google Fonts */
 @import url("https://fonts.googleapis.com/css2?family=Red+Hat+Display:ital,wght@0,300..900;1,300..900&display=swap");
 @import "tailwindcss";
-@theme {
-  --color-background: oklch(0.1128 0.043 258.66);
-  --color-card: oklch(0.22 0.07 295);
-  --color-primary: oklch(0.6082 0.2508 300.25);
-  --color-primary-hover: oklch(0.54 0.2508 300.25);
-  --color-secondary: oklch(0.7 0.2 40);
-  --color-secondary-hover: oklch(0.65 0.2 40);
-  --color-accent: oklch(0.85 0.2 85);
-  --color-text-color: oklch(0.98 0 0); /* white in oklch */
-  --font-mozilla:
-    "Mozilla Text", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-  --font-google-sans-code:
-    "Google Sans Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
-  --font-red-hat-display:
-    "Red Hat Display", ui-sans-serif, system-ui, -apple-system,
-    BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
-    "Noto Sans", sans-serif;
-}
-
-/* OKLCH-based color system */
 :root {
-  --background: oklch(0.13 0.045 260); /* deep dark blue-violet */
-  --card: oklch(
-    0.22 0.07 295
-  ); /* richer, more saturated dark purple for cards */
-  --primary: oklch(0.62 0.25 300.25); /* vibrant purple-pink */
-  --primary-hover: oklch(0.54 0.25 300.25); /* slightly darker for hover */
-  --secondary: oklch(0.68 0.18 60); /* warm gold */
-  --secondary-hover: oklch(0.6 0.18 60); /* deeper gold for hover */
-  --accent: oklch(0.82 0.18 100); /* soft teal accent */
-  --text: oklch(0.98 0 0); /* white in oklch */
-  /* --font-sans: var(--font-mozilla); */
-  /* --font-sans: var(--font-google-sans-code); */
-  --font-sans: var(--font-red-hat-display);
-  --font-mozilla:
+  /* Unified color palette for matching colors everywhere */
+  --color-background-root: oklch(0.13 0.045 260); /* #0b0914 */
+  --color-card-root: oklch(
+    0.18 0.06 270
+  ); /* #18132a, slightly lighter and matching background */
+  --color-primary-root: oklch(0.62 0.25 300.25); /* #9E4afe */
+  --color-primary-hover-root: oklch(
+    0.54 0.25 300.25
+  ); /* #7d3ad1, matching primary but darker */
+  --color-secondary-root: oklch(0.68 0.18 60); /* #ffeb7b */
+  --color-secondary-hover-root: oklch(
+    0.6 0.18 60
+  ); /* #e6d05e, matching secondary but deeper */
+  --color-stats-green-root: oklch(0.72 0.18 145); /* #3fc97a */
+  --color-stats-green-hover-root: oklch(
+    0.62 0.18 145
+  ); /* #2ea85f, matching green but darker */
+  --color-stats-red-root: oklch(0.62 0.18 29); /* #e4574f */
+  --color-stats-red-hover-root: oklch(
+    0.52 0.18 29
+  ); /* #b23c2e, matching red but darker */
+  --color-stats-blue-root: oklch(0.68 0.18 250); /* #4f7fe4 */
+  --color-stats-blue-hover-root: oklch(
+    0.58 0.18 250
+  ); /* #3a5db3, matching blue but darker */
+  --color-text-color-root: oklch(0.98 0 0); /* #fff, white in oklch */
+  --font-mozilla-root:
     "Mozilla Text", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-  --font-google-sans-code:
+  --font-google-sans-code-root:
     "Google Sans Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     "Liberation Mono", "Courier New", monospace;
-  --font-red-hat-display:
+  --font-red-hat-display-root:
     "Red Hat Display", ui-sans-serif, system-ui, -apple-system,
     BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
     "Noto Sans", sans-serif;
 }
 
+@theme inline {
+  --color-background: var(--color-background-root);
+  --color-card: var(--color-card-root);
+  --color-primary: var(--color-primary-root);
+  --color-primary-hover: var(--color-primary-hover-root);
+  --color-secondary: var(--color-secondary-root);
+  --color-secondary-hover: var(--color-secondary-hover-root);
+  --color-stats-green: var(--color-stats-green-root);
+  --color-stats-green-hover: var(--color-stats-green-hover-root);
+  --color-stats-red: var(--color-stats-red-root);
+  --color-stats-red-hover: var(--color-stats-red-hover-root);
+  --color-stats-blue: var(--color-stats-blue-root);
+  --color-stats-blue-hover: var(--color-stats-blue-hover-root);
+  --color-text-color: var(--color-text-color-root);
+  --font-mozilla: var(--font-mozilla-root);
+  --font-google-sans-code: var(--font-google-sans-code-root);
+  --font-red-hat-display: var(--font-red-hat-display-root);
+}
+
+/* Loader particles and star use only theme colors for drop-shadows */
 .loader-particle-1 {
-  filter: blur(2.5px) brightness(1.5)
-    drop-shadow(0 0 8px oklch(0.6082 0.2508 300.25 / 0.35));
+  filter: blur(2.5px) brightness(1.5) drop-shadow(0 0 8px var(--color-primary));
 }
 .loader-particle-2 {
-  filter: blur(3px) brightness(2)
-    drop-shadow(0 0 10px oklch(0.6082 0.2508 300.25 / 0.22));
+  filter: blur(3px) brightness(2) drop-shadow(0 0 10px var(--color-primary));
 }
 .loader-particle-3 {
-  filter: blur(3.5px) brightness(1.25)
-    drop-shadow(0 0 9px oklch(0.6082 0.2508 300.25 / 0.28));
+  filter: blur(3.5px) brightness(1.25) drop-shadow(0 0 9px var(--color-primary));
 }
 .loader-particle-4 {
-  filter: blur(2.5px) brightness(1.75)
-    drop-shadow(0 0 7px oklch(0.6082 0.2508 300.25 / 0.18));
+  filter: blur(2.5px) brightness(1.75) drop-shadow(0 0 7px var(--color-primary));
 }
 .loader-particle-5 {
-  filter: blur(3px) brightness(2)
-    drop-shadow(0 0 10px oklch(0.6082 0.2508 300.25 / 0.22));
+  filter: blur(3px) brightness(2) drop-shadow(0 0 10px var(--color-primary));
 }
 .loader-star {
-  filter: drop-shadow(0 0 8px oklch(0.98 0 0 / 0.53))
-    drop-shadow(0 0 16px oklch(0.6082 0.2508 300.25 / 0.53));
+  filter: drop-shadow(0 0 8px var(--color-text-color))
+    drop-shadow(0 0 16px var(--color-primary));
 }
 
 .focus-ring-primary {
@@ -86,54 +92,25 @@
   @apply selection:bg-primary/50 selection:text-white;
 }
 
-.glossy-effect {
-  background: linear-gradient(
-    120deg,
-    oklch(0.98 0 0 / 0.18) 0%,
-    oklch(0.98 0 0 / 0.08) 40%,
-    oklch(0.98 0 0 / 0.02) 100%
-  );
-  -webkit-mask-image: linear-gradient(
-    120deg,
-    oklch(0.98 0 0 / 0.7) 0%,
-    oklch(0.98 0 0 / 0.2) 60%,
-    oklch(0.98 0 0 / 0) 100%
-  );
-  mask-image: linear-gradient(
-    120deg,
-    oklch(0.98 0 0 / 0.7) 0%,
-    oklch(0.98 0 0 / 0.2) 60%,
-    oklch(0.98 0 0 / 0) 100%
-  );
-}
-
-.background-glossy-effect {
-  /* Glossy overlay using oklch for color accuracy and smoothness */
-  background: linear-gradient(
-    120deg,
-    oklch(0.98 0 0 / 0.1) 0%,
-    oklch(0.98 0 0 / 0.04) 40%,
-    oklch(0.98 0 0 / 0.01) 100%
-  );
-  -webkit-mask-image: linear-gradient(
-    120deg,
-    oklch(0.98 0 0 / 0.5) 0%,
-    oklch(0.98 0 0 / 0.15) 60%,
-    oklch(0.98 0 0 / 0) 100%
-  );
-  mask-image: linear-gradient(
-    120deg,
-    oklch(0.98 0 0 / 0.5) 0%,
-    oklch(0.98 0 0 / 0.15) 60%,
-    oklch(0.98 0 0 / 0) 100%
-  );
-  z-index: 1;
-  pointer-events: none;
+@keyframes glossy-shimmer {
+  0% {
+    opacity: 0.5;
+    transform: translateX(-30%) skewX(-12deg);
+  }
+  60% {
+    opacity: 0.8;
+    transform: translateX(40%) skewX(-12deg);
+  }
+  100% {
+    opacity: 0.5;
+    transform: translateX(110%) skewX(-12deg);
+  }
 }
 
 body {
   background: var(--color-background);
-  font-family: var(--font-sans);
+  color: var(--color-text-color);
+  font-family: var(--font-red-hat-display);
 }
 
 @keyframes chevron-pulse {

@@ -13,7 +13,7 @@ export const keyPoints = [
   {
     id: "no-signup-required",
     heading: "No Signup Required",
-    subHeading: "Create art instantly—no account needed.",
+    subHeading: "Create art instantly.",
   },
   {
     id: "hundreds-of-styles",

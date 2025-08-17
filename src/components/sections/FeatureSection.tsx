@@ -32,7 +32,7 @@ export const FeatureSection = () => {
   return (
     <section
       id="feature-section"
-      className="mx-auto my-10 flex w-full max-w-7xl flex-col items-center justify-center px-4 sm:px-6"
+      className="flex w-full max-w-7xl flex-col items-center justify-center px-6"
       aria-labelledby="feature-section-title"
       role="region"
       itemScope
@@ -40,18 +40,26 @@ export const FeatureSection = () => {
     >
       <h2
         id="feature-section-title"
-        className="selection-primary focus-ring-primary text-text-color mb-2 text-center text-2xl font-bold drop-shadow-lg outline-none md:text-3xl"
+        className="selection-primary focus-ring-primary text-text-color text-center text-3xl font-extrabold drop-shadow-lg outline-none md:text-4xl"
         tabIndex={0}
         itemProp="headline"
       >
-        Try AI Art Styles Instantly
+        One-Click Style Transformer:{" "}
+        <span className="text-primary">Turn Photos Into Art</span> Instantly
       </h2>
+      <p className="text-text-color mt-3 mb-6 max-w-2xl text-center text-base font-medium md:text-lg">
+        Instantly apply trending AI styles like{" "}
+        <span className="text-primary font-semibold">Ghibli</span>,{" "}
+        <span className="text-primary font-semibold">Pop Art</span>,{" "}
+        <span className="text-primary font-semibold">Disney</span>, and{" "}
+        <span className="text-primary font-semibold">Anime</span> to your
+        photos. No signup needed—just upload and transform with one click!
+      </p>
       <p
-        className="selection-primary focus-ring-primary text-text-color/60 mb-8 max-w-2xl text-center text-base outline-none md:text-lg"
-        tabIndex={0}
-        itemProp="description"
+        className="text-text-color mt-16 mb-3 w-full text-center text-base font-medium md:text-lg"
+        aria-label="Feature Images"
       >
-        Upload a photo and see it transformed in seconds. No signup needed.
+        Feature Images
       </p>
       <div
         className="min-h-[300px] w-full columns-2 gap-4 space-y-4 lg:columns-4"
@@ -62,9 +70,7 @@ export const FeatureSection = () => {
         {featureImages.map((img, idx) => (
           <article
             key={img.label}
-            className="bg-card selection-primary focus-ring-primary shdaow-primary/50 mb-4 break-inside-avoid rounded-xl p-2 shadow-lg outline-none"
-            tabIndex={0}
-            role="listitem"
+            className="bg-card selection-primary focus-ring-primary shadow-primary/20 mb-4 break-inside-avoid rounded-xl p-2 shadow-[0_0_0_1px_var(--tw-shadow-color)] outline-none"
             aria-label={img.label}
             aria-describedby={`feature-desc-${idx}`}
             itemScope
