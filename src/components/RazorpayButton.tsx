@@ -6,12 +6,11 @@ export default function RazorpayButton() {
   const ref = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    if (!ref.current) return;
+    const form = ref.current;
+    if (!form) return;
 
     // Remove any previous script (prevents double button)
-    const prevScript = ref.current.querySelector(
-      "script[data-payment_button_id]",
-    );
+    const prevScript = form.querySelector("script[data-payment_button_id]");
     if (prevScript) {
       prevScript.remove();
     }
@@ -21,15 +20,12 @@ export default function RazorpayButton() {
     script.async = true;
     script.setAttribute("data-payment_button_id", "pl_R5wh3RYeeMZm7T"); // replace with your ID
 
-    ref.current.appendChild(script);
+    form.appendChild(script);
 
     return () => {
-      const form = ref.current;
-      if (form) {
-        // Remove all children (including the script and button) on cleanup
-        while (form.firstChild) {
-          form.removeChild(form.firstChild);
-        }
+      // Clean up using captured form, not ref.current
+      while (form.firstChild) {
+        form.removeChild(form.firstChild);
       }
     };
   }, []);
