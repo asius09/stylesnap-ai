@@ -458,29 +458,6 @@ export function HeroSection() {
           >
             Generate
           </Button>
-          <AnimatePresence>
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, filter: "blur(8px)" }}
-                animate={{
-                  opacity: 1,
-                  filter: "blur(0px)",
-                  transition: { duration: 0.5, ease: "easeOut" },
-                }}
-                exit={{
-                  opacity: 0,
-                  filter: "blur(8px)",
-                  transition: { duration: 0.3, ease: "easeIn" },
-                }}
-                className="mt-2 text-center text-sm text-red-500"
-                role="alert"
-                id="mobile-generate-error"
-                aria-live="assertive"
-              >
-                {error}
-              </motion.div>
-            )}
-          </AnimatePresence>
         </motion.div>
       </motion.div>
     );
