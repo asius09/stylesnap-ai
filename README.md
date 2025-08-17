@@ -1,20 +1,5 @@
 # StyleSnap AI
 
-## 🐞 Known Bugs
-
-- **Output image display issue:**  
-  Sometimes, the generated output image does not display correctly on the result screen after generation.  
-  _Potential solution: Debug the image generation and result rendering logic to ensure the output image is always shown when available._
-
----
-
-## 🚧 Current Problems
-
-- **Replicate API has a better version, but each output costs $0.025:**  
-  Replicate offers a high-quality image generation API, but it is not free—each new output costs $0.025. This cost limitation makes it challenging to provide unlimited free generations. Free alternatives like Gemini, Stability AI, and Runway API have been tested, but none currently offer a suitable free tier.
-
----
-
 ## ✅ Progress & Checklist (as of 12/8/2025)
 
 - [x] Work on UI loading states for a smoother experience. _(Done)_
@@ -26,7 +11,7 @@
 - [x] Style the whole page for a polished look.
 - [x] Handle SEO (add meta tags, improve discoverability).
 - [x] Add more styles (at least 10), including anime and couple sections.
-- [ ] Implement payment gateway.
+- [x] Implement payment gateway.
 - [ ] Testing.
 - [ ] Replicate API testing.
 - [ ] 🎉 Celebrate first 100 generated images!
@@ -76,6 +61,7 @@ To run the project locally:
 <!-- FILE_STRUCTURE_START -->
 
 ```
+├── .DS_Store
 ├── .env
 ├── .gitignore
 ├── .prettierignore
@@ -90,10 +76,16 @@ To run the project locally:
 ├── package.json
 ├── postcss.config.mjs
 ├── public
+│   ├── .DS_Store
 │   ├── 1980s-pop-art.png
 │   ├── anime-art.png
+│   ├── background.png
 │   ├── disney-art.png
-│   └── ghibli-art.png
+│   ├── ghibli-art.png
+│   ├── logo.svg
+│   ├── pop-surrealism.png
+│   ├── retro-robots.png
+│   └── textured-portrait.png
 ├── scripts
 │   └── update-readme-structure.js
 ├── src
@@ -101,9 +93,13 @@ To run the project locally:
 │   │   ├── api
 │   │   │   ├── image-generator
 │   │   │   │   └── route.ts
+│   │   │   ├── order
+│   │   │   │   └── route.ts
 │   │   │   ├── trial
 │   │   │   │   └── route.ts
-│   │   │   └── upload
+│   │   │   ├── upload
+│   │   │   │   └── route.ts
+│   │   │   └── verify-payment
 │   │   │       └── route.ts
 │   │   ├── globals.css
 │   │   ├── layout.tsx
@@ -116,32 +112,32 @@ To run the project locally:
 │   │   ├── HeroDropZone.tsx
 │   │   ├── Loader.tsx
 │   │   ├── MessageDialog.tsx
-│   │   ├── MyDropzone.tsx
 │   │   ├── PreviewCard.tsx
 │   │   ├── ProgressBar.tsx
+│   │   ├── RazorpayButton.tsx
 │   │   ├── SocialIcon.tsx
 │   │   ├── SocialShare.tsx
 │   │   ├── StyleCard.tsx
 │   │   ├── StyleSelectionDialog.tsx
 │   │   ├── Toast.tsx
+│   │   ├── pay
+│   │   │   └── Paywall.tsx
 │   │   └── sections
-│   │       ├── ButtonCTASection.tsx
 │   │       ├── FeatureSection.tsx
 │   │       ├── HeroSection.tsx
-│   │       ├── KeyPoints.tsx
 │   │       └── StepsSection.tsx
 │   ├── constant.ts
 │   ├── data.ts
 │   ├── hooks
+│   │   ├── useDownloadImage.ts
 │   │   ├── useFileRemove.ts
 │   │   ├── useImageGeneration.ts
 │   │   ├── useLocalStorage.tsx
 │   │   ├── useProgressSteps.ts
-│   │   ├── useScrollId.ts
-│   │   ├── useScrollLock.ts
 │   │   ├── useStyleSelection.ts
 │   │   └── useTrialId.ts
 │   ├── lib
+│   │   ├── apiResponse.ts
 │   │   └── utils.ts
 │   ├── types
 │   │   ├── api.type.ts
@@ -149,9 +145,9 @@ To run the project locally:
 │   │   └── style.types.ts
 │   └── utils
 │       ├── buildResponse.ts
-│       ├── downloadUtils.ts
 │       ├── generateImage.ts
 │       ├── idb.ts
+│       ├── imageClient.ts
 │       ├── resolveImageUrl.ts
 │       ├── supabase
 │       │   └── server.ts
@@ -303,26 +299,34 @@ To ensure clarity and consistency in our git history, please follow these commit
 By following these guidelines, we keep the StylesMap-AI project history clean, readable, and easy to maintain.  
 Feel free to refer to this section whenever you make a commit!
 
-Here is a table of HTTP status codes used in `src/app/api/image-generator/route.ts`:
+---
 
-| Status Code | Where Used / Meaning                                                                                                                     |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| 200         | Success responses (image generated, file saved, etc.)                                                                                    |
-| 400         | Bad request (missing trialId, prompt, or image_url; invalid image URL)                                                                   |
-| 403         | Forbidden (free trial ended, need payment, free limit reached, payment required)                                                         |
-| 404         | Not found (user not found, daily quota not found, trial not found)                                                                       |
-| 500         | Internal server error (failed to update quota, failed to fetch daily quota, failed to update paid credits, unknown errors, model errors) |
-| 502         | Bad gateway (failed to fetch image from upstream/Replicate)                                                                              |
+#### HTTP Status Codes in `src/app/api/image-generator/route.ts`
 
-**Summary Table:**
+The API uses a clear set of HTTP status codes to communicate the result of each operation. Here’s an updated reference for their usage:
 
-| Status | Description/Context Example                                   |
+| Status Code | Usage / Meaning                                                                                                                       |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| 201         | Created — Image generated successfully                                                                                                |
+| 400         | Bad Request — Missing or invalid input (e.g., trialId, prompt, image_url)                                                             |
+| 403         | Forbidden — Free trial ended, payment required, free limit reached, or paid credits exhausted                                         |
+| 404         | Not Found — User, trial, or daily quota not found                                                                                     |
+| 451         | Unavailable For Legal Reasons — Payment required by Replicate/external API (not the app user; e.g., Replicate account out of credits) |
+| 500         | Internal Server Error — Server-side error (e.g., failed to fetch/update quota, unknown errors, Supabase issues)                       |
+| 520         | Web Server Returned an Unknown Error — Replicate/external API error (not payment/model error)                                         |
+| 522         | Connection Timed Out — Replicate/external model error (e.g., highlight/model error)                                                   |
+
+**Quick Reference Table:**
+
+| Status | Typical Context / Example                                     |
 | ------ | ------------------------------------------------------------- |
-| 200    | Success (image generated, file saved)                         |
-| 400    | Missing/invalid input (trialId, prompt, image_url, image URL) |
-| 403    | Free trial ended, payment required, free limit reached        |
+| 201    | Image generated successfully                                  |
+| 400    | Missing/invalid input (trialId, prompt, image_url)            |
+| 403    | Free trial ended, payment required, free limit, credits spent |
 | 404    | User/trial/quota not found                                    |
-| 500    | Internal/model/Replicate/general error, failed DB update      |
-| 502    | Failed to fetch image from Replicate/upstream                 |
+| 451    | Replicate payment required (external API, not app user)       |
+| 500    | Internal server/Supabase error, unknown error                 |
+| 520    | Replicate/external API error (not payment/model)              |
+| 522    | Replicate/external model error (e.g., highlight/model error)  |
 
-These status codes are used throughout the route to indicate the result of API operations and error handling.
+These status codes are consistently used in the route to provide precise feedback for both success and error scenarios, making it easier to handle responses on the frontend and debug issues.
