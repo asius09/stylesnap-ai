@@ -3,6 +3,7 @@ export const USER_TRIALS_TABLE_NAME = "user_trials";
 export const TRIAL_ID_LOCAL_STORAGE_KEY = "trialId";
 export const DAILY_QUOTA_TABLE_NAME = "daily_quota";
 export const REPLICATE_IMAGE_MODEL = "black-forest-labs/flux-kontext-pro";
+export const IMAGES_BUCKET_NAME = "upload_images";
 // Add other table constants here as needed in the future
 /**
  * ---- Status Types ----

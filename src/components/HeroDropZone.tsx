@@ -5,6 +5,8 @@ import { UploadCloud } from "lucide-react";
 import { useToast } from "@/components/Toast";
 import { Button } from "./Button";
 import { ImageData } from "@/types/style.types";
+import { uploadImage } from "@/utils/imageClient";
+import { Loader } from "./Loader";
 
 interface HeroDropZoneProps {
   onFileSelected?: (file: ImageData) => void;
@@ -17,11 +19,13 @@ export const HeroDropZone: React.FC<Partial<HeroDropZoneProps>> = ({
 }) => {
   const { addToast } = useToast();
   const [error, setError] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Helper to handle file upload and conversion to ImageData
   const handleFileUpload = async (file: File) => {
     setError(null);
+    setIsUploading(true);
     // Validate file type
     if (
       !["image/png", "image/jpeg", "image/jpg"].includes(file.type) &&
@@ -35,6 +39,7 @@ export const HeroDropZone: React.FC<Partial<HeroDropZoneProps>> = ({
         message:
           "Only PNG, JPEG, and image files are allowed. Please check the file type.",
       });
+      setIsUploading(false);
       return;
     }
     // Validate file size
@@ -44,31 +49,24 @@ export const HeroDropZone: React.FC<Partial<HeroDropZoneProps>> = ({
         type: "error",
         message: "File size exceeds 10MB limit.",
       });
+      setIsUploading(false);
       return;
     }
 
-    // Upload to /api/upload and handle response here
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("fileName", file.name);
-
+    // Use uploadImage from imageClient.ts
     try {
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-      const data = await response.json();
-      if (data.success && data.data?.imageUrl) {
+      const uploadResult = await uploadImage(file);
+      if (uploadResult && uploadResult.url) {
         const imageData: ImageData = {
-          id:
-            typeof crypto.randomUUID === "function"
-              ? crypto.randomUUID()
-              : Math.random().toString(36).substring(2, 15),
+          id: Math.random().toString(36).substring(2, 15),
           title: file.name,
-          imageUrl: data.data.imageUrl,
+          imageUrl: uploadResult.url,
           fileSize: file.size
             ? `${Math.round(file.size / 1024)} KB`
             : undefined,
+          filePath: uploadResult.path,
+          supabaseFileName: uploadResult?.path,
+          expiresIn: uploadResult.expiresIn,
         };
         onFileSelected(imageData);
         setError(null);
@@ -89,6 +87,8 @@ export const HeroDropZone: React.FC<Partial<HeroDropZoneProps>> = ({
         type: "error",
         message: errorMessage,
       });
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -156,42 +156,56 @@ export const HeroDropZone: React.FC<Partial<HeroDropZoneProps>> = ({
       aria-describedby={error ? "herodropzone-error" : undefined}
     >
       <div className="relative z-10 flex h-full w-full flex-col items-center">
-        <UploadCloud
-          className="text-primary mb-3 h-10 w-10"
-          aria-hidden="true"
-          focusable="false"
-        />
-        <p
-          className="text-text-color text-center text-base font-semibold md:mb-1 md:text-lg"
-          id="herodropzone-label"
-        >
-          {isDragActive
-            ? "Drop the image here..."
-            : "Click or drag image to upload"}
-        </p>
-        <p
-          className="text-text-color/60 text-center text-xs md:text-sm"
-          id="herodropzone-desc"
-        >
-          PNG, JPEG, or image, up to 10MB
-        </p>
-        <Button
-          type="button"
-          variant="filled"
-          className="focus-ring-primary selection-primary mt-4 cursor-pointer"
-          onClick={(e) => {
-            e.stopPropagation();
-            if (inputRef.current) {
-              inputRef.current.value = ""; // reset so same file can be selected again
-              inputRef.current.click();
-            }
-          }}
-          disabled={disabled}
-          tabIndex={0}
-          aria-label="Open file dialog to upload image"
-        >
-          Upload Image
-        </Button>
+        {isUploading ? (
+          <div className="flex flex-col items-center justify-center py-8">
+            <Loader />
+            <span
+              className="text-primary mt-4 text-base font-semibold"
+              aria-live="polite"
+            >
+              Uploading image...
+            </span>
+          </div>
+        ) : (
+          <>
+            <UploadCloud
+              className="text-primary mb-3 h-10 w-10"
+              aria-hidden="true"
+              focusable="false"
+            />
+            <p
+              className="text-text-color text-center text-base font-semibold md:mb-1 md:text-lg"
+              id="herodropzone-label"
+            >
+              {isDragActive
+                ? "Drop the image here..."
+                : "Click or drag image to upload"}
+            </p>
+            <p
+              className="text-text-color/60 text-center text-xs md:text-sm"
+              id="herodropzone-desc"
+            >
+              PNG, JPEG, or image, up to 10MB
+            </p>
+            <Button
+              type="button"
+              variant="filled"
+              className="focus-ring-primary selection-primary mt-4 cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (inputRef.current) {
+                  inputRef.current.value = ""; // reset so same file can be selected again
+                  inputRef.current.click();
+                }
+              }}
+              disabled={disabled}
+              tabIndex={0}
+              aria-label="Open file dialog to upload image"
+            >
+              Upload Image
+            </Button>
+          </>
+        )}
         <input
           {...getInputProps({
             tabIndex: -1,

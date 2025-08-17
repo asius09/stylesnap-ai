@@ -1,220 +1,135 @@
-import { NextRequest, NextResponse } from "next/server";
-import { writeFile, unlink } from "node:fs/promises";
-import { join, extname, basename } from "node:path";
-import { existsSync } from "node:fs";
+import { createClient } from "@/utils/supabase/server";
+import { NextRequest } from "next/server";
 import { success, failure } from "@/lib/apiResponse";
+import { IMAGES_BUCKET_NAME } from "@/constant";
 
-// Helper to get file path in public directory
-function getFilePath(fileName: string) {
-  return join(process.cwd(), "public", fileName);
-}
-
-// Helper to schedule file deletion after 30 minutes
-function scheduleFileDeletion(
-  filePath: string,
-  timeoutMs: number = 30 * 60 * 1000,
-) {
-  setTimeout(async () => {
-    if (existsSync(filePath)) {
-      try {
-        await unlink(filePath);
-        console.log(`[API] File deleted after timeout: ${filePath}`);
-      } catch (err) {
-        console.warn(
-          `[API] Failed to delete file after timeout: ${filePath}`,
-          err,
-        );
-      }
-    }
-  }, timeoutMs);
-}
-
-// Helper to get extension from MIME type
-function getExtensionFromMimeType(mimeType: string): string {
-  switch (mimeType) {
-    case "image/jpeg":
-      return ".jpg";
-    case "image/png":
-      return ".png";
-    case "image/gif":
-      return ".gif";
-    case "image/webp":
-      return ".webp";
-    case "image/bmp":
-      return ".bmp";
-    case "image/svg+xml":
-      return ".svg";
-    default:
-      return "";
-  }
-}
-
-// Helper to sanitize file name (remove path, only allow safe chars)
-function sanitizeFileName(fileName: string): string {
-  // Remove any path, only allow alphanumeric, dash, underscore, dot
-  return basename(fileName).replace(/[^a-zA-Z0-9._-]/g, "_");
-}
-
-export async function POST(request: NextRequest): Promise<NextResponse> {
+// POST: Upload an image
+export async function POST(req: NextRequest) {
   try {
-    // Parse the incoming form data (expects multipart/form-data)
-    const formData = await request.formData();
-    const file = formData.get("file");
-    const fileNameFromForm = formData.get("fileName");
+    const supabase = await createClient();
+    const formData = await req.formData();
+    const file = formData.get("file") as File | null;
 
-    if (!file || typeof file === "string") {
-      return failure("No file uploaded", 400, "NO_FILE_UPLOADED");
+    if (!file) {
+      return failure("No file provided", 400, "NO_FILE");
     }
 
-    // Get extension from file type
-    const blob = file as Blob;
-    const mimeType = blob.type;
-    const extension = getExtensionFromMimeType(mimeType) || ".jpg"; // fallback to .jpg
+    // Only upload once, with a single generated name
+    const fileBuffer = Buffer.from(await file.arrayBuffer());
+    const fileName = `${Date.now()}-${file.name}`;
 
-    // Determine file name
-    let fileName: string;
-    if (
-      fileNameFromForm &&
-      typeof fileNameFromForm === "string" &&
-      fileNameFromForm.trim() !== ""
-    ) {
-      // Use provided file name, ensure it has extension
-      let sanitized = sanitizeFileName(fileNameFromForm);
-      if (!extname(sanitized)) {
-        sanitized += extension;
-      }
-      fileName = sanitized;
-    } else {
-      // No file name provided, generate unique one
-      const random = Math.floor(Math.random() * 1e9);
-      fileName = `input-${random}${extension}`;
-    }
-    const filePath = getFilePath(fileName);
+    // Upload to the correct bucket, set cacheControl to 180 seconds for auto-delete
+    const { data, error } = await supabase.storage
+      .from(IMAGES_BUCKET_NAME)
+      .upload(fileName, fileBuffer, {
+        contentType: file.type,
+        cacheControl: "180", // 180 seconds (3 minutes)
+        upsert: false,
+      });
 
-    // Remove previous file with the same name if exists
-    if (existsSync(filePath)) {
-      try {
-        await unlink(filePath);
-      } catch (err) {
-        // Log but do not fail the request if deletion fails
-        console.warn(`[API] Could not remove previous file: ${filePath}`, err);
-      }
+    if (error) {
+      return failure(
+        error.message || "Failed to upload file",
+        500,
+        undefined,
+        error,
+      );
     }
 
-    // Get file buffer
-    const arrayBuffer = await blob.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    // Generate a public URL for the uploaded file
+    const { publicUrl } = supabase.storage
+      .from(IMAGES_BUCKET_NAME)
+      .getPublicUrl(fileName).data;
 
-    // Save to public directory
-    await writeFile(filePath, buffer);
+    // Schedule deletion after 180 seconds (fire-and-forget, not guaranteed)
+    setTimeout(async () => {
+      await supabase.storage.from(IMAGES_BUCKET_NAME).remove([fileName]);
+    }, 180000);
 
-    // Schedule deletion after 30 minutes
-    scheduleFileDeletion(filePath);
-
-    // Return the public URL
-    const imageUrl = `/${fileName}`;
     return success(
-      { imageUrl },
+      {
+        path: data?.path,
+        url: publicUrl,
+        expiresIn: 180,
+      },
       200,
       undefined,
-      "File will be deleted automatically after 30 minutes.",
+      "File uploaded successfully (auto-deletes in 3 minutes)",
     );
-  } catch (error: unknown) {
-    console.error("[API] Error in /api/upload:", error);
+  } catch (err) {
+    let message = "Internal Server Error";
+    if (typeof err === "string") {
+      message = err;
+    } else if (err instanceof Error) {
+      message = err.message;
+    }
     return failure(
-      "Internal server error",
+      message,
       500,
-      "INTERNAL_SERVER_ERROR",
+      "UPLOAD_ERROR",
+      err,
       undefined,
-      undefined,
-      (error as Error)?.stack,
+      (err as Error)?.stack,
     );
   }
 }
 
-// DELETE endpoint to allow manual deletion
-export async function DELETE(request: NextRequest): Promise<NextResponse> {
+// DELETE: Delete an image by file name (expects JSON body: { fileName: string })
+export async function DELETE(req: NextRequest) {
   try {
-    // Accept file name as JSON body or query param or default to "input"
+    const supabase = await createClient();
     let fileName: string | undefined;
-    let filePath: string;
 
-    // Try to get from JSON body first
+    // Try to get fileName from JSON body
     try {
-      const body = await request.json();
-      if (
-        body &&
-        typeof body.fileName === "string" &&
-        body.fileName.trim() !== ""
-      ) {
-        fileName = sanitizeFileName(body.fileName);
-      }
+      const body = await req.json();
+      fileName = body?.fileName;
     } catch {
-      // Ignore JSON parse errors, fallback to query param
+      // If parsing fails, try to get from query param
+      const url = new URL(req.url);
+      fileName = url.searchParams.get("fileName") || undefined;
     }
 
-    // If not in body, try query param
     if (!fileName) {
-      const { searchParams } = new URL(request.url);
-      const param = searchParams.get("fileName");
-      if (param && param.trim() !== "") {
-        fileName = sanitizeFileName(param);
-      }
+      return failure("No fileName provided", 400, "NO_FILENAME");
     }
 
-    // If still not found, default to "input"
-    if (!fileName) {
-      fileName = "input";
+    const { error } = await supabase.storage
+      .from(IMAGES_BUCKET_NAME)
+      .remove([fileName]);
+
+    if (error) {
+      return failure(
+        error.message || "Failed to delete file",
+        500,
+        undefined,
+        error,
+      );
     }
-
-    filePath = getFilePath(fileName);
-
-    // If no extension, try all possible extensions
-    if (!extname(fileName)) {
-      // Try to find the file with any known extension
-      const possibleExtensions = [
-        ".jpg",
-        ".jpeg",
-        ".png",
-        ".gif",
-        ".webp",
-        ".bmp",
-        ".svg",
-      ];
-      let found = false;
-      for (const ext of possibleExtensions) {
-        const tryPath = getFilePath(`${fileName}${ext}`);
-        if (existsSync(tryPath)) {
-          filePath = tryPath;
-          fileName = `${fileName}${ext}`;
-          found = true;
-          break;
-        }
-      }
-      if (!found) {
-        return failure("File not found", 404, "FILE_NOT_FOUND");
-      }
-    } else {
-      if (!existsSync(filePath)) {
-        return failure("File not found", 404, "FILE_NOT_FOUND");
-      }
-    }
-
-    await unlink(filePath);
 
     return success(
-      { message: `File '${fileName}' deleted successfully.` },
+      {
+        deleted: true,
+        fileName,
+      },
       200,
+      undefined,
+      "File deleted successfully",
     );
-  } catch (error: unknown) {
-    console.error("[API] Error in DELETE /api/upload:", error);
+  } catch (err) {
+    let message = "Internal Server Error";
+    if (typeof err === "string") {
+      message = err;
+    } else if (err instanceof Error) {
+      message = err.message;
+    }
     return failure(
-      "Internal server error",
+      message,
       500,
-      "INTERNAL_SERVER_ERROR",
+      "DELETE_ERROR",
+      err,
       undefined,
-      undefined,
-      (error as Error)?.stack,
+      (err as Error)?.stack,
     );
   }
 }
