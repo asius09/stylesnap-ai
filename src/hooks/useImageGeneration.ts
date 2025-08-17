@@ -6,21 +6,22 @@ import { useMessageDialog } from "@/components/MessageDialog";
 import { usePaywall } from "@/components/pay/Paywall";
 import { getTrialUsageStatus } from "@/utils/trialClient";
 import { useToast } from "@/components/Toast";
+import { useTrialId } from "./useTrialId";
 
 /**
  * useImageGeneration
  *
- * Hook to generate an image from a file and style, handling free trial and payment.
+ * Custom React hook to handle image generation with free trial and payment logic.
+ * Handles all error cases according to backend error codes/status, showing actionable dialogs
+ * for payment-required or backend/model errors, and simple toasts for all other errors.
  *
- * @param file         The uploaded image file (ImageData or null)
- * @param selectedStyle The style to apply (ImageData or null)
- * @param trialId      User's trial identifier (string or null)
- * @param onError      Optional error callback
- * @param onSuccess    Optional success callback
-
+ * @param file           The uploaded image file (ImageData or null)
+ * @param selectedStyle  The style to apply (ImageData or null)
+ * @param onError        Optional error callback
+ * @param onSuccess      Optional success callback
  *
  * @returns {
- *   handleGenerate: () => void,
+ *   handleGenerate: () => Promise<void>,
  *   loading: boolean,
  *   generateStatus: "idle" | "success" | "failed",
  *   generatedImage: ImageData | null
@@ -29,13 +30,11 @@ import { useToast } from "@/components/Toast";
 export const useImageGeneration = ({
   file,
   selectedStyle,
-  trialId,
   onError,
   onSuccess,
 }: {
   file: ImageData | null;
   selectedStyle: ImageData | null;
-  trialId: string | null;
   onError?: (
     err: unknown,
     errorMessage?: string,
@@ -44,14 +43,17 @@ export const useImageGeneration = ({
   onSuccess?: (generatedImage: ImageData) => void;
 }) => {
   const [loading, setLoading] = useState(false);
-  const { addToast } = useToast();
   const [generateStatus, setGenerateStatus] = useState<GenerateStatus>("idle");
   const [generatedImage, setGeneratedImage] = useState<ImageData | null>(null);
 
+  const { addToast } = useToast();
+  const { trialId } = useTrialId();
   const { setOpen: setDialogOpen, setDialogProps } = useMessageDialog();
   const { setOpen: setPaywallOpen, open: paywallOpen } = usePaywall();
 
-  // Helper to open a dialog
+  /**
+   * Helper to open a dialog with the given title, description, and actions.
+   */
   const openDialog = (
     title: string,
     description: string,
@@ -61,22 +63,25 @@ export const useImageGeneration = ({
     setDialogProps({
       title,
       description,
-      primaryAction: primaryAction || { label: "Okay", onClick: () => {} },
+      primaryAction: primaryAction || {
+        label: "Okay",
+        onClick: () => setDialogOpen(false),
+      },
       secondaryAction,
     });
     setDialogOpen(true);
   };
 
   /**
-   * handleGenerate
-   *
-   * Validates input, checks trial status, and generates the image.
+   * Main handler to generate an image.
+   * Validates input, checks trial/payment status, and calls the backend.
+   * Handles all error cases according to backend error codes/status.
    */
-  const handleGenerate = async () => {
+  const handleGenerate = async (): Promise<void> => {
     setLoading(true);
     setGeneratedImage(null);
 
-    // --- Static checks first ---
+    // --- Input validation ---
     const prompt = selectedStyle?.stylePrompt;
     if (!file?.imageUrl) {
       addToast?.({
@@ -122,10 +127,19 @@ export const useImageGeneration = ({
       return;
     }
 
-    // --- Async check: trial status ---
-    let trialStatus;
+    // --- Check trial/payment status ---
+    let trialStatus: { hasUsedFreeTrial: boolean; isPaidUser: boolean } = {
+      hasUsedFreeTrial: false,
+      isPaidUser: false,
+    };
     try {
-      trialStatus = await getTrialUsageStatus(trialId);
+      const status = await getTrialUsageStatus(trialId);
+      if (status && typeof status === "object") {
+        trialStatus = {
+          hasUsedFreeTrial: Boolean(status.hasUsedFreeTrial),
+          isPaidUser: Boolean(status.isPaidUser),
+        };
+      }
     } catch (err) {
       addToast?.({
         type: "error",
@@ -135,10 +149,9 @@ export const useImageGeneration = ({
       setLoading(false);
       return;
     }
-    const hasUsedFreeTrial = trialStatus?.hasUsedFreeTrial;
-    const isPaidUser = trialStatus?.isPaidUser;
 
-    if (hasUsedFreeTrial && !isPaidUser) {
+    // If free trial is used and not paid, show paywall dialog
+    if (trialStatus.hasUsedFreeTrial && !trialStatus.isPaidUser) {
       if (paywallOpen) {
         setLoading(false);
         return;
@@ -163,7 +176,7 @@ export const useImageGeneration = ({
       return;
     }
 
-    // --- Generate image ---
+    // --- Generate image via backend ---
     try {
       const generatedImageUrl = await generateImage({
         prompt: prompt as string,
@@ -171,9 +184,8 @@ export const useImageGeneration = ({
         trialId: trialId,
       });
 
-      let genImg: ImageData | null = null;
       if (generatedImageUrl) {
-        genImg = {
+        const genImg: ImageData = {
           id: `generated-image-${selectedStyle.title}`,
           title: selectedStyle.title,
           imageUrl: generatedImageUrl,
@@ -181,39 +193,55 @@ export const useImageGeneration = ({
           fileSize: undefined,
         };
         setGenerateStatus("success");
+        setGeneratedImage(genImg);
         addToast?.({
           type: "success",
           message: "Image generated successfully.",
         });
         onSuccess?.(genImg);
+      } else {
+        setGenerateStatus("failed");
+        setGeneratedImage(null);
+        addToast?.({
+          type: "error",
+          message: "Failed to generate image.",
+        });
+        onError?.(null, "Failed to generate image.");
       }
-      setGeneratedImage(genImg);
     } catch (err) {
       setGenerateStatus("failed");
       setGeneratedImage(null);
 
-      // Use a type-safe error object
-      let errorMessage: string | undefined;
+      // Extract error info as per backend contract
+      let errorCode = "";
       let errorStatus: number | undefined;
-      if (err instanceof Error) {
-        errorMessage = err.message;
-        // Optionally, if your error object has a status property (e.g., from fetch/axios)
-        // @ts-expect-error: custom error may have status
-        errorStatus = typeof err.status === "number" ? err.status : undefined;
-      } else if (typeof err === "object" && err !== null) {
-        // @ts-expect-error: custom error may have message/status
-        errorMessage = typeof err.message === "string" ? err.message : undefined;
-        // @ts-expect-error: custom error may have status
-        errorStatus = typeof err.status === "number" ? err.status : undefined;
+      let errorMessage = "Failed to generate image.";
+
+      if (err && typeof err === "object" && err !== null) {
+        if ("code" in err && typeof (err as any).code === "string") {
+          errorCode = (err as any).code;
+        }
+        if ("status" in err && typeof (err as any).status === "number") {
+          errorStatus = (err as any).status;
+        }
+        if ("message" in err && typeof (err as any).message === "string") {
+          errorMessage = (err as any).message;
+        }
+      } else if (typeof err === "string") {
+        errorMessage = err;
       }
 
-      // Check for paywall error (status 403), then show paywall dialog (not toast, open dialog)
-      const isPaywallError = typeof errorStatus === "number" && errorStatus === 403;
-
-      if (isPaywallError) {
+      // Show actionable dialogs for payment/backend errors, else show toast
+      if (
+        errorCode === "FREE_LIMIT_REACHED" ||
+        errorCode === "NEED_PAYMENT" ||
+        errorCode === "PAID_CREDITS_EXHAUSTED" ||
+        errorStatus === 403
+      ) {
         openDialog(
           "Payment Required",
-          "You need to pay to generate more images. Please proceed to payment to continue.",
+          errorMessage ||
+            "You have reached your free image generation limit. Please proceed to payment to generate more images.",
           {
             label: "Pay ₹9",
             onClick: () => {
@@ -226,36 +254,49 @@ export const useImageGeneration = ({
             onClick: () => setDialogOpen(false),
           },
         );
+      } else if (
+        errorCode === "REPLICATE_ERROR" ||
+        errorCode === "MODEL_ERROR" ||
+        errorCode === "IMAGE_GENERATOR_ERROR" ||
+        errorCode === "REPLICATE_PAYMENT_REQUIRED" ||
+        errorStatus === 500 ||
+        errorStatus === 502 ||
+        errorStatus === 520 ||
+        errorStatus === 522
+      ) {
+        openDialog(
+          "Image Generation Error",
+          errorMessage ||
+            "There was a problem with the AI image generation service. Please try again later or contact support if the issue persists.",
+          {
+            label: "Okay",
+            onClick: () => setDialogOpen(false),
+          },
+        );
+      } else if (
+        errorCode === "MISSING_TRIAL_ID" ||
+        errorCode === "MISSING_PROMPT_OR_IMAGE_URL" ||
+        errorCode === "USER_NOT_FOUND" ||
+        errorCode === "DAILY_QUOTA_NOT_FOUND" ||
+        errorCode === "FAILED_FETCH_DAILY_QUOTA"
+      ) {
+        openDialog(
+          "Request Error",
+          errorMessage ||
+            "There was a problem with your request. Please refresh and try again.",
+          {
+            label: "Okay",
+            onClick: () => setDialogOpen(false),
+          },
+        );
       } else {
-        // Check for Replicate error (status 500 or 502 or error message contains "replicate")
-        const isReplicateError =
-          (typeof errorStatus === "number" &&
-            (errorStatus === 500 || errorStatus === 502)) ||
-          (typeof errorMessage === "string" &&
-            errorMessage.toLowerCase().includes("replicate"));
-
         addToast?.({
           type: "error",
-          message: "Failed to generate image.",
+          message: errorMessage || "Failed to generate image.",
         });
-
-        if (isReplicateError) {
-          openDialog(
-            "Image Generation Error",
-            "There was a problem with the AI image generation service. Please try again later or contact support if the issue persists.",
-            {
-              label: "Okay",
-              onClick: () => setDialogOpen(false),
-            },
-          );
-        }
       }
 
-      onError?.(
-        err,
-        "Failed to generate image.",
-        errorMessage,
-      );
+      onError?.(err, "Failed to generate image.", errorMessage);
     } finally {
       setLoading(false);
     }

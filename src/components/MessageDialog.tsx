@@ -1,56 +1,4 @@
 "use client";
-/**
- * MessageDialog - A modal dialog for displaying messages and actions.
- *
- * ## Usage
- *
- * 1. **Wrap your app with the provider:**
- *    ```tsx
- *    import { MessageDialogProvider } from "./MessageDialog";
- *
- *    function App() {
- *      return (
- *        <MessageDialogProvider>
- *          <YourApp />
- *        </MessageDialogProvider>
- *      );
- *    }
- *    ```
- *
- * 2. **Open the dialog from anywhere using the hook:**
- *    ```tsx
- *    import { useMessageDialog } from "./MessageDialog";
- *
- *    function SomeComponent() {
- *      const { setOpen, setDialogProps } = useMessageDialog();
- *
- *      const showDialog = () => {
- *        setDialogProps({
- *          title: "Confirm Action",
- *          description: "Are you sure you want to proceed?",
- *          primaryAction: {
- *            label: "Yes",
- *            onClick: () => {
- *              // do something
- *            },
- *          },
- *          secondaryAction: {
- *            label: "No",
- *            onClick: () => {
- *              // do something else
- *            },
- *          },
- *        });
- *        setOpen(true);
- *      };
- *
- *      return <button onClick={showDialog}>Show Dialog</button>;
- *    }
- *    ```
- *
- * 3. **Dialog will render automatically at the root via the provider.**
- */
-
 import {
   useRef,
   useEffect,
@@ -62,7 +10,6 @@ import {
 import { X } from "lucide-react";
 import { Button } from "./Button";
 
-// Context type for MessageDialog
 type MessageDialogContextType = {
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -73,19 +20,16 @@ type MessageDialogContextType = {
   close: () => void;
 };
 
-// Create context
 const MessageDialogContext = createContext<
   MessageDialogContextType | undefined
 >(undefined);
 
-// Provider for MessageDialog context
 export function MessageDialogProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [dialogProps, setDialogProps] = useState<
     Omit<MessageDialogProps, "isOpen" | "onClose"> | undefined
   >(undefined);
 
-  // Close function closes dialog and clears props
   const close = () => {
     setOpen(false);
     setDialogProps(undefined);
@@ -101,7 +45,6 @@ export function MessageDialogProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// Hook to use MessageDialog context
 export function useMessageDialog() {
   const ctx = useContext(MessageDialogContext);
   if (!ctx)
@@ -111,7 +54,6 @@ export function useMessageDialog() {
   return ctx;
 }
 
-// Consumer component to render the dialog from context
 function MessageDialogContextConsumer() {
   const ctx = useMessageDialog();
   if (!ctx.dialogProps) return null;
@@ -176,53 +118,66 @@ export const MessageDialog: React.FC<MessageDialogProps> = ({
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Focus management for accessibility
   useEffect(() => {
     if (!isOpen) return;
+    // Prevent background scroll
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    // Prevent navigation (back/forward)
+    const handlePopState = (e: PopStateEvent) => {
+      e.preventDefault();
+      window.history.pushState(null, "", window.location.href);
+    };
+    window.history.pushState(null, "", window.location.href);
+    window.addEventListener("popstate", handlePopState);
+
+    // Focus management
     const focusableSelectors =
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
     const dialog = dialogRef.current;
-    if (!dialog) return;
-
-    const focusableEls = Array.from(
-      dialog.querySelectorAll<HTMLElement>(focusableSelectors),
-    ).filter((el) => !el.hasAttribute("disabled"));
-
-    if (focusableEls.length > 0) {
-      (closeButtonRef.current || focusableEls[0]).focus();
-    }
-
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        onClose();
+    if (dialog) {
+      const focusableEls = Array.from(
+        dialog.querySelectorAll<HTMLElement>(focusableSelectors),
+      ).filter((el) => !el.hasAttribute("disabled"));
+      if (focusableEls.length > 0) {
+        (closeButtonRef.current || focusableEls[0]).focus();
       }
-      if (e.key === "Tab") {
-        const firstEl = focusableEls[0];
-        const lastEl = focusableEls[focusableEls.length - 1];
-        if (e.shiftKey) {
-          if (document.activeElement === firstEl) {
-            e.preventDefault();
-            lastEl.focus();
-          }
-        } else {
-          if (document.activeElement === lastEl) {
-            e.preventDefault();
-            firstEl.focus();
+      function handleKeyDown(e: KeyboardEvent) {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          onClose();
+        }
+        if (e.key === "Tab") {
+          const firstEl = focusableEls[0];
+          const lastEl = focusableEls[focusableEls.length - 1];
+          if (e.shiftKey) {
+            if (document.activeElement === firstEl) {
+              e.preventDefault();
+              lastEl.focus();
+            }
+          } else {
+            if (document.activeElement === lastEl) {
+              e.preventDefault();
+              firstEl.focus();
+            }
           }
         }
       }
+      dialog.addEventListener("keydown", handleKeyDown);
+      return () => {
+        dialog.removeEventListener("keydown", handleKeyDown);
+        document.body.style.overflow = originalOverflow;
+        window.removeEventListener("popstate", handlePopState);
+      };
     }
-
-    dialog.addEventListener("keydown", handleKeyDown);
     return () => {
-      dialog.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener("popstate", handlePopState);
     };
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
-  // Validate required props
   try {
     assertFunction(onClose, "onClose");
     assertNonEmptyString(title, "title");
@@ -236,19 +191,16 @@ export const MessageDialog: React.FC<MessageDialogProps> = ({
       assertFunction(secondaryAction.onClick, "secondaryAction.onClick");
     }
   } catch (err: unknown) {
-    const error = err;
     if (process.env.NODE_ENV !== "production") {
-      console.error("MessageDialog validation error:", error);
+      console.error("MessageDialog validation error:", err);
     }
     return null;
   }
 
-  // Accessibility: generate ids if not provided
   const dialogId = id || "message-dialog";
   const labelId = dialogLabelId || `${dialogId}-label`;
   const descId = dialogDescriptionId || `${dialogId}-desc`;
 
-  // Wrap action handlers to close dialog after action
   const handlePrimaryAction = () => {
     try {
       primaryAction.onClick();
@@ -286,7 +238,6 @@ export const MessageDialog: React.FC<MessageDialogProps> = ({
         aria-labelledby={labelId}
         aria-describedby={descId}
       >
-        {/* Close Button */}
         <button
           ref={closeButtonRef}
           className="hover:bg-primary/70 focus-ring-primary bg-background/60 hover:text-text-color absolute top-2 right-2 z-10 cursor-pointer rounded-full p-1.5 shadow-sm transition-colors md:top-3 md:right-3"
@@ -297,8 +248,6 @@ export const MessageDialog: React.FC<MessageDialogProps> = ({
         >
           <X className="h-4 w-4 md:h-5 md:w-5" />
         </button>
-
-        {/* Dialog Content */}
         <div className="relative z-10 flex flex-col items-center text-center">
           <h2
             className="selection-primary focus-ring-primary text-text-color mb-2 text-base font-bold drop-shadow sm:text-xl"
@@ -314,8 +263,7 @@ export const MessageDialog: React.FC<MessageDialogProps> = ({
           >
             {description}
           </p>
-
-          <div className="flex w-full flex-col items-center gap-3 md:flex-row">
+          <div className="flex w-full flex-col items-center justify-center gap-3 md:flex-row">
             <Button
               variant="gradient"
               size="md"

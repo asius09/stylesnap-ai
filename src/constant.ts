@@ -28,6 +28,7 @@ export enum ErrorMessage {
   FAILED_FETCH_DAILY_QUOTA = "Failed to fetch daily quota",
   DAILY_QUOTA_NOT_FOUND = "Daily quota data not found",
   FREE_LIMIT_REACHED = "Today's free image quota has been reached. You can still generate images for ₹9 each.",
+  PAID_CREDITS_EXHAUSTED = "Paid credits exhausted",
   UNKNOWN_REPLICATE = "Unknown error from Replicate",
   HIGHLIGHT_MODEL = "The model failed due to a highlight (hgihet light) error. Please try a different image or prompt.",
   FAILED_FETCH_IMAGE = "Failed to fetch generated image from Replicate output URL",

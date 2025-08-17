@@ -1,8 +1,31 @@
 /**
- * Simple Image Generation API Route (Replicate only)
+ * Image Generation API Route (Replicate only)
  *
- * Handles image generation using Replicate and manages free/paid user logic.
- * Does NOT upload or use Supabase Storage for images.
+ * Status Code Structure:
+ * - 201: Created, image generated successfully
+ *      - message: "Image generated successfully"
+ *      - code: undefined
+ * - 400: Bad request (missing/invalid input)
+ *      - message: ErrorMessage.MISSING_TRIAL_ID or ErrorMessage.MISSING_PROMPT_OR_IMAGE_URL
+ *      - code: "MISSING_TRIAL_ID" or "MISSING_PROMPT_OR_IMAGE_URL"
+ * - 403: Payment required for this app's user (free trial ended, free limit reached, paid credits exhausted)
+ *      - message: ErrorMessage.FREE_TRIAL_ENDED, ErrorMessage.FREE_LIMIT_REACHED, ErrorMessage.PAID_CREDITS_EXHAUSTED
+ *      - code: "NEED_PAYMENT", "FREE_LIMIT_REACHED", "PAID_CREDITS_EXHAUSTED"
+ * - 404: User not found
+ *      - message: ErrorMessage.USER_NOT_FOUND
+ *      - code: "USER_NOT_FOUND"
+ * - 451: Payment required for Replicate/external API (not app user)
+ *      - message: Replicate payment required error
+ *      - code: "REPLICATE_PAYMENT_REQUIRED"
+ * - 500: Internal server error (our server only, including Supabase errors)
+ *      - message: ErrorMessage.FAILED_FETCH_DAILY_QUOTA, ErrorMessage.DAILY_QUOTA_NOT_FOUND, or fallback
+ *      - code: "FAILED_FETCH_DAILY_QUOTA", "DAILY_QUOTA_NOT_FOUND", "IMAGE_GENERATOR_ERROR"
+ * - 520: Replicate/external API error (unknown error, not payment/model)
+ *      - message: Replicate/external error
+ *      - code: "REPLICATE_ERROR"
+ * - 522: Replicate/external model error (e.g. highlight/model error)
+ *      - message: ErrorMessage.HIGHLIGHT_MODEL
+ *      - code: "MODEL_ERROR"
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -52,6 +75,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const supabase = await createClient();
     const { trialId, prompt, image_url } = await request.json();
 
+    // 400: Missing trialId or prompt/image_url
     if (!trialId)
       return failure(ErrorMessage.MISSING_TRIAL_ID, 400, "MISSING_TRIAL_ID");
     if (!prompt || !image_url)
@@ -61,7 +85,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         "MISSING_PROMPT_OR_IMAGE_URL",
       );
 
-    // Fetch user trial record
+    // 404: User not found
     const { data: user, error: userError } = await supabase
       .from(USER_TRIALS_TABLE_NAME)
       .select()
@@ -70,9 +94,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (userError || !user)
       return failure(ErrorMessage.USER_NOT_FOUND, 404, "USER_NOT_FOUND");
 
+    // Supabase: check free/paid user and credits
     const isFreeUser = !user.free_used;
     const isPaidUser = user.paid_credits > 0;
 
+    // 403: App user payment required (free trial ended and no paid credits)
     if (!isFreeUser && !isPaidUser)
       return failure(ErrorMessage.FREE_TRIAL_ENDED, 403, "NEED_PAYMENT");
 
@@ -86,12 +112,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         .select("*")
         .limit(1)
         .maybeSingle();
+      // 500: Our server error fetching quota
       if (quotaError)
         return failure(
           ErrorMessage.FAILED_FETCH_DAILY_QUOTA,
           500,
           "FAILED_FETCH_DAILY_QUOTA",
         );
+      // 500: Our server error, quota not found
       if (!quota)
         return failure(
           ErrorMessage.DAILY_QUOTA_NOT_FOUND,
@@ -101,12 +129,25 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       freeCount = quota.free_count;
       quotaId = quota.id;
       dailyLimit = quota.daily_limit;
+      // 403: App user free limit reached
       if (freeCount >= dailyLimit)
         return failure(
           ErrorMessage.FREE_LIMIT_REACHED,
           403,
           "FREE_LIMIT_REACHED",
         );
+    }
+
+    // If paid user, check paid credits (must be > 0)
+    if (!isFreeUser && isPaidUser) {
+      if (typeof user.paid_credits !== "number" || user.paid_credits < 100) {
+        // 403: Paid credits exhausted
+        return failure(
+          ErrorMessage.PAID_CREDITS_EXHAUSTED || "Paid credits exhausted",
+          403,
+          "PAID_CREDITS_EXHAUSTED"
+        );
+      }
     }
 
     // Generate image with Replicate
@@ -124,17 +165,23 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         },
       });
     } catch (err) {
-      // Payment required or replicate error
+      // 451: Replicate payment required (not app user)
       const msg = getErrorMessage(err, ErrorMessage.UNKNOWN_REPLICATE) as string;
-      if (typeof msg === "string" && msg.toLowerCase().includes("payment required"))
-        return failure(msg, 403, "NEED_PAYMENT");
-      return failure(typeof msg === "string" ? msg : ErrorMessage.UNKNOWN_REPLICATE, 500, "REPLICATE_ERROR");
+      if (typeof msg === "string" && msg.toLowerCase().includes("payment required")) {
+        return failure(msg, 451, "REPLICATE_PAYMENT_REQUIRED");
+      }
+      // 520: Replicate/external API error (unknown)
+      return failure(
+        typeof msg === "string" ? msg : ErrorMessage.UNKNOWN_REPLICATE,
+        520,
+        "REPLICATE_ERROR"
+      );
     }
 
-    // Get generated image URL
+    // 522: Replicate/external model error (highlight/model error)
     const generatedImageUrl = extractImageUrl(output);
     if (!generatedImageUrl || isHighlightError(generatedImageUrl))
-      return failure(ErrorMessage.HIGHLIGHT_MODEL, 500, "MODEL_ERROR");
+      return failure(ErrorMessage.HIGHLIGHT_MODEL, 522, "MODEL_ERROR");
 
     // Update user trial/quota/credits (no image upload)
     if (isFreeUser && !isPaidUser) {
@@ -153,23 +200,36 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         .eq("id", trialId);
     }
 
-    // Success: return Replicate image URL only
+    // 201: Created (success)
     return success(
       { imageUrl: generatedImageUrl },
-      200,
+      201,
       undefined,
       "Image generated successfully",
     );
   } catch (err) {
-    // Improved error handling for unknown errors
+    // Only our server errors should be 500
     const msg = getErrorMessage(err, ErrorMessage.UNKNOWN);
     if (typeof msg === "string") {
       if (isHighlightError(msg))
-        return failure(ErrorMessage.HIGHLIGHT_MODEL, 500, "MODEL_ERROR");
+        // 522: Replicate/external model error
+        return failure(ErrorMessage.HIGHLIGHT_MODEL, 522, "MODEL_ERROR");
       if (msg.toLowerCase().includes("payment required"))
+        // 403: App user payment required
         return failure(msg, 403, "NEED_PAYMENT");
+      if (
+        msg.toLowerCase().includes("replicate") ||
+        msg.toLowerCase().includes("external") ||
+        msg.toLowerCase().includes("upstream") ||
+        msg.toLowerCase().includes("model error")
+      ) {
+        // 520: Replicate/external API error
+        return failure(msg, 520, "REPLICATE_ERROR");
+      }
+      // 500: Our server error
       return failure(msg, 500, "IMAGE_GENERATOR_ERROR");
     } else {
+      // 500: Our server error
       return failure(ErrorMessage.UNKNOWN, 500, "IMAGE_GENERATOR_ERROR");
     }
   }

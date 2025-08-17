@@ -3,7 +3,6 @@ import React, { useEffect, useState, useRef } from "react";
 import { HeroDropZone } from "../HeroDropZone";
 import { PreviewCard } from "../PreviewCard";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { useTrialId } from "@/hooks/useTrialId";
 import { useImageGeneration } from "@/hooks/useImageGeneration";
 import { useDownloadImage } from "@/hooks/useDownloadImage";
 import { useProgressSteps } from "@/hooks/useProgressSteps";
@@ -28,12 +27,10 @@ export function HeroSection() {
     "selectedStyle",
     null,
   );
-  const { trialId } = useTrialId();
   const { handleGenerate, generateStatus, generatedImage, loading } =
     useImageGeneration({
       file,
       selectedStyle,
-      trialId: typeof trialId === "string" ? trialId : null,
     });
   const handleDownloadGeneratedImage = useDownloadImage({
     generatedImage,
