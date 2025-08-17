@@ -23,15 +23,10 @@ export async function generateImage(body: {
     console.log("[generateImage] Response status:", response.status);
     const data = await response.json();
     console.log("[generateImage] Response data:", data);
-    if (
-      data &&
-      data.statusCode === 200 &&
-      data.status === "successful" &&
-      data.imageUrl
-    ) {
-      const resultUrl = data.imageUrl.startsWith("/")
-        ? data.imageUrl
-        : `/${data.imageUrl}`;
+    if (data && data.success && data.data?.imageUrl) {
+      const resultUrl = data.data.imageUrl.startsWith("/")
+        ? data.data.imageUrl
+        : `/${data.data.imageUrl}`;
       console.log("[generateImage] Returning imageUrl:", resultUrl);
       return resultUrl;
     } else {

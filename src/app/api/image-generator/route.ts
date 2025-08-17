@@ -1,3 +1,20 @@
+/**
+ * Image Generation API Route
+ *
+ * This endpoint handles image generation requests using the Replicate API.
+ *
+ * Main Steps:
+ * 1. Parse and validate the request body (trialId, prompt, image_url).
+ * 2. Resolve and validate the input image URL.
+ * 3. Fetch user trial record and determine user type (free/paid).
+ * 4. Enforce free trial, daily quota, or paid credits as appropriate.
+ * 5. Call Replicate API to generate the image.
+ * 6. Handle Replicate/model errors and payment requirements.
+ * 7. Download and save the generated image to the public directory.
+ * 8. Update user trial info and quota/credits.
+ * 9. Return the image URL or an error response.
+ */
+
 import { NextRequest, NextResponse } from "next/server";
 import Replicate from "replicate";
 import { writeFile } from "node:fs/promises";
@@ -7,15 +24,148 @@ import {
   USER_TRIALS_TABLE_NAME,
   DAILY_QUOTA_TABLE_NAME,
   REPLICATE_IMAGE_MODEL,
-  ResponseStatus,
   ErrorMessage,
 } from "@/constant";
-import { buildResponse } from "@/utils/buildResponse";
 import { resolveImageUrl } from "@/utils/resolveImageUrl";
+import { success, failure } from "@/lib/apiResponse";
+
+/**
+ * Utility: Extract error message from various error types.
+ */
+function extractErrorMessage(err: unknown, fallback: string): string {
+  if (err instanceof Error && err.message) return err.message;
+  if (typeof err === "string") return err;
+  if (
+    err &&
+    typeof err === "object" &&
+    "message" in err &&
+    typeof (err as any).message === "string"
+  ) {
+    return (err as { message: string }).message;
+  }
+  return fallback;
+}
+
+/**
+ * Utility: Check if a string contains any known highlight model error.
+ */
+function isHighlightModelError(msg: string): boolean {
+  const lower = msg.toLowerCase();
+  return (
+    lower.includes("hgihet light") ||
+    lower.includes("highlight error") ||
+    lower.includes("high light error")
+  );
+}
+
+/**
+ * Utility: Extract image URL from Replicate output.
+ */
+function extractImageUrl(output: any): string | undefined {
+  if (
+    Array.isArray(output) &&
+    output.length > 0 &&
+    typeof output[0] === "string"
+  ) {
+    return output[0];
+  }
+  if (typeof output === "string") {
+    return output;
+  }
+  if (
+    output &&
+    typeof output === "object" &&
+    "url" in output &&
+    typeof (output as any).url === "function"
+  ) {
+    return (output as any).url();
+  }
+  return undefined;
+}
+
+/**
+ * Utility: Handle Replicate API errors and return appropriate failure response.
+ */
+function handleReplicateError(replicateError: any) {
+  let statusCode = 500;
+  let errorMsg = ErrorMessage.UNKNOWN_REPLICATE;
+  if (replicateError && typeof replicateError === "object") {
+    if (
+      "status" in replicateError &&
+      typeof (replicateError as any).status === "number"
+    ) {
+      statusCode = (replicateError as any).status;
+    }
+    if (
+      "message" in replicateError &&
+      typeof (replicateError as any).message === "string"
+    ) {
+      const msg = (replicateError as any).message as string;
+      if (Object.values(ErrorMessage).includes(msg as ErrorMessage)) {
+        errorMsg = msg as ErrorMessage;
+      }
+    }
+    if (
+      statusCode === 402 ||
+      (typeof errorMsg === "string" &&
+        errorMsg.toLowerCase().includes("payment required"))
+    ) {
+      return failure(errorMsg, 403, "NEED_PAYMENT");
+    }
+  }
+  return failure(errorMsg, statusCode, "REPLICATE_ERROR");
+}
+
+/**
+ * Utility: General error handler for the catch block.
+ */
+function handleGeneralError(error: any) {
+  let errorMessage = ErrorMessage.UNKNOWN;
+  let httpStatus = 500;
+  if (
+    error &&
+    typeof error === "object" &&
+    "message" in error &&
+    typeof (error as any).message === "string"
+  ) {
+    if (
+      Object.values(ErrorMessage).includes(
+        (error as any).message as ErrorMessage,
+      )
+    ) {
+      errorMessage = (error as any).message as ErrorMessage;
+    }
+    if (isHighlightModelError(errorMessage)) {
+      errorMessage = ErrorMessage.HIGHLIGHT_MODEL;
+      httpStatus = 500;
+    }
+    if (errorMessage.toLowerCase().includes("payment required")) {
+      httpStatus = 403;
+    }
+  }
+  return failure(
+    errorMessage,
+    httpStatus,
+    httpStatus === 403 ? "NEED_PAYMENT" : "IMAGE_GENERATOR_ERROR",
+  );
+}
+
+/**
+ * Utility: Save buffer to a unique file in the public directory.
+ */
+async function saveImageToPublic(
+  buffer: Buffer,
+): Promise<{ fileName: string; publicPath: string }> {
+  const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+  const fileName = `output-${uniqueSuffix}.jpg`;
+  const publicPath = join(process.cwd(), "public", fileName);
+  await writeFile(publicPath, buffer);
+  return { fileName, publicPath };
+}
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    // --- Parse and validate request body ---
+    // 1. Parse and validate request body
     const supabase = await createClient();
     const body = await request.json();
     const trialID = body.trialId;
@@ -23,21 +173,29 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const rawImageUrl = body.image_url;
 
     if (!trialID) {
-      return buildResponse(
-        ResponseStatus.FAILED,
-        400,
-        ErrorMessage.MISSING_TRIAL_ID,
-      );
+      return failure(ErrorMessage.MISSING_TRIAL_ID, 400, "MISSING_TRIAL_ID");
     }
     if (!prompt || !rawImageUrl) {
-      return buildResponse(
-        ResponseStatus.FAILED,
-        400,
+      return failure(
         ErrorMessage.MISSING_PROMPT_OR_IMAGE_URL,
+        400,
+        "MISSING_PROMPT_OR_IMAGE_URL",
       );
     }
 
-    // --- Fetch user trial record ---
+    // 2. Validate and resolve image_url
+    let image_url: string;
+    try {
+      image_url = await resolveImageUrl(rawImageUrl);
+    } catch (err) {
+      return failure(
+        extractErrorMessage(err, ErrorMessage.INVALID_IMAGE_URL_FORMAT),
+        400,
+        "INVALID_IMAGE_URL",
+      );
+    }
+
+    // 3. Fetch user trial record
     const { data: userData, error: userError } = await supabase
       .from(USER_TRIALS_TABLE_NAME)
       .select()
@@ -45,86 +203,59 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       .single();
 
     if (userError || !userData) {
-      return buildResponse(
-        ResponseStatus.NOT_FOUND,
-        404,
-        ErrorMessage.USER_NOT_FOUND,
-      );
+      return failure(ErrorMessage.USER_NOT_FOUND, 404, "USER_NOT_FOUND");
     }
 
-    // --- Validate and resolve image_url ---
-    let image_url: string;
-    try {
-      image_url = await resolveImageUrl(rawImageUrl);
-    } catch (err) {
-      let errorMessage: ErrorMessage | string =
-        ErrorMessage.INVALID_IMAGE_URL_FORMAT;
-      if (err instanceof Error && err.message) {
-        errorMessage = err.message;
-      } else if (typeof err === "string") {
-        errorMessage = err;
-      } else if (
-        err &&
-        typeof err === "object" &&
-        "message" in err
-      ) {
-        // explicitly type err as { message: string }
-        errorMessage = (err as { message: string }).message;
-      }
-      return buildResponse(ResponseStatus.FAILED, 400, errorMessage as string);
-    }
-
-    // --- Determine user type (free/paid) ---
+    // 4. Determine user type and enforce payment/quota
     const isFreeUser = !userData.free_used;
     const isPaidUser = userData.paid_credits > 0;
-    const paidCredits = userData.paid_credits;
+    const PAID_CREDITS = userData.paid_credits;
 
-    // --- Enforce payment if no free trial and no paid credits ---
-    if (!isPaidUser && !isFreeUser && userData.paid_credits <= 0) {
-      return buildResponse(
-        ResponseStatus.NEED_PAYMENT,
-        403,
-        ErrorMessage.FREE_TRIAL_ENDED,
-      );
+    // If user has neither free trial nor paid credits, require payment
+    if (!isPaidUser && !isFreeUser) {
+      return failure(ErrorMessage.FREE_TRIAL_ENDED, 403, "NEED_PAYMENT");
     }
 
-    // --- Check daily quota for free image generation ---
-    const { data: quotaData, error: quotaError } = await supabase
-      .from(DAILY_QUOTA_TABLE_NAME)
-      .select("*")
-      .limit(1)
-      .maybeSingle();
+    // If user is on free trial, check daily quota
+    let FREE_COUNT: number | undefined,
+      QUOTA_ID: string | undefined,
+      DAILY_LIMIT: number | undefined;
+    if (isFreeUser && !isPaidUser) {
+      const { data: quotaData, error: quotaError } = await supabase
+        .from(DAILY_QUOTA_TABLE_NAME)
+        .select("*")
+        .limit(1)
+        .maybeSingle();
 
-    if (quotaError) {
-      return buildResponse(
-        ResponseStatus.FAILED,
-        500,
-        ErrorMessage.FAILED_FETCH_DAILY_QUOTA,
-      );
-    }
-    if (!quotaData) {
-      return buildResponse(
-        ResponseStatus.FAILED,
-        500,
-        ErrorMessage.DAILY_QUOTA_NOT_FOUND,
-      );
-    }
+      if (quotaError) {
+        return failure(
+          ErrorMessage.FAILED_FETCH_DAILY_QUOTA,
+          500,
+          "FAILED_FETCH_DAILY_QUOTA",
+        );
+      }
+      if (!quotaData) {
+        return failure(
+          ErrorMessage.DAILY_QUOTA_NOT_FOUND,
+          500,
+          "DAILY_QUOTA_NOT_FOUND",
+        );
+      }
+      FREE_COUNT = quotaData.free_count;
+      QUOTA_ID = quotaData.id;
+      DAILY_LIMIT = quotaData.daily_limit;
 
-    const FREE_COUNT = quotaData.free_count;
-    const DAILY_LIMIT = quotaData.daily_limit;
-
-    // Handle the case when the daily free quota is reached for free users (not paid)
-    if (!isPaidUser) {
-      if (FREE_COUNT >= DAILY_LIMIT && isFreeUser) {
-        return buildResponse(
-          ResponseStatus.FREE_LIMIT_REACHED,
-          403,
+      // If daily free quota is reached, block further free generations
+      if ((FREE_COUNT ?? 0) >= (DAILY_LIMIT ?? 0)) {
+        return failure(
           ErrorMessage.FREE_LIMIT_REACHED,
+          403,
+          "FREE_LIMIT_REACHED",
         );
       }
     }
 
-    // --- Prepare Replicate input ---
+    // 5. Prepare Replicate input
     const replicate = new Replicate({
       auth: process.env.REPLICATE_API_TOKEN,
     });
@@ -138,104 +269,41 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       prompt_upsampling: false,
     };
 
-    // --- Call Replicate API ---
+    // 6. Call Replicate API and handle errors
     let output;
     try {
       output = await replicate.run(REPLICATE_IMAGE_MODEL, {
         input: replicateInput,
       });
     } catch (replicateError) {
-      // Handle Replicate error response (e.g., payment required, etc.)
-      let statusCode = 500;
-      let errorMsg = ErrorMessage.UNKNOWN_REPLICATE;
-      if (replicateError && typeof replicateError === "object") {
-        if (
-          "status" in replicateError &&
-          typeof replicateError.status === "number"
-        ) {
-          statusCode = replicateError.status;
-        }
-        if (
-          "message" in replicateError &&
-          typeof replicateError.message === "string"
-        ) {
-          // handle thsi
-          errorMsg = ErrorMessage.UNKNOWN_REPLICATE;
-          if (
-            typeof replicateError.message === "string" &&
-            Object.values(ErrorMessage).includes(
-              replicateError.message as ErrorMessage,
-            )
-          ) {
-            errorMsg = replicateError.message as ErrorMessage;
-          }
-        }
-        // If the error is a payment required error, match our API's convention
-        if (
-          statusCode === 402 ||
-          (typeof errorMsg === "string" &&
-            errorMsg.toLowerCase().includes("payment required"))
-        ) {
-          return buildResponse(ResponseStatus.NEED_PAYMENT, 403, errorMsg);
-        }
-      }
-      return buildResponse(ResponseStatus.FAILED, statusCode, errorMsg);
+      return handleReplicateError(replicateError);
     }
 
-    // --- Extract image URL from Replicate output ---
-    let imageUrl: string | undefined;
-    if (
-      Array.isArray(output) &&
-      output.length > 0 &&
-      typeof output[0] === "string"
-    ) {
-      imageUrl = output[0];
-    } else if (typeof output === "string") {
-      imageUrl = output;
-    } else if (
-      output &&
-      typeof output === "object" &&
-      "url" in output &&
-      typeof output.url === "function"
-    ) {
-      imageUrl = output.url();
+    // 7. Extract image URL from Replicate output
+    const imageUrl = extractImageUrl(output);
+
+    // 8. Handle known model errors (e.g., highlight error)
+    if (!imageUrl || isHighlightModelError(imageUrl)) {
+      return failure(ErrorMessage.HIGHLIGHT_MODEL, 500, "MODEL_ERROR");
     }
 
-    // --- Handle known model errors (highlight error) ---
-    if (
-      !imageUrl ||
-      (typeof imageUrl === "string" &&
-        (imageUrl.toLowerCase().includes("hgihet light") ||
-          imageUrl.toLowerCase().includes("highlight error") ||
-          imageUrl.toLowerCase().includes("high light error")))
-    ) {
-      return buildResponse(
-        ResponseStatus.FAILED,
-        500,
-        ErrorMessage.HIGHLIGHT_MODEL,
-      );
-    }
-
-    // --- Download the generated image and save to public directory ---
+    // 9. Download and save the generated image
     const response = await fetch(imageUrl);
     if (!response.ok) {
-      return buildResponse(
-        ResponseStatus.FAILED,
-        502,
+      return failure(
         ErrorMessage.FAILED_FETCH_IMAGE,
+        502,
+        "UPSTREAM_IMAGE_FETCH_FAILED",
       );
     }
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // --- Generate a unique filename and save the image ---
-    const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
-    const fileName = `output-${uniqueSuffix}.jpg`;
-    const publicPath = join(process.cwd(), "public", fileName);
-    await writeFile(publicPath, buffer);
+    const { fileName } = await saveImageToPublic(buffer);
 
-    // --- Update user trial info (mark free_used, update last_seen) ---
-    if (isFreeUser) {
+    // 10. Update user trial info and quota/credits
+    // Helper for updating free trial and quota
+    async function updateFreeTrialAndQuota() {
       await supabase
         .from(USER_TRIALS_TABLE_NAME)
         .update({
@@ -244,75 +312,54 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         })
         .eq("id", trialID);
 
-      // --- If free user, increment the free_count in the daily quota table ---
       const { error: updateError } = await supabase
         .from(DAILY_QUOTA_TABLE_NAME)
-        .update({ free_count: FREE_COUNT + 1 })
-        .eq("id", quotaData.id);
+        .update({ free_count: (FREE_COUNT ?? 0) + 1 })
+        .eq("id", QUOTA_ID);
 
       if (updateError) {
-        return buildResponse(
-          ResponseStatus.FAILED,
-          500,
+        return failure(
           ErrorMessage.FAILED_UPDATE_DAILY_QUOTA,
+          500,
+          "FAILED_UPDATE_DAILY_QUOTA",
         );
       }
+      return null;
     }
 
-    if (isPaidUser) {
+    // Helper for updating paid credits
+    async function updatePaidCredits() {
       const { error: paidCreditsError } = await supabase
         .from(USER_TRIALS_TABLE_NAME)
-        .update({ paid_credits: paidCredits - 1 })
+        .update({ paid_credits: PAID_CREDITS - 100 })
         .eq("id", trialID);
 
       if (paidCreditsError) {
-        return buildResponse(
-          ResponseStatus.FAILED,
-          500,
+        return failure(
           paidCreditsError.message || "Failed to update paid credits",
+          500,
+          "FAILED_UPDATE_PAID_CREDITS",
         );
       }
+      return null;
     }
 
-    // --- Success response ---
-    return buildResponse(
-      ResponseStatus.SUCCESSFUL,
+    if (isFreeUser && isPaidUser) {
+      const err = await updateFreeTrialAndQuota();
+      if (err) return err;
+    } else if (!isFreeUser && isPaidUser) {
+      const err = await updatePaidCredits();
+      if (err) return err;
+    }
+
+    // 11. Success response
+    return success(
+      { imageUrl: `/${fileName}` },
       200,
       undefined,
-      `/${fileName}`,
+      "Image generated successfully",
     );
   } catch (error) {
-    // --- General error handler ---
-    let errorMessage = ErrorMessage.UNKNOWN;
-    let httpStatus = 500;
-    if (
-      error &&
-      typeof error === "object" &&
-      "message" in error &&
-      typeof error.message === "string"
-    ) {
-      // Assign error.message only if it matches a known ErrorMessage, otherwise use ErrorMessage.UNKNOWN
-      if (Object.values(ErrorMessage).includes(error.message as ErrorMessage)) {
-        errorMessage = error.message as ErrorMessage;
-      } else {
-        errorMessage = ErrorMessage.UNKNOWN;
-      }
-      if (
-        errorMessage.toLowerCase().includes("hgihet light") ||
-        errorMessage.toLowerCase().includes("highlight error") ||
-        errorMessage.toLowerCase().includes("high light error")
-      ) {
-        errorMessage = ErrorMessage.HIGHLIGHT_MODEL;
-        httpStatus = 500;
-      }
-      if (errorMessage.toLowerCase().includes("payment required")) {
-        httpStatus = 403;
-      }
-    }
-    return buildResponse(
-      httpStatus === 403 ? ResponseStatus.NEED_PAYMENT : ResponseStatus.FAILED,
-      httpStatus,
-      errorMessage,
-    );
+    return handleGeneralError(error);
   }
 }

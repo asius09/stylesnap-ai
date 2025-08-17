@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { writeFile, unlink } from "node:fs/promises";
 import { join, extname, basename } from "node:path";
 import { existsSync } from "node:fs";
+import { success, failure } from "@/lib/apiResponse";
 
 // Helper to get file path in public directory
 function getFilePath(fileName: string) {
@@ -62,10 +63,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const fileNameFromForm = formData.get("fileName");
 
     if (!file || typeof file === "string") {
-      return NextResponse.json(
-        { status: "failed", error: "No file uploaded" },
-        { status: 400 },
-      );
+      return failure("No file uploaded", 400, "NO_FILE_UPLOADED");
     }
 
     // Get extension from file type
@@ -115,17 +113,21 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Return the public URL
     const imageUrl = `/${fileName}`;
-    return NextResponse.json({
-      status: "successful",
-      imageUrl,
-      statusCode: 200,
-      message: "File will be deleted automatically after 30 minutes.",
-    });
+    return success(
+      { imageUrl },
+      200,
+      undefined,
+      "File will be deleted automatically after 30 minutes.",
+    );
   } catch (error: unknown) {
     console.error("[API] Error in /api/upload:", error);
-    return NextResponse.json(
-      { status: "failed", error: "Internal server error" },
-      { status: 500 },
+    return failure(
+      "Internal server error",
+      500,
+      "INTERNAL_SERVER_ERROR",
+      undefined,
+      undefined,
+      (error as Error)?.stack,
     );
   }
 }
@@ -190,32 +192,29 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
         }
       }
       if (!found) {
-        return NextResponse.json(
-          { status: "failed", error: "File not found" },
-          { status: 404 },
-        );
+        return failure("File not found", 404, "FILE_NOT_FOUND");
       }
     } else {
       if (!existsSync(filePath)) {
-        return NextResponse.json(
-          { status: "failed", error: "File not found" },
-          { status: 404 },
-        );
+        return failure("File not found", 404, "FILE_NOT_FOUND");
       }
     }
 
     await unlink(filePath);
 
-    return NextResponse.json({
-      status: "successful",
-      message: `File '${fileName}' deleted successfully.`,
-      statusCode: 200,
-    });
+    return success(
+      { message: `File '${fileName}' deleted successfully.` },
+      200,
+    );
   } catch (error: unknown) {
     console.error("[API] Error in DELETE /api/upload:", error);
-    return NextResponse.json(
-      { status: "failed", error: "Internal server error" },
-      { status: 500 },
+    return failure(
+      "Internal server error",
+      500,
+      "INTERNAL_SERVER_ERROR",
+      undefined,
+      undefined,
+      (error as Error)?.stack,
     );
   }
 }

@@ -1,6 +1,124 @@
-import React, { useRef, useEffect } from "react";
+"use client";
+/**
+ * MessageDialog - A modal dialog for displaying messages and actions.
+ *
+ * ## Usage
+ *
+ * 1. **Wrap your app with the provider:**
+ *    ```tsx
+ *    import { MessageDialogProvider } from "./MessageDialog";
+ *
+ *    function App() {
+ *      return (
+ *        <MessageDialogProvider>
+ *          <YourApp />
+ *        </MessageDialogProvider>
+ *      );
+ *    }
+ *    ```
+ *
+ * 2. **Open the dialog from anywhere using the hook:**
+ *    ```tsx
+ *    import { useMessageDialog } from "./MessageDialog";
+ *
+ *    function SomeComponent() {
+ *      const { setOpen, setDialogProps } = useMessageDialog();
+ *
+ *      const showDialog = () => {
+ *        setDialogProps({
+ *          title: "Confirm Action",
+ *          description: "Are you sure you want to proceed?",
+ *          primaryAction: {
+ *            label: "Yes",
+ *            onClick: () => {
+ *              // do something
+ *            },
+ *          },
+ *          secondaryAction: {
+ *            label: "No",
+ *            onClick: () => {
+ *              // do something else
+ *            },
+ *          },
+ *        });
+ *        setOpen(true);
+ *      };
+ *
+ *      return <button onClick={showDialog}>Show Dialog</button>;
+ *    }
+ *    ```
+ *
+ * 3. **Dialog will render automatically at the root via the provider.**
+ */
+
+import {
+  useRef,
+  useEffect,
+  useContext,
+  useState,
+  createContext,
+  ReactNode,
+} from "react";
 import { X } from "lucide-react";
 import { Button } from "./Button";
+
+// Context type for MessageDialog
+type MessageDialogContextType = {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  dialogProps?: Omit<MessageDialogProps, "isOpen" | "onClose">;
+  setDialogProps: (
+    props: Omit<MessageDialogProps, "isOpen" | "onClose"> | undefined,
+  ) => void;
+  close: () => void;
+};
+
+// Create context
+const MessageDialogContext = createContext<
+  MessageDialogContextType | undefined
+>(undefined);
+
+// Provider for MessageDialog context
+export function MessageDialogProvider({ children }: { children: ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const [dialogProps, setDialogProps] = useState<
+    Omit<MessageDialogProps, "isOpen" | "onClose"> | undefined
+  >(undefined);
+
+  // Close function closes dialog and clears props
+  const close = () => {
+    setOpen(false);
+    setDialogProps(undefined);
+  };
+
+  return (
+    <MessageDialogContext.Provider
+      value={{ open, setOpen, dialogProps, setDialogProps, close }}
+    >
+      {children}
+      <MessageDialogContextConsumer />
+    </MessageDialogContext.Provider>
+  );
+}
+
+// Hook to use MessageDialog context
+export function useMessageDialog() {
+  const ctx = useContext(MessageDialogContext);
+  if (!ctx)
+    throw new Error(
+      "useMessageDialog must be used within MessageDialogProvider",
+    );
+  return ctx;
+}
+
+// Consumer component to render the dialog from context
+function MessageDialogContextConsumer() {
+  const ctx = useMessageDialog();
+  if (!ctx.dialogProps) return null;
+  return (
+    <MessageDialog isOpen={ctx.open} onClose={ctx.close} {...ctx.dialogProps} />
+  );
+}
 
 export interface MessageDialogProps
   extends React.HTMLAttributes<HTMLDivElement> {
@@ -119,6 +237,7 @@ export const MessageDialog: React.FC<MessageDialogProps> = ({
     }
   } catch (error: unknown) {
     if (process.env.NODE_ENV !== "production") {
+      // eslint-disable-next-line no-console
       console.error("MessageDialog validation error:", error);
     }
     return null;
@@ -161,7 +280,7 @@ export const MessageDialog: React.FC<MessageDialogProps> = ({
       {...rest}
     >
       <div
-        className="border-primary/30 bg-background/80 before:bg-primary/10 relative w-full max-w-md overflow-hidden rounded-xl border p-7 text-text-color shadow-2xl backdrop-blur-xl before:pointer-events-none before:absolute before:inset-0 before:z-0 before:rounded-2xl before:backdrop-blur-xl"
+        className="border-primary/30 bg-background/80 before:bg-primary/10 text-text-color relative w-full max-w-md overflow-hidden rounded-xl border p-7 shadow-2xl backdrop-blur-xl before:pointer-events-none before:absolute before:inset-0 before:z-0 before:rounded-2xl before:backdrop-blur-xl"
         id={dialogId}
         role="document"
         aria-labelledby={labelId}
@@ -170,7 +289,7 @@ export const MessageDialog: React.FC<MessageDialogProps> = ({
         {/* Close Button */}
         <button
           ref={closeButtonRef}
-          className="hover:bg-primary/70 focus-ring-primary bg-background/60 absolute top-2 right-2 z-10 cursor-pointer rounded-full p-1.5 shadow-sm transition-colors hover:text-text-color md:top-3 md:right-3"
+          className="hover:bg-primary/70 focus-ring-primary bg-background/60 hover:text-text-color absolute top-2 right-2 z-10 cursor-pointer rounded-full p-1.5 shadow-sm transition-colors md:top-3 md:right-3"
           onClick={onClose}
           aria-label="Close dialog"
           type="button"
@@ -182,14 +301,14 @@ export const MessageDialog: React.FC<MessageDialogProps> = ({
         {/* Dialog Content */}
         <div className="relative z-10 flex flex-col items-center text-center">
           <h2
-            className="selection-primary focus-ring-primary mb-2 text-base font-bold text-text-color drop-shadow sm:text-xl"
+            className="selection-primary focus-ring-primary text-text-color mb-2 text-base font-bold drop-shadow sm:text-xl"
             id={labelId}
             tabIndex={0}
           >
             {title}
           </h2>
           <p
-            className="selection-primary focus-ring-primary mb-7 text-xs text-text-color/80 sm:text-base"
+            className="selection-primary focus-ring-primary text-text-color/80 mb-7 text-xs sm:text-base"
             id={descId}
             tabIndex={0}
           >
@@ -200,7 +319,7 @@ export const MessageDialog: React.FC<MessageDialogProps> = ({
             <Button
               variant="gradient"
               size="md"
-              className="focus-ring-primary selection-primary w-full max-w-xs"
+              className="w-full max-w-xs"
               onClick={handlePrimaryAction}
               id={primaryAction.id || `${dialogId}-primary-btn`}
               aria-label={primaryAction["aria-label"] || primaryAction.label}
@@ -211,7 +330,7 @@ export const MessageDialog: React.FC<MessageDialogProps> = ({
               <Button
                 variant="outline"
                 size="md"
-                className="focus-ring-primary selection-primary w-full max-w-xs"
+                className="w-full max-w-xs"
                 onClick={handleSecondaryAction}
                 id={secondaryAction.id || `${dialogId}-secondary-btn`}
                 aria-label={

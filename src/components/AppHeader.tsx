@@ -1,7 +1,23 @@
 "use client";
+import { useTrialId } from "@/hooks/useTrialId";
+import { getTrialUsageStatus } from "@/utils/trialClient";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
-export function AppHeader({ freeUsed }: { freeUsed: boolean }) {
+export function AppHeader() {
+  const { trialId } = useTrialId();
+  const [freeUsed, setFreeUsed] = useState<boolean>(false);
+  const [padiCredits, setPaidCredits] = useState<number>(0); //TODO: plan to implement this
+  useEffect(() => {
+    const fetchTrialUsageStatus = async () => {
+      if (!trialId) return;
+      const status = await getTrialUsageStatus(trialId);
+      if (status && typeof status.hasUsedFreeTrial === "boolean") {
+        setFreeUsed(status.hasUsedFreeTrial);
+      }
+    };
+    fetchTrialUsageStatus();
+  }, [trialId]);
   return (
     <nav
       id="app-header"
