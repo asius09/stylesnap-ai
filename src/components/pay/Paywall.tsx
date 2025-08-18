@@ -10,22 +10,7 @@ import React, {
   Dispatch,
   SetStateAction,
 } from "react";
-
-// --- Console utilities (only error/warn for important issues) ---
-const warn = (...args: unknown[]) =>
-  console.warn(
-    "%c[Paywall]%c",
-    "background: #f59e42; color: #222; font-weight: bold; padding:2px 6px; border-radius:3px;",
-    "",
-    ...args,
-  );
-const error = (...args: unknown[]) =>
-  console.error(
-    "%c[Paywall]%c",
-    "background: #ef4444; color: #fff; font-weight: bold; padding:2px 6px; border-radius:3px;",
-    "",
-    ...args,
-  );
+import { useToast } from "@/components/Toast";
 
 // --- Types ---
 interface PaywallContextType {
@@ -110,9 +95,12 @@ async function createOrder(trialId: string): Promise<RazorpayOrder> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ amount: 900, currency: "INR", trialId }),
   });
-  const data = await res.json();
+  const data = (await res.json()) as {
+    success?: boolean;
+    data?: { order?: RazorpayOrder };
+    [key: string]: unknown;
+  };
   if (!res.ok || !data?.success || !data?.data?.order) {
-    error("Failed to create order", res.status, res.statusText, data);
     throw new Error("Failed to create order");
   }
   return data.data.order as RazorpayOrder;
@@ -123,6 +111,7 @@ export default function Paywall() {
   const paywallCtx = useContext(PaywallContext);
   const open = paywallCtx?.open ?? false;
   const setOpen = paywallCtx?.setOpen ?? (() => {});
+  const { addToast } = useToast();
 
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -160,7 +149,10 @@ export default function Paywall() {
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(response),
             });
-            const result = await verifyRes.json();
+            const result = (await verifyRes.json()) as {
+              success?: boolean;
+              [key: string]: unknown;
+            };
             if (result && result.success) {
               try {
                 const patchRes = await fetch(`/api/trial?id=${trialId}`, {
@@ -168,32 +160,44 @@ export default function Paywall() {
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ paid_credits: 100 }),
                 });
-                const patchResult = await patchRes.json();
+                const patchResult = (await patchRes.json()) as {
+                  success?: boolean;
+                  [key: string]: unknown;
+                };
                 if (!patchRes.ok || !patchResult || !patchResult.success) {
-                  warn(
-                    "Failed to update paid_credits after payment",
-                    patchResult,
-                  );
-                  alert(
-                    "Payment succeeded, but failed to update credits. Please contact support.",
-                  );
+                  addToast({
+                    type: "error",
+                    message:
+                      "Payment succeeded, but failed to update credits. Please contact support.",
+                  });
                 } else {
-                  alert("Payment Success 🎉");
+                  addToast({
+                    type: "success",
+                    message:
+                      "🎉 Payment successful! Thank you for your support. Your credits have been added. Enjoy creating amazing images!",
+                  });
                   setOpen(false);
                 }
-              } catch (patchErr) {
-                error("Error updating paid_credits after payment:", patchErr);
-                alert(
-                  "Payment succeeded, but failed to update credits. Please contact support.",
-                );
+              } catch (_patchErr: unknown) {
+                addToast({
+                  type: "error",
+                  message:
+                    "Payment succeeded, but failed to update credits. Please contact support.",
+                });
               }
             } else {
-              warn("Payment Verification Failed ❌", result);
-              alert("Payment Verification Failed ❌");
+              addToast({
+                type: "error",
+                message:
+                  "Payment verification failed. Please try again or contact support.",
+              });
             }
-          } catch (err) {
-            error("Error verifying payment:", err);
-            alert("Error verifying payment. Please contact support.");
+          } catch (_err: unknown) {
+            addToast({
+              type: "error",
+              message:
+                "Error verifying payment. Please contact support if this persists.",
+            });
           }
         },
         prefill: {
@@ -213,12 +217,16 @@ export default function Paywall() {
         const rzp = new window.Razorpay(options);
         rzp.open();
       } else {
-        error("Payment SDK not loaded. Please try again.");
-        alert("Payment SDK not loaded. Please try again.");
+        addToast({
+          type: "error",
+          message: "Payment SDK not loaded. Please try again.",
+        });
       }
-    } catch (err) {
-      error("Error while initiating payment:", err);
-      alert("Failed to initiate payment. Please try again.");
+    } catch (_err: unknown) {
+      addToast({
+        type: "error",
+        message: "Failed to initiate payment. Please try again.",
+      });
     } finally {
       setLoading(false);
     }
