@@ -1,5 +1,7 @@
 # StyleSnap AI
 
+[Live Demo](https://stylesnap-ai.vercel.app/)
+
 ## ✅ Progress & Checklist (as of 12/8/2025)
 
 - [x] Work on UI loading states for a smoother experience. _(Done)_

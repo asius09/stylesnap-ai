@@ -42,24 +42,30 @@ export const Footer = () => {
             Contact
           </span>
           <div className="flex items-center gap-3">
-            <SocialIcon
-              name="x"
-              width={32}
-              aria-hidden="true"
-              className="focus-ring-primary focus:outline-none"
-            />
-            <SocialIcon
-              name="github"
-              width={32}
-              aria-hidden="true"
-              className="focus-ring-primary focus:outline-none"
-            />
-            <SocialIcon
-              name="linkedin"
-              width={32}
-              aria-hidden="true"
-              className="focus-ring-primary focus:outline-none"
-            />
+            <Link
+              href="https://x.com/_asius"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="X (formerly Twitter) - @_asius"
+            >
+              <SocialIcon name="x" width={32} aria-hidden="true" />
+            </Link>
+            <Link
+              href="https://github.com/asius09"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="GitHub - @asius09"
+            >
+              <SocialIcon name="github" width={32} aria-hidden="true" />
+            </Link>
+            <Link
+              href="https://www.linkedin.com/in/bobby09/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="LinkedIn - bobby tiwari"
+            >
+              <SocialIcon name="linkedin" width={32} aria-hidden="true" />
+            </Link>
           </div>
         </div>
       </div>

@@ -14,8 +14,9 @@ export default function UploadPage() {
     "Ghibli Art AI Photo Generator - Instantly Turn Photos Into Ghibli Art | StyleSnap AI";
   const description =
     "Transform your photos into magical Ghibli-style artwork instantly with StyleSnap AI. No signup required. Try the trending Ghibli art photo style transfer, upload your photo, and download high-quality Ghibli-inspired images for free!";
-  const url = "https://stylesnap.ai/";
-  const image = "https://stylesnap.ai/ghibli-art.png"; // Use Ghibli art OG image
+  const url = "https://stylesnap-ai.vercel.app/";
+  // Use app.png for social previews (Twitter, OG, etc)
+  const image = "https://stylesnap-ai.vercel.app/app.png";
 
   return (
     <>
