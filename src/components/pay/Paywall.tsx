@@ -305,7 +305,7 @@ export default function Paywall() {
  *    - It should return { status: "ok" } if verified, or { status: "fail" } otherwise.
  *    - See: https://razorpay.com/docs/payment-gateway/web-integration/standard/build-integration/#step-4-verify-the-payment
  *
- * 3. Set your Razorpay public key in your environment as NEXT_PUBLIC_RAZORPAY_KEY_ID.
+ * 3. Set your Razorpay public key in your environment as RAZORPAY_KEY_ID.
  *
  * 4. The Paywall modal will open the Razorpay checkout when "Pay ₹9" is clicked.
  *    - On success, it will call your verify endpoint and close the modal if successful.
