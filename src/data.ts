@@ -71,7 +71,9 @@ export const stylesData: ImageStyle[] = [
       Preserve all facial features, body positions, and background elements—do not add, remove, or alter any content except for the style. 
       The result should be high-resolution, sharp, and visually striking in pop art style.
       Negative Prompt: do not add or remove objects, do not change facial features, do not alter the background, no blurry, low quality, distortion, extra limbs, watermark, text, signature, logo, duplicate, mutation.
-    `.replace(/\s+/g, " ").trim(),
+    `
+      .replace(/\s+/g, " ")
+      .trim(),
   },
   {
     id: "anime-art",
@@ -85,7 +87,9 @@ export const stylesData: ImageStyle[] = [
       Do not change facial features, body proportions, or the scene layout—only apply the anime style. 
       The result should be crisp, detailed, and visually appealing, with a hand-drawn anime look.
       Negative Prompt: do not add or remove elements, do not change the background, no blurry, low quality, distortion, extra limbs, watermark, text, signature, logo, duplicate, mutation.
-    `.replace(/\s+/g, " ").trim(),
+    `
+      .replace(/\s+/g, " ")
+      .trim(),
   },
   {
     id: "disney-art",
@@ -98,7 +102,9 @@ export const stylesData: ImageStyle[] = [
       Do not alter facial features, body positions, or the background—only convert the style to Disney animation. 
       Add a gentle, magical feel with subtle storybook lighting, but keep all original elements in place.
       Negative Prompt: do not add or remove objects, do not change the background, no blurry, low quality, distortion, extra limbs, watermark, text, signature, logo, duplicate, mutation.
-    `.replace(/\s+/g, " ").trim(),
+    `
+      .replace(/\s+/g, " ")
+      .trim(),
   },
   {
     id: "ghibli-art",
@@ -111,7 +117,9 @@ export const stylesData: ImageStyle[] = [
       Strictly preserve the original composition, camera angle, framing, all people, objects, and background details—do not add, remove, or change anything except the artistic style. 
       The result should be dreamy, high-quality, and charming, with all original elements intact.
       Negative Prompt: do not add or remove elements, do not change the background, no blurry, low quality, distortion, extra limbs, watermark, text, signature, logo, duplicate, mutation.
-    `.replace(/\s+/g, " ").trim(),
+    `
+      .replace(/\s+/g, " ")
+      .trim(),
   },
   {
     id: "pop-surrealism",
@@ -123,7 +131,9 @@ export const stylesData: ImageStyle[] = [
       Keep the original composition, camera angle, framing, all subjects, and background exactly as in the input—do not add or remove any elements. 
       Only the artistic style should change to pop surrealism, with vibrant, imaginative, and emotionally surreal qualities.
       Negative Prompt: do not change the layout, do not add or remove objects, no blurry, low quality, blurry textures, watermark.
-    `.replace(/\s+/g, " ").trim(),
+    `
+      .replace(/\s+/g, " ")
+      .trim(),
   },
   {
     id: "hyperreal-robots",
@@ -136,7 +146,9 @@ export const stylesData: ImageStyle[] = [
       Maintain the original composition, camera angle, framing, all subjects, and background—do not add, remove, or change any elements except for converting them to a hyperreal robot style. 
       The result should feel cutting-edge, visually stunning, and realistic, with all original positions and features preserved.
       Negative Prompt: do not add or remove objects, do not change the background, no cartoonish, low quality, blurry, watermark, text, logo, extra limbs, distortion.
-    `.replace(/\s+/g, " ").trim(),
+    `
+      .replace(/\s+/g, " ")
+      .trim(),
   },
   {
     id: "textured-portrait",
@@ -148,6 +160,8 @@ export const stylesData: ImageStyle[] = [
       Keep the original composition, camera angle, framing, all facial features, and background elements exactly as in the input—do not add, remove, or change any content except for the artistic style. 
       The result should be warm, tactile, and artistic, with all original details preserved.
       Negative Prompt: do not change the layout, do not add or remove objects, no flat color, low detail, glitch, watermark.
-    `.replace(/\s+/g, " ").trim(),
+    `
+      .replace(/\s+/g, " ")
+      .trim(),
   },
 ];

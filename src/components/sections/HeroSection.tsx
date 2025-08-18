@@ -320,22 +320,7 @@ export function HeroSection() {
           />
         )}
       </AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0, y: 40, filter: "blur(8px)" }}
-        animate={{
-          opacity: 1,
-          y: 0,
-          filter: "blur(0px)",
-          transition: { duration: 0.6, ease: "easeOut" },
-        }}
-        exit={{
-          opacity: 0,
-          y: -40,
-          filter: "blur(8px)",
-          transition: { duration: 0.4, ease: "easeIn" },
-        }}
-        className="flex h-full w-full flex-col items-center justify-center px-6 pt-30"
-      >
+      <div className="flex h-full w-full flex-col items-center justify-center px-6 pt-30">
         <motion.h1
           initial={{ opacity: 50, y: 40, filter: "blur(8px)" }}
           animate={{
@@ -383,12 +368,22 @@ export function HeroSection() {
         </motion.p>
 
         <motion.div
-          initial={{ opacity: 0, scale: 0.92, filter: "blur(16px)" }}
+          initial={{ opacity: 0, filter: "blur(18px)" }}
           animate={{
             opacity: 1,
-            scale: 1,
             filter: "blur(0px)",
-            transition: { duration: 1.1, ease: "easeInOut" },
+          }}
+          transition={{
+            duration: 0.54,
+            ease: [0.33, 1, 0.68, 1], // Smoother, more natural ease
+          }}
+          exit={{
+            opacity: 0,
+            filter: "blur(12px)",
+            transition: {
+              duration: 0.28,
+              ease: [0.33, 1, 0.68, 1],
+            },
           }}
           className="border-primary/30 bg-background/60 focus-within:border-primary hover:border-primary relative flex min-h-[28rem] w-full max-w-4xl flex-col items-center justify-center overflow-hidden rounded-xl border-1 shadow-[0_2px_12px_0_var(--color-primary),0_0_24px_0_var(--color-primary)] transition duration-200 outline-none hover:shadow-[0_4px_24px_0_var(--color-primary),0_0_48px_0_var(--color-primary)]"
           id="hero-main-card"
@@ -396,8 +391,9 @@ export function HeroSection() {
         >
           {renderMainContent()}
         </motion.div>
-      </motion.div>
+      </div>
 
+      {/* Key Points  */}
       <motion.div
         initial={{ opacity: 0, y: 40, filter: "blur(8px)" }}
         animate={{

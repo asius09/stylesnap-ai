@@ -30,12 +30,12 @@ const featureImages = [
   },
 ];
 
-// Animation config
-const TEXT_ANIMATION_INITIAL = { opacity: 0, y: 48, filter: "blur(32px)" };
+// Animation config (reduced distance, blur, and duration for snappier feel)
+const TEXT_ANIMATION_INITIAL = { opacity: 0, y: 18, filter: "blur(8px)" };
 const TEXT_ANIMATION_VISIBLE = { opacity: 1, y: 0, filter: "blur(0px)" };
 
-const IMAGE_ANIMATION_BASE_DELAY = 0.35;
-const IMAGE_ANIMATION_STAGGER = 0.22;
+const IMAGE_ANIMATION_BASE_DELAY = 0.12;
+const IMAGE_ANIMATION_STAGGER = 0.1;
 
 export const FeatureSection = () => {
   return (
@@ -54,7 +54,7 @@ export const FeatureSection = () => {
         itemProp="headline"
         initial={TEXT_ANIMATION_INITIAL}
         whileInView={TEXT_ANIMATION_VISIBLE}
-        transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
+        transition={{ duration: 0.28, ease: "easeOut", delay: 0.04 }}
         viewport={{ once: true }}
         aria-label="One-Click Style Transformer: Turn Photos Into Art Instantly"
       >
@@ -65,7 +65,7 @@ export const FeatureSection = () => {
         className="text-text-color selection-primary focus-ring-primary mt-3 mb-6 max-w-2xl text-center text-base font-medium md:text-lg"
         initial={TEXT_ANIMATION_INITIAL}
         whileInView={TEXT_ANIMATION_VISIBLE}
-        transition={{ duration: 0.5, ease: "easeOut", delay: 0.18 }}
+        transition={{ duration: 0.28, ease: "easeOut", delay: 0.09 }}
         viewport={{ once: true }}
         tabIndex={0}
         aria-label="Instantly apply trending AI styles like Ghibli, Pop Art, Disney, and Anime to your photos. No signup needed—just upload and transform with one click!"
@@ -83,7 +83,7 @@ export const FeatureSection = () => {
         aria-label="Feature Images"
         initial={TEXT_ANIMATION_INITIAL}
         whileInView={TEXT_ANIMATION_VISIBLE}
-        transition={{ duration: 0.5, ease: "easeOut", delay: 0.26 }}
+        transition={{ duration: 0.28, ease: "easeOut", delay: 0.14 }}
         viewport={{ once: true }}
         tabIndex={0}
       >
@@ -107,10 +107,10 @@ export const FeatureSection = () => {
               tabIndex={0}
               initial={{
                 opacity: 0,
-                y: 80,
-                scale: 0.92,
-                rotate: -8 + idx * 4,
-                filter: "blur(48px)",
+                y: 32,
+                scale: 0.97,
+                rotate: -4 + idx * 2,
+                filter: "blur(12px)",
               }}
               whileInView={{
                 opacity: 1,
@@ -119,9 +119,9 @@ export const FeatureSection = () => {
                 rotate: 0,
                 filter: "blur(0px)",
                 transition: {
-                  duration: 1.5,
+                  duration: 0.48,
                   type: "spring",
-                  bounce: 0.32,
+                  bounce: 0.18,
                   delay:
                     IMAGE_ANIMATION_BASE_DELAY + idx * IMAGE_ANIMATION_STAGGER,
                   ease: "easeOut",
@@ -129,11 +129,11 @@ export const FeatureSection = () => {
               }}
               exit={{
                 opacity: 0,
-                y: 80,
-                scale: 0.92,
-                rotate: -8 + idx * 4,
-                filter: "blur(48px)",
-                transition: { duration: 0.32, ease: "easeIn" },
+                y: 32,
+                scale: 0.97,
+                rotate: -4 + idx * 2,
+                filter: "blur(12px)",
+                transition: { duration: 0.18, ease: "easeIn" },
               }}
               viewport={{ once: true, amount: 0.2 }}
               layout
@@ -144,12 +144,12 @@ export const FeatureSection = () => {
                 style={{ aspectRatio: "4/5" }}
                 initial={false}
                 whileHover={{
-                  scale: 1.045,
-                  boxShadow: "0 8px 32px 0 rgba(80,80,180,0.13)",
+                  scale: 1.025,
+                  boxShadow: "0 8px 24px 0 rgba(80,80,180,0.10)",
                   zIndex: 2,
                   filter: "blur(0px)",
                 }}
-                transition={{ type: "spring", stiffness: 320, damping: 18 }}
+                transition={{ type: "spring", stiffness: 340, damping: 20 }}
                 tabIndex={-1}
                 aria-hidden="false"
               >
@@ -166,7 +166,7 @@ export const FeatureSection = () => {
                   tabIndex={-1}
                   aria-hidden="false"
                   itemProp="contentUrl"
-                  priority={idx === 0}
+                  priority
                 />
               </motion.div>
               <figcaption

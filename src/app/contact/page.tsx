@@ -24,19 +24,19 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <main
-      className="flex min-h-screen flex-col items-center justify-center bg-background text-text-color px-4 py-12"
+      className="bg-background text-text-color flex min-h-screen flex-col items-center justify-center px-4 py-12"
       aria-label="Contact page"
       tabIndex={-1}
     >
       <section
-        className="w-full max-w-md bg-card rounded-2xl shadow-lg p-8 flex flex-col gap-6"
+        className="bg-card flex w-full max-w-md flex-col gap-6 rounded-2xl p-8 shadow-lg"
         aria-labelledby="contact-heading"
         role="region"
       >
         <header>
           <h1
             id="contact-heading"
-            className="text-3xl font-bold mb-2 text-primary"
+            className="text-primary mb-2 text-3xl font-bold"
             tabIndex={0}
           >
             Contact
@@ -48,7 +48,7 @@ export default function ContactPage() {
         <div className="flex flex-col gap-4">
           <div>
             <h2
-              className="text-xl font-semibold mb-1 text-primary"
+              className="text-primary mb-1 text-xl font-semibold"
               id="contact-email-heading"
               tabIndex={0}
             >
@@ -56,7 +56,7 @@ export default function ContactPage() {
             </h2>
             <a
               href="mailto:itsmeaius@gmail.com"
-              className="inline-flex items-center gap-2 text-secondary underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+              className="text-secondary focus-visible:ring-primary inline-flex items-center gap-2 rounded underline focus:outline-none focus-visible:ring-2"
               aria-labelledby="contact-email-heading contact-email-address"
               tabIndex={0}
             >
@@ -81,7 +81,7 @@ export default function ContactPage() {
           </div>
           <div>
             <h2
-              className="text-xl font-semibold mb-1 text-primary"
+              className="text-primary mb-1 text-xl font-semibold"
               id="contact-x-heading"
               tabIndex={0}
             >
@@ -91,7 +91,7 @@ export default function ContactPage() {
               href="https://x.com/_asius"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-secondary underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+              className="text-secondary focus-visible:ring-primary inline-flex items-center gap-2 rounded underline focus:outline-none focus-visible:ring-2"
               aria-labelledby="contact-x-heading contact-x-handle"
               tabIndex={0}
             >
@@ -108,7 +108,7 @@ export default function ContactPage() {
           </div>
         </div>
         <footer
-          className="text-xs text-gray-500 mt-4 text-center"
+          className="mt-4 text-center text-xs text-gray-500"
           aria-label="Copyright"
         >
           &copy; {new Date().getFullYear()} StyleSnap AI. All rights reserved.

@@ -59,6 +59,7 @@ To run the project locally:
 ### File Structure
 
 <!-- FILE_STRUCTURE_START -->
+
 ```
 ├── .DS_Store
 ├── .env
@@ -161,6 +162,7 @@ To run the project locally:
 │       └── trialClient.ts
 └── tsconfig.json
 ```
+
 <!-- FILE_STRUCTURE_END -->
 
 ### Key Directories:

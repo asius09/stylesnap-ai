@@ -3,7 +3,6 @@ import React from "react";
 import { X, RefreshCw } from "lucide-react";
 import Image from "next/image";
 import { ImageData } from "@/types/style.types";
-import { motion } from "motion/react";
 
 interface PreviewCardProps extends ImageData {
   disableRemoveButton?: boolean;
@@ -29,18 +28,7 @@ export const PreviewCard: React.FC<PreviewCardProps> = ({
 
   // Only use style prop in initial, not in animate/exit, to avoid hydration mismatch
   return (
-    <motion.div
-      initial={{
-        opacity: 0,
-        y: 30,
-        scale: 0.95,
-        // Only set style at initial, not in animate/exit
-      }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 30, scale: 0.95 }}
-      transition={{ duration: 0.4 }}
-      className="flex h-[400px] w-full flex-col items-center justify-center overflow-hidden"
-    >
+    <div className="flex h-[400px] w-full flex-col items-center justify-center overflow-hidden">
       <div className="border-primary relative mb-3 flex aspect-[4/5] h-[300px] w-[240px] items-center justify-center overflow-hidden rounded-xl border-1 shadow-lg">
         {imageUrl && (
           <Image
@@ -106,6 +94,6 @@ export const PreviewCard: React.FC<PreviewCardProps> = ({
           {fileSize ? fileSize : "Selected Style"}
         </p>
       </div>
-    </motion.div>
+    </div>
   );
 };
