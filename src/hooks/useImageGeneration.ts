@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { generateImage } from "@/utils/generateImage";
 import { ImageData, GenerateStatus } from "@/types/style.types";
@@ -137,7 +136,9 @@ export const useImageGeneration = ({
       const status = await getTrialUsageStatus(trialId);
       if (status && typeof status === "object") {
         trialStatus = {
-          hasUsedFreeTrial: Boolean((status as { hasUsedFreeTrial?: boolean }).hasUsedFreeTrial),
+          hasUsedFreeTrial: Boolean(
+            (status as { hasUsedFreeTrial?: boolean }).hasUsedFreeTrial,
+          ),
           isPaidUser: Boolean((status as { isPaidUser?: boolean }).isPaidUser),
         };
       }
@@ -219,32 +220,43 @@ export const useImageGeneration = ({
       let errorMessage = "Failed to generate image.";
 
       if (err && typeof err === "object" && err !== null) {
-        if ("code" in err && typeof (err as { code?: string }).code === "string") {
+        if (
+          "code" in err &&
+          typeof (err as { code?: string }).code === "string"
+        ) {
           errorCode = (err as { code?: string }).code as string;
         }
-        if ("status" in err && typeof (err as { status?: number }).status === "number") {
+        if (
+          "status" in err &&
+          typeof (err as { status?: number }).status === "number"
+        ) {
           errorStatus = (err as { status?: number }).status;
         }
-        if ("message" in err && typeof (err as { message?: string }).message === "string") {
+        if (
+          "message" in err &&
+          typeof (err as { message?: string }).message === "string"
+        ) {
           errorMessage = (err as { message?: string }).message as string;
         }
       } else if (typeof err === "string") {
         errorMessage = err;
       }
 
-      // Show actionable dialogs for payment/backend errors, else show toast
+      // Show clear, actionable dialogs or toasts to help the user understand what happened and what to do next.
       if (
         errorCode === "FREE_LIMIT_REACHED" ||
         errorCode === "NEED_PAYMENT" ||
         errorCode === "PAID_CREDITS_EXHAUSTED" ||
+        errorCode === "FORBIDDEN" ||
         errorStatus === 403
       ) {
+        // User has hit a free or paid usage limit: prompt to upgrade or pay
         openDialog(
-          "Payment Required",
+          "Upgrade Required",
           errorMessage ||
-            "You have reached your free image generation limit. Please proceed to payment to generate more images.",
+            "You have reached your free image generation limit. To continue creating images, please upgrade or purchase credits.",
           {
-            label: "Pay ₹9",
+            label: "Upgrade Now",
             onClick: () => {
               setPaywallOpen(true);
               setDialogOpen(false);
@@ -260,17 +272,21 @@ export const useImageGeneration = ({
         errorCode === "MODEL_ERROR" ||
         errorCode === "IMAGE_GENERATOR_ERROR" ||
         errorCode === "REPLICATE_PAYMENT_REQUIRED" ||
+        errorCode === "FRONTEND_REPLICATE_PAYMENT_REQUIRED" ||
+        errorCode === "SERVER_ERROR" ||
+        errorCode === "FRONTEND_NETWORK_ERROR" ||
         errorStatus === 500 ||
         errorStatus === 502 ||
         errorStatus === 520 ||
         errorStatus === 522
       ) {
+        // AI service or model error: inform user and suggest next steps
         openDialog(
-          "Image Generation Error",
+          "Image Generation Failed",
           errorMessage ||
-            "There was a problem with the AI image generation service. Please try again later or contact support if the issue persists.",
+            "The AI image generation service is currently unavailable or encountered an error. Please try again in a few minutes. If the problem continues, contact support.",
           {
-            label: "Okay",
+            label: "Got it",
             onClick: () => setDialogOpen(false),
           },
         );
@@ -279,21 +295,41 @@ export const useImageGeneration = ({
         errorCode === "MISSING_PROMPT_OR_IMAGE_URL" ||
         errorCode === "USER_NOT_FOUND" ||
         errorCode === "DAILY_QUOTA_NOT_FOUND" ||
-        errorCode === "FAILED_FETCH_DAILY_QUOTA"
+        errorCode === "FAILED_FETCH_DAILY_QUOTA" ||
+        errorCode === "BAD_REQUEST" ||
+        errorCode === "NOT_FOUND"
       ) {
+        // User or request error: guide user to refresh or check input
         openDialog(
           "Request Error",
           errorMessage ||
-            "There was a problem with your request. Please refresh and try again.",
+            "There was a problem with your request. Please refresh the page and try again. If this keeps happening, contact support.",
           {
-            label: "Okay",
-            onClick: () => setDialogOpen(false),
+            label: "Refresh Page",
+            onClick: () => {
+              setDialogOpen(false);
+              window.location.reload();
+            },
           },
         );
-      } else {
+      } else if (
+        errorCode === "NETWORK_ERROR" ||
+        errorCode === "INVALID_RESPONSE"
+      ) {
+        // Network or parsing error
         addToast?.({
           type: "error",
-          message: errorMessage || "Failed to generate image.",
+          message:
+            errorMessage ||
+            "A network error occurred while generating your image. Please check your connection and try again.",
+        });
+      } else {
+        // All other errors: show a toast with a clear message
+        addToast?.({
+          type: "error",
+          message:
+            errorMessage ||
+            "Image generation failed. Please check your connection and try again.",
         });
       }
 

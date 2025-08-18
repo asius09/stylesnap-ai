@@ -102,10 +102,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (!isFreeUser && !isPaidUser)
       return failure(ErrorMessage.FREE_TRIAL_ENDED, 403, "NEED_PAYMENT");
 
-    // If free user, check daily quota
+    // If free user, check monthly limit first, then daily limit
     let freeCount = 0,
       quotaId = "",
-      dailyLimit = 0;
+      dailyLimit = 0,
+      freeCountMonthly = 0,
+      monthlyLimit = 0;
     if (isFreeUser && !isPaidUser) {
       const { data: quota, error: quotaError } = await supabase
         .from(DAILY_QUOTA_TABLE_NAME)
@@ -129,7 +131,18 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       freeCount = quota.free_count;
       quotaId = quota.id;
       dailyLimit = quota.daily_limit;
-      // 403: App user free limit reached
+      freeCountMonthly = quota.free_count_month;
+      monthlyLimit = quota.monthly_limit;
+
+      // 403: App user free monthly limit reached
+      if (freeCountMonthly >= monthlyLimit)
+        return failure(
+          ErrorMessage.FREE_LIMIT_REACHED,
+          403,
+          "FREE_MONTHLY_LIMIT_REACHED",
+        );
+
+      // 403: App user free daily limit reached
       if (freeCount >= dailyLimit)
         return failure(
           ErrorMessage.FREE_LIMIT_REACHED,
@@ -145,7 +158,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         return failure(
           ErrorMessage.PAID_CREDITS_EXHAUSTED || "Paid credits exhausted",
           403,
-          "PAID_CREDITS_EXHAUSTED"
+          "PAID_CREDITS_EXHAUSTED",
         );
       }
     }
@@ -166,15 +179,21 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       });
     } catch (err) {
       // 451: Replicate payment required (not app user)
-      const msg = getErrorMessage(err, ErrorMessage.UNKNOWN_REPLICATE) as string;
-      if (typeof msg === "string" && msg.toLowerCase().includes("payment required")) {
+      const msg = getErrorMessage(
+        err,
+        ErrorMessage.UNKNOWN_REPLICATE,
+      ) as string;
+      if (
+        typeof msg === "string" &&
+        msg.toLowerCase().includes("payment required")
+      ) {
         return failure(msg, 451, "REPLICATE_PAYMENT_REQUIRED");
       }
       // 520: Replicate/external API error (unknown)
       return failure(
         typeof msg === "string" ? msg : ErrorMessage.UNKNOWN_REPLICATE,
         520,
-        "REPLICATE_ERROR"
+        "REPLICATE_ERROR",
       );
     }
 

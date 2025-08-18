@@ -236,8 +236,8 @@ export async function generateImage(body: {
           break;
         case 451:
           errorMessage =
-            "Replicate API payment required. Please check your Replicate account or contact support.";
-          errorCode = "REPLICATE_PAYMENT_REQUIRED";
+            "A problem occurred with the AI image generation service. Please try again later or contact support if the issue persists.";
+          errorCode = "FRONTEND_REPLICATE_PAYMENT_REQUIRED";
           break;
         case 500:
           errorMessage = "A server error occurred. Please try again later.";
@@ -245,8 +245,8 @@ export async function generateImage(body: {
           break;
         case 520:
           errorMessage =
-            "Upstream error from Replicate or external API. Please try again in a moment.";
-          errorCode = "UPSTREAM_ERROR";
+            "A network error occurred while generating your image. Please check your connection and try again.";
+          errorCode = "FRONTEND_NETWORK_ERROR";
           break;
         case 522:
           errorMessage =
