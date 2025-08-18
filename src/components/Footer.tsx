@@ -64,26 +64,63 @@ export const Footer = () => {
         </div>
       </div>
 
-      <div className="border-primary/30 selection-primary text-text-color/60 mt-4 flex w-full items-start justify-between gap-2 border-t-[0.5px] py-4 text-xs">
-        <div>© 2025 StyleSnap AI</div>
-        <div className="flex gap-4">
-          <a
-            href="/privacy-policy"
-            className="hover:text-primary focus-ring-primary selection-primary rounded transition-colors hover:underline focus:outline-none"
-            tabIndex={0}
-            aria-label="Privacy Policy"
-          >
-            Privacy Policy
-          </a>
-          <a
-            href="/terms-of-service"
-            className="hover:text-primary focus-ring-primary selection-primary rounded transition-colors hover:underline focus:outline-none"
-            tabIndex={0}
-            aria-label="Terms of Service"
-          >
-            Terms of Service
-          </a>
-        </div>
+      {/* Responsive Footer Links */}
+      <div className="border-primary/30 selection-primary text-text-color/60 mt-4 flex w-full flex-col items-start justify-between gap-4 border-t-[0.5px] py-4 text-xs md:flex-row md:items-center">
+        <div className="mb-2 md:mb-0">© 2025 StyleSnap AI</div>
+        <nav aria-label="Footer navigation" className="w-full md:w-auto">
+          <ul className="flex flex-wrap justify-center gap-x-4 gap-y-2 md:justify-end">
+            <li>
+              <Link
+                href="/privacy-policy"
+                className="hover:text-primary focus-ring-primary selection-primary rounded px-1 py-0.5 transition-colors hover:underline focus:outline-none"
+                tabIndex={0}
+                aria-label="Privacy Policy"
+              >
+                Privacy Policy
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/terms-and-conditions"
+                className="hover:text-primary focus-ring-primary selection-primary rounded px-1 py-0.5 transition-colors hover:underline focus:outline-none"
+                tabIndex={0}
+                aria-label="Terms and Conditions"
+              >
+                Terms &amp; Conditions
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/cancellations-and-refunds"
+                className="hover:text-primary focus-ring-primary selection-primary rounded px-1 py-0.5 transition-colors hover:underline focus:outline-none"
+                tabIndex={0}
+                aria-label="Cancellations and Refunds"
+              >
+                Cancellations &amp; Refunds
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/shipping-policy"
+                className="hover:text-primary focus-ring-primary selection-primary rounded px-1 py-0.5 transition-colors hover:underline focus:outline-none"
+                tabIndex={0}
+                aria-label="Shipping Policy"
+              >
+                Shipping Policy
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/contact"
+                className="hover:text-primary focus-ring-primary selection-primary rounded px-1 py-0.5 transition-colors hover:underline focus:outline-none"
+                tabIndex={0}
+                aria-label="Contact"
+              >
+                Contact
+              </Link>
+            </li>
+          </ul>
+        </nav>
       </div>
     </footer>
   );

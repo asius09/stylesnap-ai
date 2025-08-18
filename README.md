@@ -59,7 +59,6 @@ To run the project locally:
 ### File Structure
 
 <!-- FILE_STRUCTURE_START -->
-
 ```
 ├── .DS_Store
 ├── .env
@@ -101,9 +100,19 @@ To run the project locally:
 │   │   │   │   └── route.ts
 │   │   │   └── verify-payment
 │   │   │       └── route.ts
+│   │   ├── cancellations-and-refunds
+│   │   │   └── page.tsx
+│   │   ├── contact
+│   │   │   └── page.tsx
 │   │   ├── globals.css
 │   │   ├── layout.tsx
-│   │   └── page.tsx
+│   │   ├── page.tsx
+│   │   ├── privacy-policy
+│   │   │   └── page.tsx
+│   │   ├── shipping-policy
+│   │   │   └── page.tsx
+│   │   └── terms-and-conditions
+│   │       └── page.tsx
 │   ├── components
 │   │   ├── AppHeader.tsx
 │   │   ├── ArrowIndicator.tsx
@@ -144,17 +153,14 @@ To run the project locally:
 │   │   ├── model.types.ts
 │   │   └── style.types.ts
 │   └── utils
-│       ├── buildResponse.ts
 │       ├── generateImage.ts
 │       ├── idb.ts
 │       ├── imageClient.ts
-│       ├── resolveImageUrl.ts
 │       ├── supabase
 │       │   └── server.ts
 │       └── trialClient.ts
 └── tsconfig.json
 ```
-
 <!-- FILE_STRUCTURE_END -->
 
 ### Key Directories:
