@@ -20,7 +20,7 @@ export default function TermsAndConditionsPage() {
             Terms &amp; Conditions
           </h1>
           <p className="mb-6 text-base text-gray-300">
-            Please read these Terms and Conditions (<span lang="en" aria-label="Terms">"Terms"</span>, <span lang="en" aria-label="Terms and Conditions">"Terms and Conditions"</span>) carefully before using the StyleSnap AI website (the <span lang="en" aria-label="Service">"Service"</span>, <span lang="en" aria-label="Site">"Site"</span>, "we", "us", or "our"). By accessing or using the Service, you agree to be bound by these Terms. If you disagree with any part of the terms, you may not access the Service.
+            Please read these Terms and Conditions (<span lang="en" aria-label="Terms">&quot;Terms&quot;</span>, <span lang="en" aria-label="Terms and Conditions">&quot;Terms and Conditions&quot;</span>) carefully before using the StyleSnap AI website (the <span lang="en" aria-label="Service">&quot;Service&quot;</span>, <span lang="en" aria-label="Site">&quot;Site&quot;</span>, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;). By accessing or using the Service, you agree to be bound by these Terms. If you disagree with any part of the terms, you may not access the Service.
           </p>
         </header>
         <section className="mb-6" aria-labelledby="use-of-service-heading">
@@ -76,7 +76,7 @@ export default function TermsAndConditionsPage() {
           </h2>
           <ul className="list-disc pl-6 space-y-2">
             <li>
-              The Service is provided on an <span lang="en" aria-label="as is">"AS IS"</span> and <span lang="en" aria-label="as available">"AS AVAILABLE"</span> basis. We make no warranties, express or implied, regarding the Service's accuracy, reliability, or availability.
+              The Service is provided on an <span lang="en" aria-label="as is">&quot;AS IS&quot;</span> and <span lang="en" aria-label="as available">&quot;AS AVAILABLE&quot;</span> basis. We make no warranties, express or implied, regarding the Service&apos;s accuracy, reliability, or availability.
             </li>
             <li>
               We do not guarantee that the Service will be uninterrupted, error-free, secure, or free from viruses or other harmful components.
