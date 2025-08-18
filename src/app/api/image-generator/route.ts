@@ -42,7 +42,6 @@ import { success, failure } from "@/lib/apiResponse";
 // Helpers
 function getErrorMessage(err: unknown, fallback: string) {
   if (typeof err === "object" && err !== null && "message" in err) {
-    // @ts-ignore
     return err.message;
   }
   if (typeof err === "string") return err;
@@ -58,15 +57,8 @@ function isHighlightError(msg: unknown) {
   );
 }
 function extractImageUrl(output: unknown) {
-  if (
-    output &&
-    typeof output === "object" &&
-    "url" in output &&
-    typeof (output as { url: () => string }).url === "function"
-  ) {
-    return (output as { url: () => string }).url();
-  }
-  return undefined;
+  // @ts-expect-error: output may be any object with a url property
+  return output?.url();
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -207,10 +199,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // 522: Replicate/external model error (highlight/model error)
     const generatedImageUrl = extractImageUrl(outputResult);
-    // if (!generatedImageUrl || isHighlightError(generatedImageUrl)) {
-    //   console.log("[API] Highlight/model error", generatedImageUrl);
-    //   return failure(ErrorMessage.HIGHLIGHT_MODEL, 522, "MODEL_ERROR");
-    // }
 
     // Update user trial/quota/credits (no image upload)
     if (isFreeUser && !isPaidUser) {
@@ -232,7 +220,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // 201: Created (success)
     console.log("[API] Success, imageUrl:", generatedImageUrl);
     return success(
-      { imageUrl: outputResult.url(), output: outputResult },
+      { imageUrl: generatedImageUrl, output: outputResult },
       201,
       undefined,
       "Image generated successfully",

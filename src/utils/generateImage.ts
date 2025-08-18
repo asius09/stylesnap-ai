@@ -56,34 +56,12 @@ export async function generateImage(body: {
     }),
   };
 
-  // Log the request
-  console.log(
-    "%c[generateImage] Request:",
-    "color: #1976d2; font-weight: bold;",
-    { prompt, imageUrl, trialId },
-  );
-  console.log(
-    "%c[generateImage] API Config:",
-    "color: #1976d2; font-weight: bold;",
-    apiConfig,
-  );
-
   let response: Response;
   let data: ApiResponse;
 
   try {
     response = await fetch(apiURL, apiConfig);
-    console.log(
-      "%c[generateImage] Raw Response:",
-      "color: #388e3c; font-weight: bold;",
-      response,
-    );
   } catch (networkError) {
-    console.error(
-      "%c[generateImage] Network Error:",
-      "color: #d32f2f; font-weight: bold;",
-      networkError,
-    );
     throw {
       message:
         networkError &&
@@ -99,11 +77,6 @@ export async function generateImage(body: {
 
   try {
     data = (await response.json()) as ApiResponse;
-    console.log(
-      "%c[generateImage] Parsed Response Data:",
-      "color: #388e3c; font-weight: bold;",
-      data,
-    );
   } catch (parseError) {
     let errorMsg = "Failed to parse server response.";
     if (
@@ -114,11 +87,6 @@ export async function generateImage(body: {
     ) {
       errorMsg = `Failed to parse server response: ${(parseError as { message: string }).message}`;
     }
-    console.error(
-      "%c[generateImage] Parse Error:",
-      "color: #d32f2f; font-weight: bold;",
-      parseError,
-    );
     throw {
       message: errorMsg,
       status: response?.status ?? 0,
@@ -140,11 +108,6 @@ export async function generateImage(body: {
     typeof (data as ApiSuccessResponse).data.imageUrl === "string"
   ) {
     if (response.status === 201) {
-      console.log(
-        "%c[generateImage] Success! Image URL:",
-        "color: #388e3c; font-weight: bold;",
-        (data as ApiSuccessResponse).data.imageUrl,
-      );
       return (data as ApiSuccessResponse).data.imageUrl;
     }
   }
@@ -161,13 +124,6 @@ export async function generateImage(body: {
     else if ("error" in data && typeof data.error === "string")
       errorMessage = data.error;
   }
-
-  // Log error code and message before mapping
-  console.warn(
-    "%c[generateImage] Error Code/Message from backend:",
-    "color: #fbc02d; font-weight: bold;",
-    { errorCode, errorMessage, status: response.status },
-  );
 
   // Map backend error codes/status to user-friendly messages
   switch (errorCode) {
@@ -255,18 +211,6 @@ export async function generateImage(body: {
           break;
       }
   }
-
-  // Log the final error that will be thrown
-  console.error(
-    "%c[generateImage] Throwing Error:",
-    "color: #d32f2f; font-weight: bold;",
-    {
-      message: errorMessage,
-      status: response.status,
-      code: errorCode,
-      data,
-    },
-  );
 
   throw {
     message: errorMessage,

@@ -9,17 +9,15 @@ export const useDownloadImage = ({
   selectedStyle: ImageData | null;
 }) => {
   const { addToast } = useToast();
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!generatedImage?.imageUrl) {
       if (addToast)
         addToast({ type: "error", message: "No generated image to download." });
       return;
     }
 
-    // The image is in the public folder, so just trigger a download
-    const url = generatedImage.imageUrl.startsWith("/")
-      ? generatedImage.imageUrl
-      : `/${generatedImage.imageUrl}`;
+    // Always treat as public URL, do not check for structure
+    const url = generatedImage.imageUrl;
 
     const randomPart = Math.floor(
       10000000 + Math.random() * 90000000,
@@ -36,14 +34,28 @@ export const useDownloadImage = ({
     const ext = extMatch ? extMatch[1] : "png";
     const filename = `snapstyle-${styleName}-${randomPart}.${ext}`;
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    try {
+      const response = await fetch(url, { mode: "cors" });
+      if (!response.ok) throw new Error("Failed to fetch image.");
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
 
-    if (addToast) addToast({ type: "success", message: "Image downloaded." });
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(blobUrl);
+
+      if (addToast) addToast({ type: "success", message: "Image downloaded." });
+    } catch (error) {
+      if (addToast)
+        addToast({
+          type: "error",
+          message: `Failed to download image. ${error instanceof Error ? error.message : ""}`,
+        });
+    }
   };
 
   return handleDownload;
