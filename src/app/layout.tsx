@@ -3,7 +3,7 @@ import "./globals.css";
 import { ToastContainer, ToastProvider } from "@/components/Toast";
 import { MessageDialogProvider } from "@/components/MessageDialog";
 import { PaywallProvider } from "@/components/pay/Paywall";
-
+import { SpeedInsights } from "@vercel/speed-insights/next";
 // ---
 // Metadata for StyleSnap AI
 // See @README.md and @page.tsx for app description and SEO focus
@@ -68,7 +68,10 @@ export default function RootLayout({
         <ToastProvider>
           <ToastContainer />
           <PaywallProvider>
-            <MessageDialogProvider>{children}</MessageDialogProvider>
+            <MessageDialogProvider>
+              {children}
+              <SpeedInsights />
+            </MessageDialogProvider>
           </PaywallProvider>
         </ToastProvider>
       </body>
