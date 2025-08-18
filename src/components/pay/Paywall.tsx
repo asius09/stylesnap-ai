@@ -181,8 +181,7 @@ export default function Paywall() {
               } catch (_patchErr: unknown) {
                 addToast({
                   type: "error",
-                  message:
-                    "Payment succeeded, but failed to update credits. Please contact support.",
+                  message: `Payment succeeded, but failed to update credits. Please contact support. Error: ${_patchErr instanceof Error ? _patchErr.message : String(_patchErr)}`,
                 });
               }
             } else {
@@ -193,10 +192,10 @@ export default function Paywall() {
               });
             }
           } catch (_err: unknown) {
+            const errorMessage = `Error verifying payment. Please contact support if this persists. Error: ${_err instanceof Error ? _err.message : String(_err)}`;
             addToast({
               type: "error",
-              message:
-                "Error verifying payment. Please contact support if this persists.",
+              message: errorMessage,
             });
           }
         },
@@ -225,7 +224,7 @@ export default function Paywall() {
     } catch (_err: unknown) {
       addToast({
         type: "error",
-        message: "Failed to initiate payment. Please try again.",
+        message: `Failed to initiate payment. Please try again. Error: ${_err instanceof Error ? _err.message : String(_err)}`,
       });
     } finally {
       setLoading(false);

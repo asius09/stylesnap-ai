@@ -373,7 +373,7 @@ export function HeroSection() {
             filter: "blur(8px)",
             transition: { duration: 0.3, ease: "easeIn" },
           }}
-          className="selection-primary text-text-color/80 font-base relative z-10 mb-16 rounded text-center text-xs md:px-3 md:text-base focus-ring-primary"
+          className="selection-primary text-text-color/80 font-base focus-ring-primary relative z-10 mb-16 rounded text-center text-xs md:px-3 md:text-base"
           id="hero-subtitle"
           tabIndex={0}
           aria-label="Upload a photo and apply a style in seconds."

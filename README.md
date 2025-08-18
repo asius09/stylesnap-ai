@@ -330,3 +330,66 @@ The API uses a clear set of HTTP status codes to communicate the result of each 
 | 522    | Replicate/external model error (e.g., highlight/model error)  |
 
 These status codes are consistently used in the route to provide precise feedback for both success and error scenarios, making it easier to handle responses on the frontend and debug issues.
+
+---
+
+### **Prompt Building Guide for Kontext (FLUX.1)**
+
+#### **What You Can Do**
+
+Kontext excels at:
+
+- **Style Transfer:** Convert photos to different art styles (watercolor, oil painting, sketches)
+- **Object/Clothing Changes:** Modify hairstyles, add accessories, change colors
+- **Text Editing:** Replace text in signs, posters, and labels
+- **Background Swapping:** Change environments while preserving subjects
+- **Character Consistency:** Maintain identity across multiple edits
+
+---
+
+#### **Prompting Best Practices**
+
+**Be Specific**
+
+- Use clear, detailed language with exact colors and descriptions.
+- Avoid vague terms like “make it better”.
+- Name subjects directly: “the woman with short black hair” vs. “she”.
+
+**Preserve Intentionally**
+
+- Specify what should stay the same: “while keeping the same facial features”.
+- Use “maintain the original composition” to preserve layout.
+- For background changes: “Change the background to a beach while keeping the person in the exact same position”.
+
+**Text Editing Tips**
+
+- Use quotation marks: “replace ‘old text’ with ‘new text’”.
+- Stick to readable fonts.
+- Match text length when possible to preserve layout.
+
+**Style Transfer**
+
+- Be specific about artistic styles: “impressionist painting” not “artistic”.
+- Reference known movements: “Renaissance” or “1960s pop art”.
+- Describe key traits: “visible brushstrokes, thick paint texture”.
+
+**Complex Edits**
+
+- Break into smaller steps for better results.
+- Start simple and iterate.
+- Use descriptive action verbs instead of “transform” for more control.
+
+---
+
+#### **Tips Summary**
+
+- Be specific with colors, styles, and descriptions
+- Start simple and iterate on successful edits
+- Preserve intentionally by stating what to keep unchanged
+- Use quotation marks for exact text replacements
+- Control composition by specifying camera angles and framing
+- Choose verbs carefully — “change” vs “transform” gives different results
+
+---
+
+> **Use this guide when building prompts for best results with Kontext. Don’t lose any words from the above — every detail helps!**

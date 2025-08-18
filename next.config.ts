@@ -9,6 +9,12 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "/storage/v1/object/public/upload_images/**",
       },
+      {
+        protocol: "https",
+        hostname: "replicate.delivery",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
 };
