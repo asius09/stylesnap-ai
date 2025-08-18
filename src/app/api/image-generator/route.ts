@@ -42,12 +42,14 @@ import { success, failure } from "@/lib/apiResponse";
 // Helpers
 function getErrorMessage(err: unknown, fallback: string) {
   if (typeof err === "object" && err !== null && "message" in err) {
+    // @ts-ignore
     return err.message;
   }
   if (typeof err === "string") return err;
   return fallback;
 }
-function isHighlightError(msg: string) {
+function isHighlightError(msg: unknown) {
+  if (typeof msg !== "string") return false;
   const l = msg.toLowerCase();
   return (
     l.includes("hgihet light") ||
@@ -55,9 +57,7 @@ function isHighlightError(msg: string) {
     l.includes("high light error")
   );
 }
-function extractImageUrl(output: unknown): string | undefined {
-  // According to Replicate docs, output.url() should be used
-  // But output may not always have url() method, so check for it
+function extractImageUrl(output: unknown) {
   if (
     output &&
     typeof output === "object" &&
@@ -73,17 +73,26 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Parse and validate request
     const supabase = await createClient();
-    const { trialId, prompt, image_url } = await request.json();
+    const body = await request.json();
+    const trialId = body && "trialId" in body ? body.trialId : undefined;
+    const prompt = body && "prompt" in body ? body.prompt : undefined;
+    const image_url = body && "image_url" in body ? body.image_url : undefined;
+
+    console.log("[API] Received request:", { trialId, prompt, image_url });
 
     // 400: Missing trialId or prompt/image_url
-    if (!trialId)
+    if (!trialId) {
+      console.log("[API] Missing trialId");
       return failure(ErrorMessage.MISSING_TRIAL_ID, 400, "MISSING_TRIAL_ID");
-    if (!prompt || !image_url)
+    }
+    if (!prompt || !image_url) {
+      console.log("[API] Missing prompt or image_url");
       return failure(
         ErrorMessage.MISSING_PROMPT_OR_IMAGE_URL,
         400,
         "MISSING_PROMPT_OR_IMAGE_URL",
       );
+    }
 
     // 404: User not found
     const { data: user, error: userError } = await supabase
@@ -91,8 +100,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       .select()
       .eq("id", trialId)
       .single();
-    if (userError || !user)
+    if (userError || !user) {
+      console.log("[API] User not found", userError);
       return failure(ErrorMessage.USER_NOT_FOUND, 404, "USER_NOT_FOUND");
+    }
 
     // Supabase: check free/paid user and credits
     const isFreeUser = !user.free_used;
@@ -165,9 +176,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Generate image with Replicate
     const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN });
-    let output;
+    let outputResult;
     try {
-      output = await replicate.run(REPLICATE_IMAGE_MODEL, {
+      outputResult = await replicate.run(REPLICATE_IMAGE_MODEL, {
         input: {
           prompt,
           input_image: image_url,
@@ -177,19 +188,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           prompt_upsampling: false,
         },
       });
+      console.log("[API] Replicate output:", outputResult);
     } catch (err) {
-      // 451: Replicate payment required (not app user)
-      const msg = getErrorMessage(
-        err,
-        ErrorMessage.UNKNOWN_REPLICATE,
-      ) as string;
+      const msg = getErrorMessage(err, ErrorMessage.UNKNOWN_REPLICATE);
+      console.log("[API] Replicate error:", msg);
       if (
         typeof msg === "string" &&
         msg.toLowerCase().includes("payment required")
       ) {
         return failure(msg, 451, "REPLICATE_PAYMENT_REQUIRED");
       }
-      // 520: Replicate/external API error (unknown)
       return failure(
         typeof msg === "string" ? msg : ErrorMessage.UNKNOWN_REPLICATE,
         520,
@@ -198,9 +206,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // 522: Replicate/external model error (highlight/model error)
-    const generatedImageUrl = extractImageUrl(output);
-    if (!generatedImageUrl || isHighlightError(generatedImageUrl))
-      return failure(ErrorMessage.HIGHLIGHT_MODEL, 522, "MODEL_ERROR");
+    const generatedImageUrl = extractImageUrl(outputResult);
+    // if (!generatedImageUrl || isHighlightError(generatedImageUrl)) {
+    //   console.log("[API] Highlight/model error", generatedImageUrl);
+    //   return failure(ErrorMessage.HIGHLIGHT_MODEL, 522, "MODEL_ERROR");
+    // }
 
     // Update user trial/quota/credits (no image upload)
     if (isFreeUser && !isPaidUser) {
@@ -220,21 +230,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // 201: Created (success)
+    console.log("[API] Success, imageUrl:", generatedImageUrl);
     return success(
-      { imageUrl: generatedImageUrl },
+      { imageUrl: outputResult.url(), output: outputResult },
       201,
       undefined,
       "Image generated successfully",
     );
   } catch (err) {
-    // Only our server errors should be 500
     const msg = getErrorMessage(err, ErrorMessage.UNKNOWN);
+    console.log("[API] Server error:", msg);
     if (typeof msg === "string") {
       if (isHighlightError(msg))
-        // 522: Replicate/external model error
         return failure(ErrorMessage.HIGHLIGHT_MODEL, 522, "MODEL_ERROR");
       if (msg.toLowerCase().includes("payment required"))
-        // 403: App user payment required
         return failure(msg, 403, "NEED_PAYMENT");
       if (
         msg.toLowerCase().includes("replicate") ||
@@ -242,13 +251,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         msg.toLowerCase().includes("upstream") ||
         msg.toLowerCase().includes("model error")
       ) {
-        // 520: Replicate/external API error
         return failure(msg, 520, "REPLICATE_ERROR");
       }
-      // 500: Our server error
       return failure(msg, 500, "IMAGE_GENERATOR_ERROR");
     } else {
-      // 500: Our server error
       return failure(ErrorMessage.UNKNOWN, 500, "IMAGE_GENERATOR_ERROR");
     }
   }

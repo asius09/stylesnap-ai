@@ -57,6 +57,11 @@ export const stepsContent = [
  * SEO-optimized style data for FluxPro (Replicate AI) model.
  * Prompts are engineered for precise style transfer: only the visual style changes,
  * all original subjects, composition, and details are strictly preserved.
+ *
+ * Each prompt is designed to ensure the output image is always high quality, visually appealing, and free from any unwanted or inappropriate artifacts.
+ * If the input image has any flaws (such as distorted faces, missing features, or low quality), the model should intelligently correct and improve these issues, especially for character faces and important details.
+ * The style transfer must strictly follow the described style guide, and the result should never introduce errors, bad anatomy, or degrade the image in any way.
+ * The output must always be safe, clean, and professional.
  */
 export const stylesData: ImageStyle[] = [
   {
@@ -65,12 +70,14 @@ export const stylesData: ImageStyle[] = [
     category: "Pop Art",
     imageUrl: "/1980s-pop-art.png",
     stylePrompt: `
-      Change the entire image to the style of 1980s pop art, inspired by Roy Lichtenstein and Andy Warhol. 
-      Use bold primary colors, halftone dots, thick black outlines, and strong contrast. 
-      Maintain the original composition, camera angle, framing, and all subjects and background exactly as in the input image. 
-      Preserve all facial features, body positions, and background elements—do not add, remove, or alter any content except for the style. 
-      The result should be high-resolution, sharp, and visually striking in pop art style.
-      Negative Prompt: do not add or remove objects, do not change facial features, do not alter the background, no blurry, low quality, distortion, extra limbs, watermark, text, signature, logo, duplicate, mutation.
+      Change the entire image to the style of 1980s pop art, inspired by Roy Lichtenstein and Andy Warhol.
+      Use bold primary colors, halftone dots, thick black outlines, and strong contrast.
+      Strictly follow the pop art style guide and ensure the result is visually striking and professional.
+      Maintain the original composition, camera angle, framing, and all subjects and background exactly as in the input image.
+      If the input image has any flaws (such as distorted or low-quality faces, missing features, or artifacts), intelligently correct and improve them, especially for character faces and important details.
+      Do not add, remove, or alter any content except for the style.
+      The result must be high-resolution, sharp, and free from any errors or unwanted artifacts.
+      Negative Prompt: do not add or remove objects, do not change facial features (except to improve or correct them if needed), do not alter the background, no blurry, low quality, distortion, extra limbs, watermark, text, signature, logo, duplicate, mutation, bad anatomy, bad hands, bad face, nsfw, inappropriate, error, glitch.
     `
       .replace(/\s+/g, " ")
       .trim(),
@@ -81,12 +88,14 @@ export const stylesData: ImageStyle[] = [
     category: "Anime",
     imageUrl: "/anime-art.png",
     stylePrompt: `
-      Change the image to a polished anime illustration in the style of Makoto Shinkai. 
-      Use clean lines, expressive eyes, smooth skin, soft shading, and vibrant colors with cinematic lighting. 
-      Keep the original composition, camera angle, framing, and all people, objects, and background elements exactly as in the input. 
-      Do not change facial features, body proportions, or the scene layout—only apply the anime style. 
-      The result should be crisp, detailed, and visually appealing, with a hand-drawn anime look.
-      Negative Prompt: do not add or remove elements, do not change the background, no blurry, low quality, distortion, extra limbs, watermark, text, signature, logo, duplicate, mutation.
+      Change the image to a polished anime illustration in the style of Makoto Shinkai.
+      Use clean lines, expressive eyes, smooth skin, soft shading, and vibrant colors with cinematic lighting.
+      Strictly follow the anime style guide and ensure the result is crisp, detailed, and visually appealing.
+      Keep the original composition, camera angle, framing, and all people, objects, and background elements exactly as in the input.
+      If the input image has any flaws (such as distorted faces, missing features, or low quality), intelligently correct and improve them, especially for character faces and important details.
+      Do not change facial features or body proportions (except to improve or correct them if needed), or the scene layout—only apply the anime style.
+      The result must be high-resolution, clean, and free from any errors or unwanted artifacts.
+      Negative Prompt: do not add or remove elements, do not change the background, no blurry, low quality, distortion, extra limbs, watermark, text, signature, logo, duplicate, mutation, bad anatomy, bad hands, bad face, nsfw, inappropriate, error, glitch.
     `
       .replace(/\s+/g, " ")
       .trim(),
@@ -97,11 +106,14 @@ export const stylesData: ImageStyle[] = [
     category: "Disney",
     imageUrl: "/disney-art.png",
     stylePrompt: `
-      Change the image to classic Disney animation style, using soft features, bright warm colors, painterly shading, and expressive eyes. 
-      Maintain the original composition, camera angle, framing, all subjects, and background exactly as in the input image. 
-      Do not alter facial features, body positions, or the background—only convert the style to Disney animation. 
+      Change the image to classic Disney animation style, using soft features, bright warm colors, painterly shading, and expressive eyes.
+      Strictly follow the Disney style guide and ensure the result is magical, clean, and professional.
+      Maintain the original composition, camera angle, framing, all subjects, and background exactly as in the input image.
+      If the input image has any flaws (such as distorted faces, missing features, or low quality), intelligently correct and improve them, especially for character faces and important details.
+      Do not alter facial features or body positions (except to improve or correct them if needed), or the background—only convert the style to Disney animation.
       Add a gentle, magical feel with subtle storybook lighting, but keep all original elements in place.
-      Negative Prompt: do not add or remove objects, do not change the background, no blurry, low quality, distortion, extra limbs, watermark, text, signature, logo, duplicate, mutation.
+      The result must be high-resolution, clean, and free from any errors or unwanted artifacts.
+      Negative Prompt: do not add or remove objects, do not change the background, no blurry, low quality, distortion, extra limbs, watermark, text, signature, logo, duplicate, mutation, bad anatomy, bad hands, bad face, nsfw, inappropriate, error, glitch.
     `
       .replace(/\s+/g, " ")
       .trim(),
@@ -112,11 +124,13 @@ export const stylesData: ImageStyle[] = [
     category: "Ghibli",
     imageUrl: "/ghibli-art.png",
     stylePrompt: `
-      Change the image to Studio Ghibli style, inspired by Spirited Away and Howl’s Moving Castle. 
-      Use hand-painted backgrounds, soft pastel colors, a warm glow, and gentle expressions with clean outlines. 
-      Strictly preserve the original composition, camera angle, framing, all people, objects, and background details—do not add, remove, or change anything except the artistic style. 
-      The result should be dreamy, high-quality, and charming, with all original elements intact.
-      Negative Prompt: do not add or remove elements, do not change the background, no blurry, low quality, distortion, extra limbs, watermark, text, signature, logo, duplicate, mutation.
+      Change the image to Studio Ghibli style, inspired by Spirited Away and Howl’s Moving Castle.
+      Use hand-painted backgrounds, soft pastel colors, a warm glow, and gentle expressions with clean outlines.
+      Strictly follow the Ghibli style guide and ensure the result is dreamy, high-quality, and charming.
+      Strictly preserve the original composition, camera angle, framing, all people, objects, and background details—do not add, remove, or change anything except the artistic style.
+      If the input image has any flaws (such as distorted faces, missing features, or low quality), intelligently correct and improve them, especially for character faces and important details.
+      The result must be high-resolution, clean, and free from any errors or unwanted artifacts.
+      Negative Prompt: do not add or remove elements, do not change the background, no blurry, low quality, distortion, extra limbs, watermark, text, signature, logo, duplicate, mutation, bad anatomy, bad hands, bad face, nsfw, inappropriate, error, glitch.
     `
       .replace(/\s+/g, " ")
       .trim(),
@@ -127,10 +141,13 @@ export const stylesData: ImageStyle[] = [
     category: "Pop Surrealism",
     imageUrl: "/pop-surrealism.png",
     stylePrompt: `
-      Change the image to pop surrealism style, blending whimsical characters, neon accents, and playful absurdity. 
-      Keep the original composition, camera angle, framing, all subjects, and background exactly as in the input—do not add or remove any elements. 
-      Only the artistic style should change to pop surrealism, with vibrant, imaginative, and emotionally surreal qualities.
-      Negative Prompt: do not change the layout, do not add or remove objects, no blurry, low quality, blurry textures, watermark.
+      Change the image to pop surrealism style, blending whimsical characters, neon accents, and playful absurdity.
+      Strictly follow the pop surrealism style guide and ensure the result is vibrant, imaginative, and emotionally surreal.
+      Keep the original composition, camera angle, framing, all subjects, and background exactly as in the input—do not add or remove any elements.
+      If the input image has any flaws (such as distorted faces, missing features, or low quality), intelligently correct and improve them, especially for character faces and important details.
+      Only the artistic style should change to pop surrealism.
+      The result must be high-resolution, clean, and free from any errors or unwanted artifacts.
+      Negative Prompt: do not change the layout, do not add or remove objects, no blurry, low quality, blurry textures, watermark, bad anatomy, bad hands, bad face, nsfw, inappropriate, error, glitch.
     `
       .replace(/\s+/g, " ")
       .trim(),
@@ -141,11 +158,13 @@ export const stylesData: ImageStyle[] = [
     category: "Futuristic & Sci-Fi",
     imageUrl: "/retro-robots.png",
     stylePrompt: `
-      Change the image to a hyper-realistic futuristic robot style, with intricate mechanical details, advanced technology, and lifelike metallic textures. 
-      Use dramatic lighting, sharp focus, and a cinematic atmosphere. 
-      Maintain the original composition, camera angle, framing, all subjects, and background—do not add, remove, or change any elements except for converting them to a hyperreal robot style. 
-      The result should feel cutting-edge, visually stunning, and realistic, with all original positions and features preserved.
-      Negative Prompt: do not add or remove objects, do not change the background, no cartoonish, low quality, blurry, watermark, text, logo, extra limbs, distortion.
+      Change the image to a hyper-realistic futuristic robot style, with intricate mechanical details, advanced technology, and lifelike metallic textures.
+      Use dramatic lighting, sharp focus, and a cinematic atmosphere.
+      Strictly follow the hyperreal robot style guide and ensure the result is cutting-edge, visually stunning, and realistic.
+      Maintain the original composition, camera angle, framing, all subjects, and background—do not add, remove, or change any elements except for converting them to a hyperreal robot style.
+      If the input image has any flaws (such as distorted faces, missing features, or low quality), intelligently correct and improve them, especially for character faces and important details.
+      The result must be high-resolution, clean, and free from any errors or unwanted artifacts.
+      Negative Prompt: do not add or remove objects, do not change the background, no cartoonish, low quality, blurry, watermark, text, logo, extra limbs, distortion, bad anatomy, bad hands, bad face, nsfw, inappropriate, error, glitch.
     `
       .replace(/\s+/g, " ")
       .trim(),
@@ -156,10 +175,12 @@ export const stylesData: ImageStyle[] = [
     category: "Mixed Media / Collage",
     imageUrl: "/textured-portrait.png",
     stylePrompt: `
-      Change the image to a stylized portrait with layered textures, hand-drawn strokes, and a collage feel using vintage paper or fabric textures. 
-      Keep the original composition, camera angle, framing, all facial features, and background elements exactly as in the input—do not add, remove, or change any content except for the artistic style. 
-      The result should be warm, tactile, and artistic, with all original details preserved.
-      Negative Prompt: do not change the layout, do not add or remove objects, no flat color, low detail, glitch, watermark.
+      Change the image to a stylized portrait with layered textures, hand-drawn strokes, and a collage feel using vintage paper or fabric textures.
+      Strictly follow the textured portrait style guide and ensure the result is warm, tactile, and artistic.
+      Keep the original composition, camera angle, framing, all facial features, and background elements exactly as in the input—do not add, remove, or change any content except for the artistic style.
+      If the input image has any flaws (such as distorted faces, missing features, or low quality), intelligently correct and improve them, especially for character faces and important details.
+      The result must be high-resolution, clean, and free from any errors or unwanted artifacts.
+      Negative Prompt: do not change the layout, do not add or remove objects, no flat color, low detail, glitch, watermark, bad anatomy, bad hands, bad face, nsfw, inappropriate, error.
     `
       .replace(/\s+/g, " ")
       .trim(),

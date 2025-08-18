@@ -95,40 +95,12 @@ export function HeroSection() {
 
     if (generateStatus === "success" && generatedImage?.imageUrl) {
       return (
-        <motion.div
-          initial={{ opacity: 0, y: 40, filter: "blur(8px)" }}
-          animate={{
-            opacity: 1,
-            y: 0,
-            filter: "blur(0px)",
-            transition: { duration: 0.6, ease: "easeOut" },
-          }}
-          exit={{
-            opacity: 0,
-            y: -40,
-            filter: "blur(8px)",
-            transition: { duration: 0.4, ease: "easeIn" },
-          }}
+        <div
           className="flex h-full w-full flex-col items-center justify-center gap-8 py-8 md:flex-row"
           id="hero-generation-success"
           aria-label="Photo style transfer result"
         >
-          <motion.div
-            initial={{ opacity: 0, x: -40, filter: "blur(8px)" }}
-            animate={{
-              opacity: 1,
-              x: 0,
-              filter: "blur(0px)",
-              transition: { duration: 0.5, ease: "easeOut" },
-            }}
-            exit={{
-              opacity: 0,
-              x: -40,
-              filter: "blur(8px)",
-              transition: { duration: 0.3, ease: "easeIn" },
-            }}
-            className="flex w-full flex-col items-center justify-center md:w-1/2"
-          >
+          <div className="flex w-full flex-col items-center justify-center md:w-1/2">
             <PreviewCard
               id={generatedImage.id}
               imageUrl={generatedImage.imageUrl ?? ""}
@@ -139,26 +111,11 @@ export function HeroSection() {
               fileSize={generatedImage.fileSize}
               aria-label="Styled photo preview"
             />
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, x: 40, filter: "blur(8px)" }}
-            animate={{
-              opacity: 1,
-              x: 0,
-              filter: "blur(0px)",
-              transition: { duration: 0.5, ease: "easeOut" },
-            }}
-            exit={{
-              opacity: 0,
-              x: 40,
-              filter: "blur(8px)",
-              transition: { duration: 0.3, ease: "easeIn" },
-            }}
-            className="flex w-full flex-col items-center justify-center gap-10 md:w-1/2"
-          >
+          </div>
+          <div className="flex w-full flex-col items-center justify-center gap-4 px-4 md:w-1/2">
             <Button
               variant={"gradient"}
-              className="hidden w-full"
+              className="w-full max-w-xs rounded-4xl"
               onClick={handleDownloadGeneratedImage}
               id="download-generated-image-btn"
               aria-label="Download styled photo"
@@ -177,8 +134,8 @@ export function HeroSection() {
             >
               Style Another for ₹9
             </Button>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       );
     }
 
