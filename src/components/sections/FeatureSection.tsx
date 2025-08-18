@@ -30,9 +30,12 @@ const featureImages = [
   },
 ];
 
-// Animation config: start a little after HeroSection (HeroSection uses 0.6s for main, so start at 0.8s)
-const IMAGE_ANIMATION_BASE_DELAY = 0.8;
-const IMAGE_ANIMATION_STAGGER = 0.18;
+// Animation config
+const TEXT_ANIMATION_INITIAL = { opacity: 0, y: 48, filter: "blur(32px)" };
+const TEXT_ANIMATION_VISIBLE = { opacity: 1, y: 0, filter: "blur(0px)" };
+
+const IMAGE_ANIMATION_BASE_DELAY = 0.35;
+const IMAGE_ANIMATION_STAGGER = 0.22;
 
 export const FeatureSection = () => {
   return (
@@ -49,20 +52,24 @@ export const FeatureSection = () => {
         className="selection-primary focus-ring-primary text-text-color text-center text-3xl font-extrabold drop-shadow-lg outline-none md:text-4xl"
         tabIndex={0}
         itemProp="headline"
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.7 }}
+        initial={TEXT_ANIMATION_INITIAL}
+        whileInView={TEXT_ANIMATION_VISIBLE}
+        transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
         viewport={{ once: true }}
+        aria-label="One-Click Style Transformer: Turn Photos Into Art Instantly"
       >
         One-Click Style Transformer:{" "}
         <span className="text-primary">Turn Photos Into Art</span> Instantly
       </motion.h2>
       <motion.p
-        className="text-text-color mt-3 mb-6 max-w-2xl text-center text-base font-medium md:text-lg"
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.8 }}
+        className="text-text-color selection-primary focus-ring-primary mt-3 mb-6 max-w-2xl text-center text-base font-medium md:text-lg"
+        initial={TEXT_ANIMATION_INITIAL}
+        whileInView={TEXT_ANIMATION_VISIBLE}
+        transition={{ duration: 0.5, ease: "easeOut", delay: 0.18 }}
         viewport={{ once: true }}
+        tabIndex={0}
+        aria-label="Instantly apply trending AI styles like Ghibli, Pop Art, Disney, and Anime to your photos. No signup needed—just upload and transform with one click!"
+        itemProp="description"
       >
         Instantly apply trending AI styles like{" "}
         <span className="text-primary font-semibold">Ghibli</span>,{" "}
@@ -72,12 +79,13 @@ export const FeatureSection = () => {
         photos. No signup needed—just upload and transform with one click!
       </motion.p>
       <motion.p
-        className="text-text-color mt-16 mb-3 w-full text-center text-base font-medium md:text-lg"
+        className="text-text-color selection-primary focus-ring-primary mt-16 mb-3 w-full text-center text-base font-medium md:text-lg"
         aria-label="Feature Images"
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.9 }}
+        initial={TEXT_ANIMATION_INITIAL}
+        whileInView={TEXT_ANIMATION_VISIBLE}
+        transition={{ duration: 0.5, ease: "easeOut", delay: 0.26 }}
         viewport={{ once: true }}
+        tabIndex={0}
       >
         Feature Images
       </motion.p>
@@ -92,16 +100,17 @@ export const FeatureSection = () => {
             <motion.figure
               key={img.label}
               className="bg-card selection-primary focus-ring-primary shadow-primary/20 mb-4 break-inside-avoid rounded-xl p-2 shadow-[0_0_0_1px_var(--tw-shadow-color)] backdrop-blur-md outline-none"
-              aria-label={img.label}
-              aria-describedby={`feature-desc-${idx}`}
+              aria-label={`Example: ${img.label} style - ${img.alt}`}
+              aria-describedby={`feature-desc-${idx} feature-alt-${idx}`}
               itemScope
               itemType="https://schema.org/ImageObject"
+              tabIndex={0}
               initial={{
                 opacity: 0,
                 y: 80,
                 scale: 0.92,
-                rotate: -8 + idx * 5,
-                filter: "blur(18px)",
+                rotate: -8 + idx * 4,
+                filter: "blur(48px)",
               }}
               whileInView={{
                 opacity: 1,
@@ -110,34 +119,39 @@ export const FeatureSection = () => {
                 rotate: 0,
                 filter: "blur(0px)",
                 transition: {
-                  duration: 1.1,
+                  duration: 1.5,
                   type: "spring",
                   bounce: 0.32,
                   delay:
                     IMAGE_ANIMATION_BASE_DELAY + idx * IMAGE_ANIMATION_STAGGER,
+                  ease: "easeOut",
                 },
               }}
               exit={{
                 opacity: 0,
                 y: 80,
                 scale: 0.92,
-                rotate: -8 + idx * 5,
-                filter: "blur(18px)",
-                transition: { duration: 0.7 },
+                rotate: -8 + idx * 4,
+                filter: "blur(48px)",
+                transition: { duration: 0.32, ease: "easeIn" },
               }}
               viewport={{ once: true, amount: 0.2 }}
               layout
+              role="listitem"
             >
               <motion.div
                 className="selection-primary focus-ring-primary relative w-full overflow-hidden rounded-lg outline-none"
                 style={{ aspectRatio: "4/5" }}
                 initial={false}
                 whileHover={{
-                  scale: 1.04,
-                  boxShadow: "0 8px 32px 0 rgba(80,80,180,0.10)",
+                  scale: 1.045,
+                  boxShadow: "0 8px 32px 0 rgba(80,80,180,0.13)",
                   zIndex: 2,
+                  filter: "blur(0px)",
                 }}
-                transition={{ type: "spring", stiffness: 300, damping: 18 }}
+                transition={{ type: "spring", stiffness: 320, damping: 18 }}
+                tabIndex={-1}
+                aria-hidden="false"
               >
                 <Image
                   src={img.src}

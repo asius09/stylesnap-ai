@@ -68,20 +68,7 @@ export function HeroSection() {
   function renderMainContent() {
     if (!file) {
       return (
-        <motion.div
-          initial={{ opacity: 0, y: 40, filter: "blur(8px)" }}
-          animate={{
-            opacity: 1,
-            y: 0,
-            filter: "blur(0px)",
-            transition: { duration: 0.6, ease: "easeOut" },
-          }}
-          exit={{
-            opacity: 0,
-            y: -40,
-            filter: "blur(8px)",
-            transition: { duration: 0.4, ease: "easeIn" },
-          }}
+        <div
           className="flex w-full flex-col items-center justify-center py-8"
           id="hero-upload-section"
           aria-label="Upload your photo"
@@ -89,33 +76,20 @@ export function HeroSection() {
           <HeroDropZone
             onFileSelected={(selectedFile: ImageData) => setFile(selectedFile)}
           />
-        </motion.div>
+        </div>
       );
     }
 
     if (loading) {
       return (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, filter: "blur(8px)" }}
-          animate={{
-            opacity: 1,
-            scale: 1,
-            filter: "blur(0px)",
-            transition: { duration: 0.5, ease: "easeOut" },
-          }}
-          exit={{
-            opacity: 0,
-            scale: 0.95,
-            filter: "blur(8px)",
-            transition: { duration: 0.3, ease: "easeIn" },
-          }}
+        <div
           className="flex h-[400px] w-full items-center justify-center"
           id="hero-loader-section"
           aria-busy="true"
           aria-live="polite"
         >
           <Loader />
-        </motion.div>
+        </div>
       );
     }
 
@@ -210,96 +184,26 @@ export function HeroSection() {
 
     // Main workflow: upload, select style, generate
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 40, filter: "blur(8px)" }}
-        animate={{
-          opacity: 1,
-          y: 0,
-          filter: "blur(0px)",
-          transition: { duration: 0.6, ease: "easeOut" },
-        }}
-        exit={{
-          opacity: 0,
-          y: -40,
-          filter: "blur(8px)",
-          transition: { duration: 0.4, ease: "easeIn" },
-        }}
+      <div
         className="flex h-full w-full flex-col items-center justify-center gap-0 p-4 md:flex-row md:gap-4 md:px-6"
         id="hero-main-workflow"
         aria-label="Photo style transfer workflow"
       >
-        <motion.div
-          initial={{ opacity: 0, x: -40, filter: "blur(8px)" }}
-          animate={{
-            opacity: 1,
-            x: 0,
-            filter: "blur(0px)",
-            transition: { duration: 0.5, ease: "easeOut" },
-          }}
-          exit={{
-            opacity: 0,
-            x: -40,
-            filter: "blur(8px)",
-            transition: { duration: 0.3, ease: "easeIn" },
-          }}
-          className="p-4"
-        >
-          <PreviewCard
-            {...file}
-            onRemove={handleRemoveFile}
-            disableRemoveButton={!!selectedStyle || loading}
-            aria-label="Uploaded photo preview"
-          />
-        </motion.div>
+        <PreviewCard
+          {...file}
+          onRemove={handleRemoveFile}
+          disableRemoveButton={!!selectedStyle || loading}
+          aria-label="Uploaded photo preview"
+        />
 
-        <motion.div
-          initial={{ opacity: 0, filter: "blur(8px)" }}
-          animate={{
-            opacity: 1,
-            filter: "blur(0px)",
-            transition: { duration: 0.5, ease: "easeOut" },
-          }}
-          exit={{
-            opacity: 0,
-            filter: "blur(8px)",
-            transition: { duration: 0.3, ease: "easeIn" },
-          }}
+        <div
           className="flex w-full flex-col items-center justify-center gap-y-10 md:gap-x-20"
           id="arrow-and-generate"
           aria-label="Generate styled photo"
         >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, filter: "blur(8px)" }}
-            animate={{
-              opacity: 1,
-              scale: 1,
-              filter: "blur(0px)",
-              transition: { duration: 0.5, ease: "easeOut" },
-            }}
-            exit={{
-              opacity: 0,
-              scale: 0.95,
-              filter: "blur(8px)",
-              transition: { duration: 0.3, ease: "easeIn" },
-            }}
-            className="flex flex-col items-center justify-center"
-          >
-            <ArrowIndicator show={!!selectedStyle} aria-hidden="true" />
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, filter: "blur(8px)" }}
-            animate={{
-              opacity: 1,
-              filter: "blur(0px)",
-              transition: { duration: 0.5, ease: "easeOut" },
-            }}
-            exit={{
-              opacity: 0,
-              filter: "blur(8px)",
-              transition: { duration: 0.3, ease: "easeIn" },
-            }}
-            className="hidden w-full flex-col items-center justify-center md:flex"
-          >
+          <ArrowIndicator show={!!selectedStyle} aria-hidden="true" />
+
+          <div className="hidden w-full flex-col items-center justify-center md:flex">
             <Button
               variant={"gradient"}
               className="w-full max-w-56"
@@ -310,104 +214,46 @@ export function HeroSection() {
             >
               Generate
             </Button>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, x: 40, filter: "blur(8px)" }}
-          animate={{
-            opacity: 1,
-            x: 0,
-            filter: "blur(0px)",
-            transition: { duration: 0.5, ease: "easeOut" },
-          }}
-          exit={{
-            opacity: 0,
-            x: 40,
-            filter: "blur(8px)",
-            transition: { duration: 0.3, ease: "easeIn" },
-          }}
+        <div
           className="flex w-full flex-col items-center justify-center"
           id="style-selection-area"
           aria-label="Choose a style"
         >
-          <AnimatePresence mode="wait">
-            {selectedStyle && mounted ? (
-              <motion.div
-                key="selected-style"
-                initial={{ opacity: 0, scale: 0.95, filter: "blur(8px)" }}
-                animate={{
-                  opacity: 1,
-                  scale: 1,
-                  filter: "blur(0px)",
-                  transition: { duration: 0.5, ease: "easeOut" },
-                }}
-                exit={{
-                  opacity: 0,
-                  scale: 0.95,
-                  filter: "blur(8px)",
-                  transition: { duration: 0.3, ease: "easeIn" },
-                }}
-              >
-                <PreviewCard
-                  {...selectedStyle}
-                  onRemove={() => setSelectedStyle(null)}
-                  showRemoveButton={true}
-                  showSwitchButton={true}
-                  onSwitchStyle={() => setIsStyleDialogOpen(true)}
-                  aria-label="Selected style preview"
-                />
-              </motion.div>
-            ) : (
-              <motion.div
-                key="empty-style"
-                initial={{ opacity: 0, scale: 0.95, filter: "blur(8px)" }}
-                animate={{
-                  opacity: 1,
-                  scale: 1,
-                  filter: "blur(0px)",
-                  transition: { duration: 0.5, ease: "easeOut" },
-                }}
-                exit={{
-                  opacity: 0,
-                  scale: 0.95,
-                  filter: "blur(8px)",
-                  transition: { duration: 0.3, ease: "easeIn" },
-                }}
-                className="border-primary/40 bg-background/70 hover:border-primary/70 focus-within:ring-primary/30 focus-ring-primary relative mb-3 flex aspect-[4/5] h-[300px] w-[240px] cursor-pointer items-center justify-center overflow-hidden rounded-xl border transition focus-within:ring-2 focus-within:outline-none"
-                id="empty-style-card"
-                aria-label="No style selected"
-              >
-                <button
-                  type="button"
-                  className="focus-ring-primary flex h-full w-full items-center justify-center outline-none"
-                  tabIndex={0}
-                  aria-label="Select a style"
-                  onClick={() => setIsStyleDialogOpen(true)}
-                  id="select-style-btn"
-                >
-                  <span className="bg-primary/10 text-primary group-hover:bg-primary/20 flex h-12 w-12 items-center justify-center rounded-full shadow transition">
-                    <Plus className="h-8 w-8" aria-hidden="true" />
-                  </span>
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-          {!selectedStyle && (
-            <motion.div
-              initial={{ opacity: 0, filter: "blur(8px)" }}
-              animate={{
-                opacity: 1,
-                filter: "blur(0px)",
-                transition: { duration: 0.5, ease: "easeOut" },
-              }}
-              exit={{
-                opacity: 0,
-                filter: "blur(8px)",
-                transition: { duration: 0.3, ease: "easeIn" },
-              }}
-              className="w-full text-center"
+          {selectedStyle && mounted ? (
+            <PreviewCard
+              {...selectedStyle}
+              onRemove={() => setSelectedStyle(null)}
+              showRemoveButton={true}
+              showSwitchButton={true}
+              onSwitchStyle={() => setIsStyleDialogOpen(true)}
+              aria-label="Selected style preview"
+            />
+          ) : (
+            <div
+              key="empty-style"
+              className="border-primary/40 bg-background/70 hover:border-primary/70 focus-within:ring-primary/30 focus-ring-primary relative mb-3 flex aspect-[4/5] h-[300px] w-[240px] cursor-pointer items-center justify-center overflow-hidden rounded-xl border transition focus-within:ring-2 focus-within:outline-none"
+              id="empty-style-card"
+              aria-label="No style selected"
             >
+              <button
+                type="button"
+                className="focus-ring-primary flex h-full w-full items-center justify-center outline-none"
+                tabIndex={0}
+                aria-label="Select a style"
+                onClick={() => setIsStyleDialogOpen(true)}
+                id="select-style-btn"
+              >
+                <span className="bg-primary/10 text-primary group-hover:bg-primary/20 flex h-12 w-12 items-center justify-center rounded-full shadow transition">
+                  <Plus className="h-8 w-8" aria-hidden="true" />
+                </span>
+              </button>
+            </div>
+          )}
+          {!selectedStyle && (
+            <div className="w-full text-center">
               <>
                 <p
                   className="selection-primary focus-ring-primary text-text-color rounded px-2 text-xs font-semibold break-all sm:text-sm"
@@ -426,22 +272,11 @@ export function HeroSection() {
                   Pick a style to apply to your photo
                 </p>
               </>
-            </motion.div>
+            </div>
           )}
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, filter: "blur(8px)" }}
-          animate={{
-            opacity: 1,
-            filter: "blur(0px)",
-            transition: { duration: 0.5, ease: "easeOut" },
-          }}
-          exit={{
-            opacity: 0,
-            filter: "blur(8px)",
-            transition: { duration: 0.3, ease: "easeIn" },
-          }}
+        <div
           className="flex h-full w-full items-center justify-center md:hidden"
           id="mobile-generate-btn-area"
         >
@@ -455,8 +290,8 @@ export function HeroSection() {
           >
             Generate
           </Button>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     );
   }
 
@@ -475,14 +310,13 @@ export function HeroSection() {
             animate={{
               opacity: 0,
               filter: "blur(0px)",
-              transition: { duration: 1.2, ease: "easeOut" },
+              transition: { duration: 1.3, ease: "easeOut" },
             }}
             exit={{
               opacity: 0,
               filter: "blur(0px)",
               transition: { duration: 0.2 },
             }}
-            style={{ pointerEvents: "none" }}
           />
         )}
       </AnimatePresence>
@@ -503,7 +337,7 @@ export function HeroSection() {
         className="flex h-full w-full flex-col items-center justify-center px-6 pt-30"
       >
         <motion.h1
-          initial={{ opacity: 0, y: 40, filter: "blur(8px)" }}
+          initial={{ opacity: 50, y: 40, filter: "blur(8px)" }}
           animate={{
             opacity: 1,
             y: 0,
@@ -516,7 +350,7 @@ export function HeroSection() {
             filter: "blur(8px)",
             transition: { duration: 0.4, ease: "easeIn" },
           }}
-          className="selection-primary from-text-color to-primary via-text-color relative z-10 rounded bg-gradient-to-r bg-clip-text py-3 text-center text-5xl font-semibold tracking-tighter text-pretty text-transparent drop-shadow-lg md:px-4 md:py-2 md:text-6xl md:tracking-tight md:text-nowrap"
+          className="selection-primary focus-ring-primary from-text-color to-primary via-text-color relative z-10 rounded bg-gradient-to-r bg-clip-text py-3 text-center text-5xl font-semibold tracking-tighter text-pretty text-transparent drop-shadow-lg md:px-4 md:py-2 md:text-6xl md:tracking-tight md:text-nowrap"
           id="hero-title"
           tabIndex={0}
           aria-label="Turn Photos Into Art Instantly"
@@ -526,18 +360,20 @@ export function HeroSection() {
           Art Instantly
         </motion.h1>
         <motion.p
-          initial={{ opacity: 0, filter: "blur(8px)" }}
+          initial={{ opacity: 50, y: 40, filter: "blur(8px)" }}
           animate={{
             opacity: 1,
+            y: 0,
             filter: "blur(0px)",
             transition: { duration: 0.5, ease: "easeOut" },
           }}
           exit={{
             opacity: 0,
+            y: 40,
             filter: "blur(8px)",
             transition: { duration: 0.3, ease: "easeIn" },
           }}
-          className="selection-primary text-text-color/80 font-base relative z-10 mb-16 rounded text-center text-xs md:px-3 md:text-base"
+          className="selection-primary text-text-color/80 font-base relative z-10 mb-16 rounded text-center text-xs md:px-3 md:text-base focus-ring-primary"
           id="hero-subtitle"
           tabIndex={0}
           aria-label="Upload a photo and apply a style in seconds."
@@ -547,26 +383,21 @@ export function HeroSection() {
         </motion.p>
 
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, filter: "blur(8px)" }}
+          initial={{ opacity: 0, scale: 0.92, filter: "blur(16px)" }}
           animate={{
             opacity: 1,
             scale: 1,
             filter: "blur(0px)",
-            transition: { duration: 0.5, ease: "easeOut" },
+            transition: { duration: 1.1, ease: "easeInOut" },
           }}
-          exit={{
-            opacity: 0,
-            scale: 0.95,
-            filter: "blur(8px)",
-            transition: { duration: 0.3, ease: "easeIn" },
-          }}
-          className="border-primary/30 bg-background/60 focus-within:border-primary hover:border-primary relative flex min-h-[28rem] w-full max-w-4xl flex-col items-center justify-center overflow-hidden rounded-xl border-1 shadow-[0_4px_32px_0_var(--color-primary),0_0_64px_0_var(--color-primary)] transition outline-none hover:shadow-[0_6px_48px_0_var(--color-primary),0_0_80px_0_var(--color-primary)]"
+          className="border-primary/30 bg-background/60 focus-within:border-primary hover:border-primary relative flex min-h-[28rem] w-full max-w-4xl flex-col items-center justify-center overflow-hidden rounded-xl border-1 shadow-[0_2px_12px_0_var(--color-primary),0_0_24px_0_var(--color-primary)] transition duration-200 outline-none hover:shadow-[0_4px_24px_0_var(--color-primary),0_0_48px_0_var(--color-primary)]"
           id="hero-main-card"
           aria-label="Photo style transfer main card"
         >
-          <AnimatePresence mode="wait">{renderMainContent()}</AnimatePresence>
+          {renderMainContent()}
         </motion.div>
       </motion.div>
+
       <motion.div
         initial={{ opacity: 0, y: 40, filter: "blur(8px)" }}
         animate={{
