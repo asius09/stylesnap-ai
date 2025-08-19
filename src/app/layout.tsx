@@ -5,17 +5,12 @@ import { MessageDialogProvider } from "@/components/MessageDialog";
 import { PaywallProvider } from "@/components/pay/Paywall";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
-// ---
-// Enhanced Metadata for StyleSnap AI
-// See @README.md and @page.tsx for app description and SEO focus
-// ---
-
 export const metadata: Metadata = {
-  title: "Ghibli Art AI Photo Generator | StyleSnap AI",
+  title: "Stylesnap AI | Ghibli Art AI Photo Generator",
   description:
     "Transform your photos into magical Ghibli-style artwork instantly with StyleSnap AI. No signup required. Try the trending Ghibli art photo style transfer, upload your photo, and download high-quality Ghibli-inspired images for free!",
   openGraph: {
-    title: "Ghibli Art AI Photo Generator | StyleSnap AI",
+    title: "Stylesnap AI | Ghibli Art AI Photo Generator",
     description:
       "Transform your photos into magical Ghibli-style artwork instantly with StyleSnap AI. No signup required. Try the trending Ghibli art photo style transfer, upload your photo, and download high-quality Ghibli-inspired images for free!",
     url: "https://stylesnap-ai.vercel.app/",
@@ -28,24 +23,52 @@ export const metadata: Metadata = {
         alt: "Ghibli Art AI Photo Generator - StyleSnap AI",
         type: "image/png",
       },
+      {
+        url: "https://stylesnap-ai.vercel.app/icon-192.png",
+        width: 192,
+        height: 192,
+        alt: "StyleSnap AI App Icon 192x192",
+        type: "image/png",
+      },
+      {
+        url: "https://stylesnap-ai.vercel.app/icon-512.png",
+        width: 512,
+        height: 512,
+        alt: "StyleSnap AI App Icon 512x512",
+        type: "image/png",
+      },
     ],
     type: "website",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Ghibli Art AI Photo Generator | StyleSnap AI",
+    title: "Stylesnap AI | Ghibli Art AI Photo Generator",
     description:
       "Transform your photos into magical Ghibli-style artwork instantly with StyleSnap AI. No signup required. Try the trending Ghibli art photo style transfer, upload your photo, and download high-quality Ghibli-inspired images for free!",
-    images: ["https://stylesnap-ai.vercel.app/app.png"],
+    images: [
+      "https://stylesnap-ai.vercel.app/app.png",
+      "https://stylesnap-ai.vercel.app/icon-192.png",
+      "https://stylesnap-ai.vercel.app/icon-512.png",
+    ],
     site: "@StyleSnapAI",
     creator: "@StyleSnapAI",
   },
   metadataBase: new URL("https://stylesnap-ai.vercel.app/"),
   icons: {
-    icon: "/logo.svg",
+    icon: [
+      { url: "/logo.svg", type: "image/svg+xml" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
     shortcut: "/logo.svg",
-    apple: "/logo.svg",
+    apple: [
+      { url: "/logo.svg", sizes: "any", type: "image/svg+xml" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    // PWA maskable icon
+    other: [{ url: "/icon-192.png", rel: "mask-icon", color: "#000000" }],
   },
   manifest: "/site.webmanifest",
   robots: {
@@ -277,113 +300,16 @@ export const metadata: Metadata = {
       url: "https://stylesnap-ai.vercel.app/",
     },
   ],
-  category: "technology",
-  themeColor: "#f7f5f2",
-  colorScheme: "light",
-  referrer: "origin-when-cross-origin",
-  creator: "StyleSnap AI",
-  publisher: "StyleSnap AI",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=5",
-  alternates: {
-    canonical: "https://stylesnap-ai.vercel.app/",
-  },
-  // You can add more meta tags as needed for SEO
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <head>
-        {/* Favicon and app icon */}
-        <link rel="icon" href="/logo.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/logo.svg" />
-        {/* Social preview meta tags for all major platforms */}
-        {/* Open Graph (Facebook, LinkedIn, WhatsApp, etc.) */}
-        <meta
-          property="og:title"
-          content="Ghibli Art AI Photo Generator | StyleSnap AI"
-        />
-        <meta
-          property="og:description"
-          content="Transform your photos into magical Ghibli-style artwork instantly with StyleSnap AI. No signup required. Try the trending Ghibli art photo style transfer, upload your photo, and download high-quality Ghibli-inspired images for free!"
-        />
-        <meta property="og:url" content="https://stylesnap-ai.vercel.app/" />
-        <meta property="og:site_name" content="StyleSnap AI" />
-        <meta property="og:type" content="website" />
-        <meta property="og:locale" content="en_US" />
-        <meta
-          property="og:image"
-          content="https://stylesnap-ai.vercel.app/app.png"
-        />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:image:type" content="image/png" />
-        <meta
-          property="og:image:alt"
-          content="Ghibli Art AI Photo Generator - StyleSnap AI"
-        />
-        {/* Twitter/X */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta
-          name="twitter:title"
-          content="Ghibli Art AI Photo Generator | StyleSnap AI"
-        />
-        <meta
-          name="twitter:description"
-          content="Transform your photos into magical Ghibli-style artwork instantly with StyleSnap AI. No signup required. Try the trending Ghibli art photo style transfer, upload your photo, and download high-quality Ghibli-inspired images for free!"
-        />
-        <meta
-          name="twitter:image"
-          content="https://stylesnap-ai.vercel.app/app.png"
-        />
-        <meta name="twitter:site" content="@StyleSnapAI" />
-        <meta name="twitter:creator" content="@StyleSnapAI" />
-        {/* Instagram uses og:image and og:description */}
-        {/* LinkedIn uses og:image, og:title, og:description */}
-        {/* WhatsApp uses og:image, og:description */}
-        {/* Fallback for other platforms */}
-        <meta name="image" content="https://stylesnap-ai.vercel.app/app.png" />
-        {/* Additional SEO and app meta tags */}
-        <meta name="application-name" content="StyleSnap AI" />
-        <meta name="generator" content="Next.js" />
-        <meta
-          name="keywords"
-          content="Ghibli Art, AI Photo Generator, Style Transfer, AI Art, Anime Photo, Ghibli Style, Photo to Art, AI Ghibli, StyleSnap AI, Ghibli AI, Anime AI, Photo Editor, AI Image Generator, Ghibli Photo, Ghibli AI Generator, Ghibli Art Generator, Ghibli Style Transfer, AI Ghibli Art, AI Ghibli Photo, Ghibli Art Online, Ghibli Art Free, Ghibli Art Download, Ghibli Art Instagram, Ghibli Art Twitter, Ghibli Art LinkedIn, Ghibli Art WhatsApp, Ghibli Art Facebook, Ghibli Art Social Media"
-        />
-        <meta name="author" content="StyleSnap AI" />
-        <meta name="category" content="technology" />
-        <meta name="theme-color" content="#f7f5f2" />
-        <meta name="color-scheme" content="dark" />
-        <meta name="referrer" content="origin-when-cross-origin" />
-        <meta name="creator" content="StyleSnap AI" />
-        <meta name="publisher" content="StyleSnap AI" />
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1, maximum-scale=5"
-        />
-        <link rel="canonical" href="https://stylesnap-ai.vercel.app/" />
-        {/* Robots and Googlebot */}
-        <meta
-          name="robots"
-          content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
-        />
-        <meta
-          name="googlebot"
-          content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
-        />
-        {/* Manifest */}
-        <link rel="manifest" href="/site.webmanifest" />
-        {/* You can add more meta tags or structured data here if needed */}
-      </head>
-      <body className="overscroll-none antialiased">
+      <body className="antialiased">
         <ToastProvider>
-          <ToastContainer />
           <PaywallProvider>
             <MessageDialogProvider>
+              <ToastContainer />
               {children}
               <SpeedInsights />
             </MessageDialogProvider>

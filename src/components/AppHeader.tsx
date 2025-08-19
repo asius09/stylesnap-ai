@@ -22,10 +22,9 @@ export function AppHeader() {
   return (
     <nav
       id="app-header"
-      className="border-primary/10 bg-background/10 fixed top-0 left-0 z-[1000] flex h-16 w-full items-center justify-center border-b shadow-[0_2px_8px_0_rgba(120,90,255,0.10),0_1.5px_4px_0_rgba(120,90,255,0.08)_inset] backdrop-blur-xl"
+      className="border-primary/10 bg-background/10 fixed top-0 left-0 z-[1000] flex h-16 w-full items-center justify-center overflow-hidden border-b shadow-[0_2px_8px_0_rgba(120,90,255,0.10),0_1.5px_4px_0_rgba(120,90,255,0.08)_inset] backdrop-blur-xl"
       role="navigation"
       aria-label="Application Header"
-      style={{ overflow: "hidden" }}
     >
       <div className="flex h-full w-full max-w-7xl items-center justify-between px-6">
         <Link
