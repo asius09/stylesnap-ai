@@ -1,7 +1,7 @@
 "use client";
 
-import { PreviewCard } from "@/components/PreviewCard";
-import { Button } from "@/components/Button";
+import { PreviewCard } from "@/components/ui/PreviewCard";
+import { Button } from "@/components/ui/Button";
 import { ImageData } from "@/types/style.types";
 
 interface GeneratedImagePreviewAreaProps {

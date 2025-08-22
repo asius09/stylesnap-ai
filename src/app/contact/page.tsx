@@ -1,6 +1,6 @@
 "use client";
 
-import { SocialIcon } from "@/components/SocialIcon";
+import { SocialIcon } from "@/components/ui/SocialIcon";
 import Link from "next/link";
 
 export default function ContactPage() {

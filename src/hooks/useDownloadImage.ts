@@ -1,6 +1,17 @@
 import { ImageData } from "@/types/style.types";
-import { useToast } from "@/components/Toast";
+import { useToast } from "@/components/ui/Toast";
 
+/**
+ * useDownloadImage
+ *
+ * This hook returns a function to download the generated image.
+ *
+ * On desktop browsers, it triggers a download using an <a download> link.
+ *
+ * On mobile devices (iOS Safari, Android browsers), where <a download> is not always supported,
+ * it opens the image in a new tab using a blob URL. The user is then instructed (via toast)
+ * to tap and hold the image to save it to their device.
+ */
 export const useDownloadImage = ({
   generatedImage,
   selectedStyle,
@@ -12,18 +23,16 @@ export const useDownloadImage = ({
 
   const handleDownload = async () => {
     if (!generatedImage?.imageUrl) {
-      if (addToast)
-        addToast({ type: "error", message: "No generated image to download." });
+      addToast?.({ type: "error", message: "No generated image to download." });
       return;
     }
 
     const url = generatedImage.imageUrl;
-
     const randomPart = Math.floor(
       10000000 + Math.random() * 90000000,
     ).toString();
 
-    // Format style name
+    // Format style name for filename
     const styleName = (selectedStyle?.title || generatedImage.title || "style")
       .trim()
       .replace(/\s+/g, "-")
@@ -35,60 +44,63 @@ export const useDownloadImage = ({
     const filename = `snapstyle-${styleName}-${randomPart}.${ext}`;
 
     try {
-      // Try to fetch the image as a blob
+      // Fetch the image as a blob
       const response = await fetch(url, { mode: "cors" });
       if (!response.ok) throw new Error("Failed to fetch image.");
       const blob = await response.blob();
       const blobUrl = window.URL.createObjectURL(blob);
 
-      // For iOS Safari and some Android browsers, <a download> may not work.
-      // So, we use a fallback for mobile devices.
+      // Detect mobile device
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
       if (isMobile) {
-        // For iOS Safari, open the image in a new tab so user can long-press to save
+        /**
+         * On mobile devices, <a download> is unreliable (especially on iOS Safari).
+         * Instead, we open the image in a new tab using a blob URL.
+         * The user can then tap and hold the image to save it.
+         *
+         * - If window.open() succeeds, we inject an <img> tag into the new tab.
+         * - If window.open() fails (popup blocked), we fallback to navigating to the blob URL.
+         *
+         * In both cases, we show a toast to instruct the user.
+         */
         const newTab = window.open();
         if (newTab) {
           newTab.document.write(
             `<html><head><title>Download Image</title></head><body style="margin:0"><img src="${blobUrl}" style="width:100vw;max-width:100%;height:auto;display:block;"/></body></html>`,
           );
-          if (addToast)
-            addToast({
-              type: "info",
-              message: "Tap and hold the image to save it to your device.",
-            });
+          addToast?.({
+            type: "info",
+            message: "Tap and hold the image to save it to your device.",
+          });
         } else {
-          // Fallback: just navigate to the image
+          // Fallback: navigate to the image directly
           window.location.href = blobUrl;
-          if (addToast)
-            addToast({
-              type: "info",
-              message:
-                "If the image does not download, tap and hold to save it.",
-            });
+          addToast?.({
+            type: "info",
+            message: "If the image does not download, tap and hold to save it.",
+          });
         }
       } else {
-        // Desktop: use the download attribute
+        // Desktop: use <a download>
         const a = document.createElement("a");
         a.href = blobUrl;
         a.download = filename;
         document.body.appendChild(a);
         a.click();
         a.remove();
-        if (addToast)
-          addToast({ type: "success", message: "Image downloaded." });
+        addToast?.({ type: "success", message: "Image downloaded." });
       }
 
-      // Revoke the blob URL after a short delay to allow download/new tab to work
+      // Revoke the blob URL after a short delay
       setTimeout(() => {
         window.URL.revokeObjectURL(blobUrl);
       }, 2000);
     } catch (error) {
-      if (addToast)
-        addToast({
-          type: "error",
-          message: `Failed to download image. ${error instanceof Error ? error.message : ""}`,
-        });
+      addToast?.({
+        type: "error",
+        message: `Failed to download image. ${error instanceof Error ? error.message : ""}`,
+      });
     }
   };
 

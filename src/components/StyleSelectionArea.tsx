@@ -1,9 +1,9 @@
 "use client";
 import { Plus } from "lucide-react";
-import { PreviewCard } from "@/components/PreviewCard";
+import { PreviewCard } from "@/components/ui/PreviewCard";
 import { ImageData } from "@/types/style.types";
 import { useScreenDetector } from "@/hooks/useScreenDetector";
-import { Button } from "./Button";
+import { Button } from "./ui/Button";
 import { cn } from "@/lib/utils";
 
 interface StyleSelectionAreaProps {

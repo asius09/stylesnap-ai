@@ -1,5 +1,5 @@
 import { ImageData } from "@/types/style.types";
-import { useToast } from "@/components/Toast";
+import { useToast } from "@/components/ui/Toast";
 
 export const useStyleSelection = ({
   file,

@@ -2,11 +2,11 @@
 import React, { useState, useRef } from "react";
 import { useDropzone } from "react-dropzone";
 import { UploadCloud } from "lucide-react";
-import { useToast } from "@/components/Toast";
-import { Button } from "./Button";
+import { useToast } from "@/components/ui/Toast";
+import { Button } from "@/components/ui/Button";
 import { ImageData } from "@/types/style.types";
 import { uploadImage } from "@/utils/imageClient";
-import { Loader } from "./Loader";
+import { Loader } from "@/components/ui/Loader";
 
 interface HeroDropZoneProps {
   onFileSelected?: (file: ImageData) => void;

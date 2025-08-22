@@ -1,6 +1,6 @@
 import { stepsContent } from "@/data";
 import React from "react";
-import { Button } from "../Button";
+import { Button } from "../ui/Button";
 import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { ToastContainer, ToastProvider } from "@/components/Toast";
-import { MessageDialogProvider } from "@/components/MessageDialog";
+import { ToastContainer, ToastProvider } from "@/components/ui/Toast";
+import { MessageDialogProvider } from "@/components/ui/MessageDialog";
 import { PaywallProvider } from "@/components/pay/Paywall";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { KEYWORDS } from "../../meta";

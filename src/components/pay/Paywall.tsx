@@ -10,7 +10,7 @@ import React, {
   Dispatch,
   SetStateAction,
 } from "react";
-import { useToast } from "@/components/Toast";
+import { useToast } from "@/components/ui/Toast";
 
 // --- Types ---
 interface PaywallContextType {

@@ -1,21 +1,21 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import { HeroDropZone } from "@/components/HeroDropZone";
-import { PreviewCard } from "@/components/PreviewCard";
+import { HeroDropZone } from "@/components/ui/HeroDropZone";
+import { PreviewCard } from "@/components/ui/PreviewCard";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useImageGeneration } from "@/hooks/useImageGeneration";
 import { useDownloadImage } from "@/hooks/useDownloadImage";
 import { useProgressSteps } from "@/hooks/useProgressSteps";
 import { useFileRemove } from "@/hooks/useFileRemove";
 import { useStyleSelection } from "@/hooks/useStyleSelection";
-import { Button } from "@/components/Button";
+import { Button } from "@/components/ui/Button";
 import { ImageData } from "@/types/style.types";
-import { Loader } from "@/components/Loader";
+import { Loader } from "@/components/ui/Loader";
 import { motion } from "framer-motion";
 import {
   StyleSelectionDialog,
   StyleSelectionDialogHandle,
-} from "./StyleSelectionDialog";
+} from "./ui/StyleSelectionDialog";
 import { StyleSelectionArea } from "./StyleSelectionArea";
 import { GeneratedImagePreviewArea } from "./GeneratedImagePreviewArea";
 import { useScreenDetector } from "@/hooks/useScreenDetector";
@@ -28,6 +28,8 @@ export function MainContent() {
     "uploadedFile",
     null,
   );
+  const handleRemoveFile = useFileRemove({ file, setFile });
+
   const [selectedStyle, setSelectedStyle] = useLocalStorage<ImageData | null>(
     "selectedStyle",
     null,
@@ -42,9 +44,7 @@ export function MainContent() {
     generatedImage,
     selectedStyle,
   });
-  useProgressSteps(file, selectedStyle, generateStatus);
 
-  const handleRemoveFile = useFileRemove({ file, setFile });
   const handleStyleSelection = useStyleSelection({
     file,
     setSelectedStyle,

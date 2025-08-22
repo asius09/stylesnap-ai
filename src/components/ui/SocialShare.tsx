@@ -1,6 +1,6 @@
 "use client";
 import { motion } from "motion/react";
-import { SocialIcon } from "./SocialIcon";
+import { SocialIcon } from "./ui/SocialIcon";
 
 export function SocialShare() {
   return (

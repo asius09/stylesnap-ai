@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { generateImage } from "@/utils/generateImage";
 import { ImageData, GenerateStatus } from "@/types/style.types";
-import type { MessageDialogProps } from "@/components/MessageDialog";
-import { useMessageDialog } from "@/components/MessageDialog";
+import type { MessageDialogProps } from "@/components/ui/MessageDialog";
+import { useMessageDialog } from "@/components/ui/MessageDialog";
 import { usePaywall } from "@/components/pay/Paywall";
 import { getTrialUsageStatus } from "@/utils/trialClient";
-import { useToast } from "@/components/Toast";
+import { useToast } from "@/components/ui/Toast";
 import { useTrialId } from "./useTrialId";
 
 /**
