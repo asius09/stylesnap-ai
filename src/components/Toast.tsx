@@ -1,21 +1,4 @@
 "use client";
-/**
- * Problem:
- * If you use <Toast /> in multiple places (e.g. in two different files/components),
- * each instance will have its own state and will render its own toasts.
- * This leads to overlapping toasts and no global array management.
- *
- * Solution:
- * Use a global Toast context/provider and a single ToastContainer at the root of your app.
- * Expose a function (e.g. toast()) to add toasts from anywhere.
- * This way, all toasts are managed in a single array and rendered in one place.
- *
- * Example implementation below:
- *
- * // To always show the latest toast on top, add new toasts to the start of the array
- * // and render the array as-is (no reverse). See addToast and ToastContainer below.
- */
-
 import React, {
   createContext,
   useContext,
@@ -24,24 +7,42 @@ import React, {
   useEffect,
 } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
+import { X, CheckCircle2, Info, AlertTriangle } from "lucide-react";
 
-// Toast variant styles
+// Toast variant styles with icons
 const variant = {
   error: {
-    bg: "bg-gradient-to-br from-red-900/90 via-orange-700/80 to-red-800/80 backdrop-blur-md",
+    bg: "bg-gradient-to-br from-red-900/90 via-orange-700/80 to-red-800/80 backdrop-blur-md border border-white/10",
     text: "text-text-color",
-    title: "Error",
+    icon: (
+      <AlertTriangle
+        className="h-5 w-5 rounded-full bg-red-900/30 p-0.5 text-red-300"
+        aria-hidden="true"
+      />
+    ),
+    accent: "border-red-500/80",
   },
   info: {
-    bg: "bg-gradient-to-br from-indigo-900/90 via-purple-700/80 to-indigo-800/80 backdrop-blur-md",
+    bg: "bg-gradient-to-br from-indigo-900/90 via-purple-700/80 to-indigo-800/80 backdrop-blur-md border border-white/10",
     text: "text-text-color",
-    title: "Info",
+    icon: (
+      <Info
+        className="h-5 w-5 rounded-full bg-indigo-900/30 p-0.5 text-indigo-300"
+        aria-hidden="true"
+      />
+    ),
+    accent: "border-indigo-500/80",
   },
   success: {
-    bg: "bg-gradient-to-br from-emerald-900/90 via-lime-700/80 to-emerald-800/80 backdrop-blur-md",
+    bg: "bg-gradient-to-br from-emerald-900/90 via-lime-700/80 to-emerald-800/80 backdrop-blur-md border border-white/10",
     text: "text-text-color",
-    title: "Success",
+    icon: (
+      <CheckCircle2
+        className="h-5 w-5 rounded-full bg-emerald-900/30 p-0.5 text-emerald-300"
+        aria-hidden="true"
+      />
+    ),
+    accent: "border-emerald-500/80",
   },
 };
 
@@ -69,21 +70,19 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
   const [toasts, setToasts] = useState<ToastData[]>([]);
 
   // Add toast with unique id, prevent duplicate toasts with same type and message
-  // To show the latest toast on top, add new toast to the start of the array
+  // Only one toast at a time (compact, single message)
   const addToast = useCallback((toast: Omit<ToastData, "id">) => {
     setToasts((prev) => {
-      // Check if a toast with the same type and message already exists
-      const isDuplicate = prev.some(
-        (t) => t.type === toast.type && t.message === toast.message,
-      );
-      if (isDuplicate) {
+      // If the same toast is already shown, do nothing
+      if (
+        prev.length > 0 &&
+        prev[0].type === toast.type &&
+        prev[0].message === toast.message
+      ) {
         return prev;
       }
-      // Add new toast to the beginning so it appears on top
-      return [
-        { ...toast, id: Date.now() + Math.floor(Math.random() * 10000) },
-        ...prev,
-      ];
+      // Only show one toast at a time
+      return [{ ...toast, id: Date.now() + Math.floor(Math.random() * 10000) }];
     });
   }, []);
 
@@ -100,63 +99,55 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 };
 
-// Custom hook to use toast
 export const useToast = () => {
   const ctx = useContext(ToastContext);
   if (!ctx) throw new Error("useToast must be used within a ToastProvider");
   return ctx;
 };
 
-// ToastContainer renders all toasts
 export const ToastContainer = () => {
   const { toasts, removeToast } = useToast();
-  // The latest toast is at index 0, so it will be rendered on top
-  // No need to reverse the array
-  // console.log("[TOAST] toasts", toasts);
+  // Only show the first toast (compact, single message)
+  const toast = toasts[0];
   return (
-    <div className="pointer-events-none fixed top-20 left-1/2 z-50 flex w-full max-w-xs -translate-x-1/2 flex-col items-center">
-      <div
-        className={`relative flex w-full flex-col items-center min-h-[${toasts.length * 32}px]`}
-      >
-        <AnimatePresence initial={true}>
-          {toasts.map((toast, idx) => (
-            <motion.div
-              key={toast.id}
-              className={`absolute right-0 left-0 flex w-full justify-center z-[${toasts.length - idx}]`}
-              initial={{
-                opacity: 0,
-                y: 0,
-                scale: 0.95,
-                boxShadow: "0 2px 8px 0 rgba(0,0,0,0.10)",
-              }}
-              animate={{
-                opacity: 1,
-                y: idx * 10,
-                scale: 1 - idx * 0.04,
-                boxShadow: `0 ${8 + idx * 4}px ${24 + idx * 8}px 0 rgba(0,0,0,${0.15 + idx * 0.05})`,
-              }}
-              exit={{
-                opacity: 0,
-                y: 0,
-                scale: 1 - idx * 0.09,
-                boxShadow: "0 2px 8px 0 rgba(0,0,0,0.10)",
-              }}
-              transition={{
-                duration: 0.5,
-                ease: "easeInOut",
-                delay: idx * 0.7,
-              }}
-            >
-              <ToastItem
-                id={toast.id}
-                type={toast.type}
-                message={toast.message}
-                onRemove={removeToast}
-              />
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
+    <div className="pointer-events-none fixed top-[72px] left-1/2 z-50 flex w-full max-w-xs -translate-x-1/2 flex-col items-center px-2">
+      <AnimatePresence initial={true}>
+        {toast && (
+          <motion.div
+            key={toast.id}
+            className="w-full"
+            initial={{
+              opacity: 0,
+              y: -16,
+              scale: 0.98,
+              boxShadow: "0 2px 8px 0 rgba(0,0,0,0.10)",
+            }}
+            animate={{
+              opacity: 1,
+              y: 0,
+              scale: 1,
+              boxShadow: "0 8px 24px 0 rgba(0,0,0,0.18)",
+            }}
+            exit={{
+              opacity: 0,
+              y: -16,
+              scale: 0.98,
+              boxShadow: "0 2px 8px 0 rgba(0,0,0,0.10)",
+            }}
+            transition={{
+              duration: 0.35,
+              ease: "easeInOut",
+            }}
+          >
+            <ToastItem
+              id={toast.id}
+              type={toast.type}
+              message={toast.message}
+              onRemove={removeToast}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
@@ -173,7 +164,7 @@ const ToastItem = ({ id, type, message, onRemove }: ToastItemProps) => {
   useEffect(() => {
     const timeout = setTimeout(() => {
       onRemove(id);
-    }, 3500);
+    }, 3000);
     return () => clearTimeout(timeout);
   }, [id, onRemove]);
 
@@ -181,34 +172,22 @@ const ToastItem = ({ id, type, message, onRemove }: ToastItemProps) => {
 
   return (
     <div
-      className={`flex w-full flex-col items-start rounded-lg ${style.bg} p-2 md:p-4 ${style.text} pointer-events-auto shadow-2xl`}
+      className={`flex w-full items-center gap-2 rounded-lg ${style.bg} ${style.text} pointer-events-auto border-l-4 p-2 shadow-2xl ${style.accent} min-h-[40px]`}
+      role="alert"
+      aria-live="polite"
     >
-      <div className="flex w-full items-center justify-between">
-        <p className="selection-primary text-xs leading-5 font-bold md:text-sm md:leading-6">
-          {style.title} Message:
-        </p>
-        <button
-          className="ml-1 cursor-pointer text-sm font-bold opacity-70 hover:opacity-100 md:ml-2 md:text-base"
-          onClick={() => onRemove(id)}
-        >
-          <X className="h-4 w-4 md:h-5 md:w-5" />
-        </button>
-      </div>
-      <span className="selection-primary text-[10px] leading-relaxed font-medium md:text-xs">
+      <span className="flex flex-shrink-0 items-center">{style.icon}</span>
+      <span className="selection-primary flex-1 text-xs font-medium break-words md:text-sm">
         {message}
       </span>
+      <button
+        className="ml-1 cursor-pointer rounded-full p-1 text-xs font-bold opacity-70 transition hover:bg-white/10 hover:opacity-100"
+        onClick={() => onRemove(id)}
+        aria-label="Dismiss notification"
+        tabIndex={0}
+      >
+        <X className="h-4 w-4" />
+      </button>
     </div>
   );
 };
-
-/**
- * Usage:
- * 1. Wrap your app with <ToastProvider> at the root (e.g. in _app.tsx or layout.tsx).
- * 2. Use the useToast() hook anywhere to add a toast:
- *    const { addToast } = useToast();
- *    addToast({ type: "success", message: "Hello!" });
- * 3. Only one ToastContainer will render all toasts, no overlap.
- *
- * // To show the latest toast on top, add new toasts to the start of the array in addToast,
- * // and render the array as-is (no reverse) in ToastContainer.
- */

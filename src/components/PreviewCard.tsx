@@ -3,6 +3,8 @@ import React, { useEffect, useState } from "react";
 import { X, RefreshCw } from "lucide-react";
 import Image from "next/image";
 import { ImageData } from "@/types/style.types";
+import { useToast } from "./Toast";
+import { useScreenDetector } from "@/hooks/useScreenDetector";
 
 interface PreviewCardProps extends ImageData {
   disableRemoveButton?: boolean;
@@ -25,6 +27,8 @@ export const PreviewCard: React.FC<PreviewCardProps> = ({
 }) => {
   // Use mounted state to avoid hydration issues
   const [mounted, setMounted] = useState(false);
+  const { addToast } = useToast();
+  const { isMobile } = useScreenDetector();
 
   useEffect(() => {
     setMounted(true);
@@ -81,10 +85,19 @@ export const PreviewCard: React.FC<PreviewCardProps> = ({
                 <button
                   type="button"
                   aria-label="Remove image"
-                  onClick={onRemove}
+                  onClick={
+                    disableRemoveButton
+                      ? () => {
+                          addToast({
+                            type: "info",
+                            message: "You have to deselect the style first.",
+                          });
+                        }
+                      : onRemove
+                  }
                   className="hover:text-text-color focus:text-text-color active:text-text-color flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-white/30 bg-black/60 shadow-lg backdrop-blur-md transition-colors duration-200 hover:bg-red-600 focus:bg-red-600 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
                   tabIndex={0}
-                  disabled={disableRemoveButton}
+                  disabled={!isMobile && disableRemoveButton}
                   title="Remove image"
                   style={{
                     boxShadow: "0 2px 8px 0 rgba(255,0,0,0.10)",
