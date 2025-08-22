@@ -4,13 +4,9 @@ import { useToast } from "@/components/ui/Toast";
 /**
  * useDownloadImage
  *
- * This hook returns a function to download the generated image.
- *
- * On desktop browsers, it triggers a download using an <a download> link.
- *
- * On mobile devices (iOS Safari, Android browsers), where <a download> is not always supported,
- * it opens the image in a new tab using a blob URL. The user is then instructed (via toast)
- * to tap and hold the image to save it to their device.
+ * This hook returns a function to download the generated image with a single click
+ * on both desktop and mobile devices. It uses blob URLs with <a download> for
+ * maximum compatibility and ensures direct download without opening new tabs.
  */
 export const useDownloadImage = ({
   generatedImage,
@@ -38,69 +34,84 @@ export const useDownloadImage = ({
       .replace(/\s+/g, "-")
       .toLowerCase();
 
-    // Compose filename: snapstyle-styleName-randomnumber.ext
-    const extMatch = url.match(/\.(\w+)(?:$|\?)/);
-    const ext = extMatch ? extMatch[1] : "png";
+    // Determine file extension
+    let ext = "png";
+    if (url.startsWith("data:")) {
+      const mimeMatch = url.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,/);
+      if (mimeMatch) {
+        const mime = mimeMatch[1];
+        if (mime === "image/jpeg") ext = "jpg";
+        else if (mime === "image/png") ext = "png";
+        else if (mime === "image/webp") ext = "webp";
+        else if (mime === "image/gif") ext = "gif";
+      }
+    } else {
+      const extMatch = url.match(/\.(\w+)(?:$|\?)/);
+      if (extMatch) ext = extMatch[1];
+    }
+
     const filename = `snapstyle-${styleName}-${randomPart}.${ext}`;
 
     try {
-      // Fetch the image as a blob
-      const response = await fetch(url, { mode: "cors" });
-      if (!response.ok) throw new Error("Failed to fetch image.");
-      const blob = await response.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
-
-      // Detect mobile device
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-      if (isMobile) {
-        /**
-         * On mobile devices, <a download> is unreliable (especially on iOS Safari).
-         * Instead, we open the image in a new tab using a blob URL.
-         * The user can then tap and hold the image to save it.
-         *
-         * - If window.open() succeeds, we inject an <img> tag into the new tab.
-         * - If window.open() fails (popup blocked), we fallback to navigating to the blob URL.
-         *
-         * In both cases, we show a toast to instruct the user.
-         */
-        const newTab = window.open();
-        if (newTab) {
-          newTab.document.write(
-            `<html><head><title>Download Image</title></head><body style="margin:0"><img src="${blobUrl}" style="width:100vw;max-width:100%;height:auto;display:block;"/></body></html>`,
-          );
-          addToast?.({
-            type: "info",
-            message: "Tap and hold the image to save it to your device.",
-          });
-        } else {
-          // Fallback: navigate to the image directly
-          window.location.href = blobUrl;
-          addToast?.({
-            type: "info",
-            message: "If the image does not download, tap and hold to save it.",
-          });
-        }
+      // Convert to blob for consistent handling
+      let blob: Blob;
+      if (url.startsWith("data:")) {
+        const res = await fetch(url);
+        blob = await res.blob();
       } else {
-        // Desktop: use <a download>
-        const a = document.createElement("a");
-        a.href = blobUrl;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        addToast?.({ type: "success", message: "Image downloaded." });
+        const response = await fetch(url, { mode: "cors" });
+        if (!response.ok) throw new Error("Failed to fetch image.");
+        blob = await response.blob();
       }
 
-      // Revoke the blob URL after a short delay
+      // Create blob URL
+      const blobUrl = window.URL.createObjectURL(blob);
+
+      // Create download link
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = blobUrl;
+      a.download = filename;
+
+      // Add to DOM temporarily
+      document.body.appendChild(a);
+
+      // Trigger download
+      a.click();
+
+      // Clean up immediately
+      document.body.removeChild(a);
+
+      // Revoke blob URL after a short delay to ensure download starts
       setTimeout(() => {
         window.URL.revokeObjectURL(blobUrl);
-      }, 2000);
+      }, 1000);
+
+      addToast?.({ type: "success", message: "Image downloaded." });
     } catch (error) {
-      addToast?.({
-        type: "error",
-        message: `Failed to download image. ${error instanceof Error ? error.message : ""}`,
-      });
+      console.error("Download error:", error);
+
+      // Fallback: if direct download fails, try alternative method
+      try {
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        link.target = "_self"; // Prevent new tab
+
+        // Force download attribute recognition
+        link.setAttribute("download", filename);
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        addToast?.({ type: "success", message: "Image downloaded." });
+      } catch (fallbackError) {
+        addToast?.({
+          type: "error",
+          message: `Failed to download image. ${error instanceof Error ? error.message : ""}`,
+        });
+      }
     }
   };
 
