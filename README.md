@@ -4,6 +4,15 @@
 
 ## ✅ Progress & Checklist (as of 12/8/2025)
 
+### 🔑 Google Auth & Credits Flow Checklist
+
+- [ ] Add Google login authentication flow.
+- [ ] After login, grant free credits to new users.
+- [ ] Implement paid credits system for additional generations.
+- [ ] Keep the flow simple and user-friendly.
+
+---
+
 - [x] Work on UI loading states for a smoother experience. _(Done)_
 - [x] Improve the download UI for styled images. _(Done)_
 - [x] Integrate AI-powered image generation. _(Done)_
@@ -61,7 +70,6 @@ To run the project locally:
 ### File Structure
 
 <!-- FILE_STRUCTURE_START -->
-
 ```
 ├── .DS_Store
 ├── .env
@@ -84,6 +92,9 @@ To run the project locally:
 │   ├── background.png
 │   ├── disney-art.png
 │   ├── ghibli-art.png
+│   ├── icon-192.png
+│   ├── icon-512.png
+│   ├── icon.png
 │   ├── logo.svg
 │   ├── pop-surrealism.png
 │   ├── retro-robots.png
@@ -92,6 +103,7 @@ To run the project locally:
 │   └── update-readme-structure.js
 ├── src
 │   ├── app
+│   │   ├── .DS_Store
 │   │   ├── api
 │   │   │   ├── image-generator
 │   │   │   │   └── route.ts
@@ -108,14 +120,22 @@ To run the project locally:
 │   │   ├── contact
 │   │   │   └── page.tsx
 │   │   ├── globals.css
+│   │   ├── icon.png
 │   │   ├── layout.tsx
+│   │   ├── manifest.json
+│   │   ├── opengrahp-image.alt.txt
+│   │   ├── opengraph-image.png
 │   │   ├── page.tsx
 │   │   ├── privacy-policy
 │   │   │   └── page.tsx
+│   │   ├── robots.txt
 │   │   ├── shipping-policy
 │   │   │   └── page.tsx
-│   │   └── terms-and-conditions
-│   │       └── page.tsx
+│   │   ├── sitemap.ts
+│   │   ├── terms-and-conditions
+│   │   │   └── page.tsx
+│   │   ├── twitter-image.alt.txt
+│   │   └── twitter-image.png
 │   ├── components
 │   │   ├── AppHeader.tsx
 │   │   ├── ArrowIndicator.tsx
@@ -164,7 +184,6 @@ To run the project locally:
 │       └── trialClient.ts
 └── tsconfig.json
 ```
-
 <!-- FILE_STRUCTURE_END -->
 
 ### Key Directories:
@@ -198,116 +217,42 @@ To ensure clarity and consistency in our git history, please follow these commit
 
 ---
 
-### **Commit Message Structures Overview**
+### **Simple Commit Message Guide**
 
-| Structure Format              | When to Use                                 | Example                                     |
-| ----------------------------- | ------------------------------------------- | ------------------------------------------- |
-| `<type>(<scope>): <subject>`  | Professional/semantic versioning projects   | `feat(loader): add particle animation`      |
-| `<verb> <description>`        | Simple/personal/small projects              | `Add dark mode toggle`                      |
-| `<imperative command>`        | Git's standard imperative style             | `Implement user authentication`             |
-| `<context>: <description>`    | Complex projects, clear component reference | `Loader: Add particle animation effects`    |
-| `<message> (#<issue-number>)` | Linking to issues/tickets                   | `Fix memory leak in image processor (#142)` |
+Use clear, short commit messages. Here are the main styles you can use:
 
----
+| Format                        | Example                                 | When to Use                |
+|-------------------------------|-----------------------------------------|----------------------------|
+| `<type>(<scope>): <subject>`  | `feat(header): add dark mode`           | Pro/semantic projects      |
+| `<verb> <description>`        | `Add image preview`                     | Simple/personal projects   |
+| `<imperative command>`        | `Fix upload bug`                        | Standard git style         |
+| `<context>: <description>`    | `API: Improve error handling`           | Big/complex projects       |
+| `<message> (#issue)`          | `Fix crash on login (#12)`              | Link to issues/tickets     |
 
-### **Detailed Commit Message Styles & Examples**
+**Common types:**  
+- `feat`: new feature (`feat(ui): add style picker`)
+- `fix`: bug fix (`fix(upload): handle PNGs`)
+- `docs`: docs only (`docs: update README`)
+- `chore`: maintenance (`chore: update deps`)
+- `refactor`: code change, no feature/bug (`refactor: clean up header`)
+- `test`: add or update tests (`test: add upload tests`)
 
-#### 1. **Conventional Commits (Recommended)**
+**More Examples:**
+- `Add Google login`
+- `Remove unused images`
+- `Loader: Add animation`
+- `Update dependencies`
+- `Fix typo in docs`
+- `Improve error messages`
+- `Add user profile export (#45)`
 
-- **Format:** `<type>(<scope>): <subject>`
-- **Use for:** Professional projects, semantic versioning, changelog automation.
-- **Types:** feat, fix, docs, style, refactor, test, chore
+**Tips:**
+- Keep the first line under 50 characters
+- Start with a capital letter, no period at end
+- Make each commit focused on one change
+- Avoid vague messages like "Update files" or "Misc changes"
 
-| Type     | Description        | Example                                       |
-| -------- | ------------------ | --------------------------------------------- |
-| feat     | New feature        | `feat(loader): add particle animation`        |
-| fix      | Bug fix            | `fix(upload): resolve file type validation`   |
-| docs     | Documentation      | `docs(readme): add installation instructions` |
-| refactor | Code restructuring | `refactor(header): simplify nav logic`        |
-| chore    | Maintenance        | `chore(deps): update framer-motion to v10`    |
-
-#### 2. **Action + Description**
-
-- **Format:** `<verb> <description>`
-- **Use for:** Simpler or personal projects.
-- **Examples:**
-  - `Add dark mode toggle`
-  - `Fix image upload crash`
-  - `Update dependencies`
-
-#### 3. **Imperative Mood**
-
-- **Format:** `<imperative command>`
-- **Use for:** Following Git's own style.
-- **Examples:**
-  - `Implement user authentication`
-  - `Remove unused dependencies`
-
-#### 4. **Contextual Format**
-
-- **Format:** `<context>: <description>`
-- **Use for:** Large/complex projects, clear component reference.
-- **Examples:**
-  - `Loader: Add particle animation effects`
-  - `API: Fix pagination limit bug`
-
-#### 5. **GitHub/GitLab Issue Linking**
-
-- **Format:** `<message> (#<issue-number>)`
-- **Use for:** Linking commits to issues/tickets.
-- **Examples:**
-  - `Fix memory leak in image processor (#142)`
-  - `Add user profile export feature (#87)`
-
----
-
-### **Best Practices & Pro Tips**
-
-- **First Line Rules:**
-  - Keep under 50 characters
-  - Capitalize first letter
-  - No period at end
-
-- **Optional Body:**
-  - Use for context, reasoning, or details.
-  - Separate from title with a blank line.
-  - Example:
-
-    ```
-    Add responsive breakpoints for header
-
-    - Added mobile menu toggle at 768px
-    - Fixed z-index conflict with dropdowns
-    - Updated tests for new behavior
-    ```
-
-- **Footer (for issue tracking):**
-  - Example:
-
-    ```
-    Fix Safari rendering bug
-
-    Closes #42
-    Related to #38, #39
-    ```
-
-- **Avoid:**
-  - Vague messages (e.g., "Update files")
-  - Emotional comments (e.g., "Stupid bug fix")
-  - All-caps shouting
-
----
-
-### **Example Commit Workflow**
-
-1. Make small, focused commits.
-2. Use `git commit -m "Title" -m "Description"` for multi-line messages.
-3. Check your history with `git log --oneline` before pushing.
-
----
-
-By following these guidelines, we keep the StylesMap-AI project history clean, readable, and easy to maintain.  
-Feel free to refer to this section whenever you make a commit!
+**Multi-line example:**
 
 ---
 

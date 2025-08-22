@@ -5,14 +5,12 @@ import { MessageDialogProvider } from "@/components/MessageDialog";
 import { PaywallProvider } from "@/components/pay/Paywall";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { KEYWORDS } from "../../meta";
-
-// See: https://nextjs.org/docs/app/api-reference/functions/generate-metadata
 export const metadata: Metadata = {
-  title: "Ghibli Art AI Photo Generator | StyleSnap AI",
+  title: "Stylesnap AI | Ghibli Art AI Photo Generator",
   description:
     "Transform your photos into magical Ghibli-style artwork instantly with StyleSnap AI. No signup required. Try the trending Ghibli art photo style transfer, upload your photo, and download high-quality Ghibli-inspired images for free!",
   openGraph: {
-    title: "Ghibli Art AI Photo Generator | StyleSnap AI",
+    title: "Stylesnap AI | Ghibli Art AI Photo Generator",
     description:
       "Transform your photos into magical Ghibli-style artwork instantly with StyleSnap AI. No signup required. Try the trending Ghibli art photo style transfer, upload your photo, and download high-quality Ghibli-inspired images for free!",
     url: "https://stylesnap-ai.vercel.app/",
@@ -25,24 +23,52 @@ export const metadata: Metadata = {
         alt: "Ghibli Art AI Photo Generator - StyleSnap AI",
         type: "image/png",
       },
+      {
+        url: "https://stylesnap-ai.vercel.app/icon-192.png",
+        width: 192,
+        height: 192,
+        alt: "StyleSnap AI App Icon 192x192",
+        type: "image/png",
+      },
+      {
+        url: "https://stylesnap-ai.vercel.app/icon-512.png",
+        width: 512,
+        height: 512,
+        alt: "StyleSnap AI App Icon 512x512",
+        type: "image/png",
+      },
     ],
     type: "website",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Ghibli Art AI Photo Generator | StyleSnap AI",
+    title: "Stylesnap AI | Ghibli Art AI Photo Generator",
     description:
       "Transform your photos into magical Ghibli-style artwork instantly with StyleSnap AI. No signup required. Try the trending Ghibli art photo style transfer, upload your photo, and download high-quality Ghibli-inspired images for free!",
-    images: ["https://stylesnap-ai.vercel.app/app.png"],
+    images: [
+      "https://stylesnap-ai.vercel.app/app.png",
+      "https://stylesnap-ai.vercel.app/icon-192.png",
+      "https://stylesnap-ai.vercel.app/icon-512.png",
+    ],
     site: "@StyleSnapAI",
     creator: "@StyleSnapAI",
   },
   metadataBase: new URL("https://stylesnap-ai.vercel.app/"),
   icons: {
-    icon: "/logo.svg",
+    icon: [
+      { url: "/logo.svg", type: "image/svg+xml" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
     shortcut: "/logo.svg",
-    apple: "/logo.svg",
+    apple: [
+      { url: "/logo.svg", sizes: "any", type: "image/svg+xml" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    // PWA maskable icon
+    other: [{ url: "/icon-192.png", rel: "mask-icon", color: "#000000" }],
   },
   manifest: "/site.webmanifest",
   robots: {
@@ -66,35 +92,16 @@ export const metadata: Metadata = {
       url: "https://stylesnap-ai.vercel.app/",
     },
   ],
-  category: "technology",
-  referrer: "origin-when-cross-origin",
-  creator: "StyleSnap AI",
-  publisher: "StyleSnap AI",
-  alternates: {
-    canonical: "https://stylesnap-ai.vercel.app/",
-  },
 };
 
-// See: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
-export const viewport = {
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 5,
-  colorScheme: "light",
-};
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="overscroll-none antialiased">
+      <body className="antialiased">
         <ToastProvider>
-          <ToastContainer />
           <PaywallProvider>
             <MessageDialogProvider>
+              <ToastContainer />
               {children}
               <SpeedInsights />
             </MessageDialogProvider>

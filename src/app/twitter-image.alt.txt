@@ -1,0 +1,1 @@
+Ghibli-style AI photo generator app interface showing a whimsical, anime-inspired portrait transformation. Upload your photo and instantly preview it as magical Ghibli art with vibrant colors and soft, dreamy backgrounds. No signup required—just upload, select a style, and download your unique artwork for free.
