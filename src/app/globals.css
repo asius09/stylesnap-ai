@@ -1,32 +1,86 @@
+/* Import Red Hat Display font from Google Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Red+Hat+Display:ital,wght@0,300..900;1,300..900&display=swap");
 @import "tailwindcss";
-@theme {
-  --color-background: var(--background);
-  --color-card: var(--card);
-  --color-primary: var(--primary);
-  --color-primary-hover: var(--primary-hover);
-  --color-secondary: var(--secondary);
-  --color-secondary-hover: var(--secondary-hover);
-  --color-accent: var(--accent);
-  --color-text-light: var(--text-light);
-  --color-text-dark: var(--text-dark);
+:root {
+  /* Unified color palette for matching colors everywhere */
+  --color-background-root: oklch(0.13 0.045 260); /* #0b0914 */
+  --color-card-root: oklch(
+    0.18 0.06 270
+  ); /* #18132a, slightly lighter and matching background */
+  --color-primary-root: oklch(0.62 0.25 300.25); /* #9E4afe */
+  --color-primary-hover-root: oklch(
+    0.54 0.25 300.25
+  ); /* #7d3ad1, matching primary but darker */
+  --color-secondary-root: oklch(0.68 0.18 60); /* #ffeb7b */
+  --color-secondary-hover-root: oklch(
+    0.6 0.18 60
+  ); /* #b23c2e, matching red but darker */
+  --color-text-color-root: oklch(0.98 0 0); /* #fff, white in oklch */
+  --font-red-hat-display-root:
+    "Red Hat Display", ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    "Noto Sans", sans-serif;
 }
 
-/* OKLCH-based color system */
-:root {
-  --background: oklch(0.1128 0.043 258.66);
-  --card: oklch(0.2464 0.0379 294.95);
-  --primary: oklch(0.6082 0.2508 300.25);
-  --primary-hover: oklch(0.6 0.25 280);
-  --secondary: oklch(0.7 0.2 40);
-  --secondary-hover: oklch(0.65 0.2 40);
-  --accent: oklch(0.85 0.2 85);
-  --text: oklch(0.95 0.02 260);
+@theme inline {
+  --color-background: var(--color-background-root);
+  --color-card: var(--color-card-root);
+  --color-primary: var(--color-primary-root);
+  --color-primary-hover: var(--color-primary-hover-root);
+  --color-secondary: var(--color-secondary-root);
+  --color-secondary-hover: var(--color-secondary-hover-root);
+  --color-text-color: var(--color-text-color-root);
+  --font-red-hat-display: var(--font-red-hat-display-root);
+}
+
+/* Loader particles and star use only theme colors for drop-shadows */
+.loader-particle-1 {
+  filter: blur(2.5px) brightness(1.5) drop-shadow(0 0 8px var(--color-primary));
+}
+.loader-particle-2 {
+  filter: blur(3px) brightness(2) drop-shadow(0 0 10px var(--color-primary));
+}
+.loader-particle-3 {
+  filter: blur(3.5px) brightness(1.25) drop-shadow(0 0 9px var(--color-primary));
+}
+.loader-particle-4 {
+  filter: blur(2.5px) brightness(1.75) drop-shadow(0 0 7px var(--color-primary));
+}
+.loader-particle-5 {
+  filter: blur(3px) brightness(2) drop-shadow(0 0 10px var(--color-primary));
+}
+.loader-star {
+  filter: drop-shadow(0 0 8px var(--color-text-color))
+    drop-shadow(0 0 16px var(--color-primary));
+}
+
+.focus-ring-primary {
+  @apply focus:ring-primary focus:ring-2 focus:outline-none active:ring-0;
+}
+
+.selection-primary {
+  @apply selection:bg-primary/50 selection:text-white;
+}
+
+@keyframes glossy-shimmer {
+  0% {
+    opacity: 0.5;
+    transform: translateX(-30%) skewX(-12deg);
+  }
+  60% {
+    opacity: 0.8;
+    transform: translateX(40%) skewX(-12deg);
+  }
+  100% {
+    opacity: 0.5;
+    transform: translateX(110%) skewX(-12deg);
+  }
 }
 
 body {
   background: var(--color-background);
-  color: var(--color-text-light);
-  font-family: var(--font-sans);
+  color: var(--color-text-color);
+  font-family: var(--font-red-hat-display);
 }
 
 @keyframes chevron-pulse {
