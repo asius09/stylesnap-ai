@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { X, RefreshCw } from "lucide-react";
 import Image from "next/image";
 import { ImageData } from "@/types/style.types";
@@ -23,13 +23,24 @@ export const PreviewCard: React.FC<PreviewCardProps> = ({
   onRemove,
   onSwitchStyle,
 }) => {
+  // Use mounted state to avoid hydration issues
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // If convertedStyleLabel is present, treat as download image: no action buttons
   const isDownloadImage = !!convertedStyleLabel;
 
-  // Only use style prop in initial, not in animate/exit, to avoid hydration mismatch
+  // Only render content after mount to avoid hydration mismatch
+  if (!mounted) {
+    return null;
+  }
+
   return (
-    <div className="flex h-[400px] w-full flex-col items-center justify-center overflow-hidden">
-      <div className="border-primary relative mb-3 flex aspect-[4/5] h-[300px] w-[240px] items-center justify-center overflow-hidden rounded-xl border-1 shadow-lg">
+    <div className="flex w-full flex-col items-center justify-center overflow-hidden">
+      <div className="border-primary relative mb-2 flex aspect-[4/5] h-[300px] w-[240px] items-center justify-center overflow-hidden rounded-xl border-1 shadow-lg">
         {imageUrl && (
           <Image
             src={imageUrl}

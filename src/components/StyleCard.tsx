@@ -6,7 +6,8 @@ import { Button } from "./Button";
 
 interface StyleCardProps {
   style: ImageData;
-  onClick: (style: ImageData) => void;
+  onClick: (style: ImageData | null) => void; // allow null for deselect
+  onDeselect: () => void;
   index?: number;
   disabled?: boolean;
   selected?: boolean;
@@ -15,6 +16,7 @@ interface StyleCardProps {
 export const StyleCard: React.FC<StyleCardProps> = ({
   style,
   onClick,
+  onDeselect,
   index,
   disabled = false,
   selected = false,
@@ -26,7 +28,7 @@ export const StyleCard: React.FC<StyleCardProps> = ({
 
   // Compose className to conditionally remove focus:ring when active (clicked)
   const baseClass =
-    "relative flex aspect-[4/5] w-40 sm:w-44 md:w-48 lg:w-52 xl:w-56 max-w-[90vw] sm:max-w-[11rem] shrink-0 flex-col justify-end overflow-hidden rounded-xl border border-white/15 bg-white/10 whitespace-nowrap shadow-lg backdrop-blur-md transition-transform duration-200";
+    "relative flex aspect-[4/5] w-32 md:w-52  md:max-w-[11rem] xl:w-56  max-w-[9rem] shrink-0 flex-col justify-end overflow-hidden rounded-xl border border-white/15 bg-white/10 whitespace-nowrap shadow-lg backdrop-blur-md transition-transform duration-200";
   const pointerClass = disabled
     ? "cursor-not-allowed opacity-60 grayscale"
     : "cursor-pointer hover:shadow-2xl";
@@ -58,6 +60,21 @@ export const StyleCard: React.FC<StyleCardProps> = ({
     if (!disabled) setIsActive(false);
   };
 
+  // Deselect handler
+  const handleDeselect = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!disabled && onDeselect) onDeselect();
+  };
+
+  // Keyboard accessibility for deselect
+  const handleDeselectKeyDown = (e: React.KeyboardEvent) => {
+    if (disabled) return;
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (onDeselect) onDeselect();
+    }
+  };
+
   return (
     <div
       className={className}
@@ -79,10 +96,10 @@ export const StyleCard: React.FC<StyleCardProps> = ({
       }}
     >
       {/* All badges at the top */}
-      <div className="pointer-events-none absolute top-2 right-2 left-2 z-30 flex flex-row items-start justify-between">
-        <span className="selection:bg-primary/50 bg-primary/20 text-primary/90 selection:text-text-color inline-block rounded px-2 py-0.5 text-[10px] font-medium shadow-sm sm:text-[11px]">
+      <div className="pointer-events-none absolute top-2 right-2 left-2 z-30 flex flex-row items-end justify-end gap-2">
+        {/* <span className="selection:bg-primary/50 bg-primary/20 text-primary/90 selection:text-text-color inline-block rounded px-2 py-0.5 text-[10px] font-medium shadow-sm sm:text-[11px]">
           Trending
-        </span>
+        </span> */}
         {selected && !disabled && (
           <span className="bg-primary text-text-color ml-2 rounded px-2 py-0.5 text-[10px] font-semibold shadow ring-1 ring-white/70 sm:text-[11px]">
             Selected
@@ -94,6 +111,7 @@ export const StyleCard: React.FC<StyleCardProps> = ({
           </span>
         )}
       </div>
+
       <div className="absolute inset-0 z-0">
         {!imgError ? (
           <Image
@@ -120,17 +138,35 @@ export const StyleCard: React.FC<StyleCardProps> = ({
             {style.title}
           </h3>
         </div>
-        <Button
-          variant="gradient"
-          size="sm"
-          className="border-primary/40 pointer-events-none mt-1 w-[90%] border text-xs font-semibold shadow-lg hover:scale-105 sm:text-sm"
-          disabled={disabled}
-          aria-label={`Choose style: ${style.title}`}
-          tabIndex={-1}
-          style={{ paddingTop: "0.2rem", paddingBottom: "0.2rem" }}
-        >
-          <span className="px-4 py-1">{selected ? "Selected" : "Select"}</span>
-        </Button>
+        {selected && !disabled ? (
+          <Button
+            variant="filled"
+            size="sm"
+            className="border-primary/40 mt-1 w-[90%] rounded-xl border text-xs font-semibold shadow-lg hover:scale-105 sm:text-sm"
+            disabled={disabled}
+            aria-label={`Deselect style: ${style.title}`}
+            tabIndex={0}
+            style={{ paddingTop: "0.2rem", paddingBottom: "0.2rem" }}
+            onClick={handleDeselect}
+            onKeyDown={handleDeselectKeyDown}
+            type="button"
+          >
+            <span className="px-4 py-1">Deselect</span>
+          </Button>
+        ) : (
+          <Button
+            variant="gradient"
+            size="sm"
+            className="border-primary/40 mt-1 w-[90%] border text-xs font-semibold shadow-lg hover:scale-105 sm:text-sm"
+            disabled={disabled}
+            aria-label={`Choose style: ${style.title}`}
+            tabIndex={-1}
+            style={{ paddingTop: "0.2rem", paddingBottom: "0.2rem" }}
+            type="button"
+          >
+            <span className="px-4 py-1">Select</span>
+          </Button>
+        )}
       </div>
     </div>
   );

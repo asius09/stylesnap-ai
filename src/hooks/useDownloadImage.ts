@@ -50,13 +50,12 @@ export const useDownloadImage = ({
         const newTab = window.open();
         if (newTab) {
           newTab.document.write(
-            `<html><head><title>Download Image</title></head><body style="margin:0"><img src="${blobUrl}" style="width:100vw;max-width:100%;height:auto;display:block;"/></body></html>`
+            `<html><head><title>Download Image</title></head><body style="margin:0"><img src="${blobUrl}" style="width:100vw;max-width:100%;height:auto;display:block;"/></body></html>`,
           );
           if (addToast)
             addToast({
               type: "info",
-              message:
-                "Tap and hold the image to save it to your device.",
+              message: "Tap and hold the image to save it to your device.",
             });
         } else {
           // Fallback: just navigate to the image

@@ -7,7 +7,7 @@ export default function ContactPage() {
   const year = new Date().getFullYear();
   return (
     <main className="bg-background text-text-color flex min-h-screen flex-col items-center justify-center px-4 py-12">
-      <section className="bg-card w-full max-w-md flex flex-col gap-6 rounded-2xl p-8 shadow-lg">
+      <section className="bg-card flex w-full max-w-md flex-col gap-6 rounded-2xl p-8 shadow-lg">
         <h1 className="text-primary mb-2 text-3xl font-bold">Contact</h1>
         <p className="text-base text-gray-300">
           Reach out for questions, feedback, or collaboration.
@@ -77,7 +77,7 @@ function ContactItem({
         href={href}
         target={external ? "_blank" : undefined}
         rel={external ? "noopener noreferrer" : undefined}
-        className="text-secondary inline-flex items-center gap-2 rounded underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        className="text-secondary focus-visible:ring-primary inline-flex items-center gap-2 rounded underline focus:outline-none focus-visible:ring-2"
       >
         {icon}
         <span className="break-all">{value}</span>
