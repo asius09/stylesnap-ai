@@ -4,6 +4,8 @@ export const TRIAL_ID_LOCAL_STORAGE_KEY = "trialId";
 export const DAILY_QUOTA_TABLE_NAME = "daily_quota";
 export const REPLICATE_IMAGE_MODEL = "black-forest-labs/flux-kontext-pro";
 export const IMAGES_BUCKET_NAME = "upload_images";
+export const GEMINI_IMAGE_MODEL = "gemini-2.0-flash-preview-image-generation";
+export const GEMINI_IMAGE_MODEL_2 = "imagen-4.0-generate-001";
 // Add other table constants here as needed in the future
 /**
  * ---- Status Types ----
